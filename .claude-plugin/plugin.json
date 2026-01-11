@@ -1,0 +1,12 @@
+{
+  "name": "the-bulwark",
+  "description": "Deterministic quality governance layer for AI-assisted software development. Enforces testing discipline, code review, and quality gates through hooks, sub-agents, and skills.",
+  "version": "0.1.0",
+  "commands": [],
+  "agents": "agents/",
+  "skills": "skills/",
+  "hooks": "hooks/hooks.json",
+  "author": {
+    "name": "Ashay Kubal"
+  }
+}

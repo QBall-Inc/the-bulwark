@@ -1,0 +1,7 @@
+{
+  "description": "The Bulwark quality enforcement hooks",
+  "hooks": {
+    "PostToolUse": [],
+    "SessionStart": []
+  }
+}

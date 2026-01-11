@@ -1,0 +1,33 @@
+# Logs
+logs/diagnostics/*.yaml
+logs/*.log
+
+# Keep log directories but ignore contents
+!logs/.gitkeep
+!logs/diagnostics/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Node (if used for testing)
+node_modules/
+npm-debug.log
+
+# Python (if used for testing)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Temporary files
+*.tmp
+*.bak

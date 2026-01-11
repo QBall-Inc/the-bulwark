@@ -1,0 +1,702 @@
+# The Bulwark - Task Breakdown
+#
+# Each task has an implementation plan in plans/task-briefs/P{phase}.{task}-{name}.md
+# Tasks are designed to be self-contained or explicitly dependent
+#
+# SCHEDULE RATIONALE:
+# - P0: Foundation skills + Test Audit skills (T1-T4 rules encoded here)
+# - P1: Early Agents (as skills with context: fork - available for rest of development)
+# - P2: Verification Scripts
+# - P3: Enforcement Infrastructure (hooks with once: true, just)
+# - P4: Review Skills + Code Auditor + Implementer (as skills with context: fork)
+# - P5: Commands, Evolution (Ralph loops), Testing, and Polish
+#
+# CLAUDE CODE 2.1.1 UPDATES:
+# - Agents implemented as skills with context: fork
+# - Skills use flat directory structure (no atomic/composite nesting)
+# - User-invocable: false for internal skills
+# - agent: haiku/sonnet for model selection
+# - once: true for SessionStart hooks
+# - Diagnostic output REQUIRED for ALL skills (validated 2026-01-10)
+# - Ralph Wiggum loops for iterative creation
+#
+# DIAGNOSTIC OUTPUT REQUIREMENT (Added 2026-01-10):
+# All skills MUST include a Diagnostic Output section that writes to:
+#   logs/diagnostics/{skill-name}-{timestamp}.yaml
+# Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
+
+project: the-bulwark
+version: 4.0.1
+created: 2026-01-04
+updated: 2026-01-10
+current_phase: P0
+current_task: P0.2
+
+phases:
+  - id: P0
+    name: "Foundation & Test Audit Skills"
+    description: "Skills needed for workflow + test auditing (T1-T4 rules encoded here)"
+    status: in_progress
+    tasks:
+      - id: P0.1
+        name: "Create subagent-prompting skill"
+        status: completed
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P0.1-subagent-prompting.md"
+        deliverables:
+          - "skills/subagent-prompting/SKILL.md"
+        acceptance_criteria:
+          - "4-part template defined (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)"
+          - "Pipeline syntax documented with examples"
+          - "Model selection guidance included"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Apply template to sample sub-agent invocation"
+          - "Verify all 4 parts present and useful"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.2
+        name: "Create subagent-output-templating skill"
+        status: not_started
+        dependencies: [P0.1]
+        implementation_plan: "plans/task-briefs/P0.2-subagent-output-templating.md"
+        deliverables:
+          - "skills/subagent-output-templating/SKILL.md"
+        acceptance_criteria:
+          - "Log file format defined"
+          - "Task completion report template (WHY/WHAT/TRADE-OFFS/RISKS)"
+          - "Summary format for main thread (200 tokens max)"
+          - "Diagnostic output format documented"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Generate sample output using template"
+          - "Verify structure is parseable and useful"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.3
+        name: "Create pipeline-templates skill"
+        status: not_started
+        dependencies: [P0.1, P0.2]
+        implementation_plan: "plans/task-briefs/P0.3-pipeline-templates.md"
+        deliverables:
+          - "skills/pipeline-templates/SKILL.md"
+        acceptance_criteria:
+          - "Code review pipeline defined"
+          - "Fix validation pipeline defined"
+          - "Test audit pipeline defined"
+          - "New feature pipeline defined"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Execute sample pipeline flow"
+          - "Verify conditional branching works"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.4
+        name: "Create issue-debugging skill"
+        status: not_started
+        dependencies: [P0.1, P0.2]
+        implementation_plan: "plans/task-briefs/P0.4-issue-debugging.md"
+        deliverables:
+          - "skills/issue-debugging/SKILL.md"
+        acceptance_criteria:
+          - "Holistic analysis procedure defined"
+          - "Fix validation loop documented"
+          - "No one-fix-done checklist included"
+          - "Debug journey logging format defined"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Apply to sample issue"
+          - "Verify loop continues until validation passes"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.5
+        name: "Create anthropic-validator skill (2.1.1 updated)"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P0.5-anthropic-validator.md"
+        deliverables:
+          - "skills/anthropic-validator/SKILL.md"
+        acceptance_criteria:
+          - "Hooks validation checklist (includes once: true)"
+          - "Skills validation checklist (2.1.1 fields: context, agent, user-invocable, hooks)"
+          - "Agents-as-skills validation checklist (context: fork required)"
+          - "Plugin validation checklist (flat skills/ structure)"
+          - "Diagnostic output validation checklist"
+          - "Reference docs linked"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Validate a sample hook against checklist"
+          - "Validate a sample skill with 2.1.1 frontmatter"
+          - "Catch intentional guideline violation"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      # Test Audit Skills (moved from P1 - encodes T1-T4 rules)
+      - id: P0.6
+        name: "Create test-classification skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P0.6-test-classification.md"
+        deliverables:
+          - "skills/test-classification/SKILL.md"
+        acceptance_criteria:
+          - "Real integration test indicators defined"
+          - "Mock-based test indicators defined"
+          - "Classification output format specified"
+          - "Frontmatter: agent: haiku (pattern matching)"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Classify sample real integration test"
+          - "Classify sample mock-heavy test"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.7
+        name: "Create mock-detection skill"
+        status: not_started
+        dependencies: [P0.6]
+        implementation_plan: "plans/task-briefs/P0.7-mock-detection.md"
+        deliverables:
+          - "skills/mock-detection/SKILL.md"
+        acceptance_criteria:
+          - "High-risk patterns identified"
+          - "Warning signs documented"
+          - "Detection procedure defined"
+          - "Frontmatter: agent: haiku (pattern matching)"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Detect mocked spawn() in sample test"
+          - "Verify real test not flagged"
+          - "Verify skill does NOT appear in / menu"
+        estimated_sessions: 1
+
+      - id: P0.8
+        name: "Create test-audit composite skill"
+        status: not_started
+        dependencies: [P0.6, P0.7]
+        implementation_plan: "plans/task-briefs/P0.8-test-audit.md"
+        deliverables:
+          - "skills/test-audit/SKILL.md"
+        acceptance_criteria:
+          - "Orchestrates test-classification and mock-detection"
+          - "Produces YAML inventory output"
+          - "Priority field for rewrite urgency"
+          - "Frontmatter: agent: sonnet (complex analysis)"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Audit sample test directory"
+          - "Verify YAML output valid and complete"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+  - id: P1
+    name: "Early Agents (as Skills with context: fork)"
+    description: "Test auditor and issue debugger available for rest of development - implemented as skills"
+    status: not_started
+    tasks:
+      - id: P1.1
+        name: "Create bulwark-test-auditor agent (as skill)"
+        status: not_started
+        dependencies: [P0.8, P0.1]
+        implementation_plan: "plans/task-briefs/P1.1-bulwark-test-auditor.md"
+        deliverables:
+          - "skills/bulwark-test-auditor/SKILL.md"
+          - "scripts/agents/finalize-test-auditor.sh"
+        acceptance_criteria:
+          - "Frontmatter: context: fork (isolated execution)"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+          - "Stop hook for finalization"
+          - "Uses test-audit skill"
+          - "Classifies tests"
+          - "Output to logs/"
+          - "Diagnostic output to logs/diagnostics/"
+        verification:
+          - "Invoke on test suite"
+          - "Verify YAML classification"
+          - "Verify runs in forked context (check diagnostics)"
+          - "Verify Stop hook fires"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+      - id: P1.2
+        name: "Create bulwark-issue-debugger agent (as skill)"
+        status: not_started
+        dependencies: [P0.4]
+        implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-debugger.md"
+        deliverables:
+          - "skills/bulwark-issue-debugger/SKILL.md"
+          - "scripts/agents/finalize-issue-debugger.sh"
+        acceptance_criteria:
+          - "Frontmatter: context: fork (isolated execution)"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+          - "Stop hook for finalization"
+          - "Uses issue-debugging skill"
+          - "Enforces validation loop"
+          - "Documents debug journey"
+          - "Diagnostic output to logs/diagnostics/"
+        verification:
+          - "Invoke on sample issue"
+          - "Verify loop until validated"
+          - "Verify runs in forked context (check diagnostics)"
+          - "Verify Stop hook fires"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+  - id: P2
+    name: "Verification Scripts"
+    description: "Skills for creating verification scripts"
+    status: not_started
+    tasks:
+      - id: P2.1
+        name: "Create assertion-patterns skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P2.1-assertion-patterns.md"
+        deliverables:
+          - "skills/assertion-patterns/SKILL.md"
+        acceptance_criteria:
+          - "Forbidden patterns documented"
+          - "Required patterns documented"
+          - "Transformation examples included"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Identify forbidden pattern in sample"
+          - "Suggest correct replacement"
+        estimated_sessions: 1
+
+      - id: P2.2
+        name: "Create component-patterns skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P2.2-component-patterns.md"
+        deliverables:
+          - "skills/component-patterns/SKILL.md"
+        acceptance_criteria:
+          - "CLI command verification pattern"
+          - "HTTP server verification pattern"
+          - "File parser verification pattern"
+          - "Process spawner verification pattern"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Generate verification approach for each type"
+        estimated_sessions: 1
+
+      - id: P2.3
+        name: "Create verification-script composite skill"
+        status: not_started
+        dependencies: [P2.1, P2.2]
+        implementation_plan: "plans/task-briefs/P2.3-verification-script.md"
+        deliverables:
+          - "skills/verification-script/SKILL.md"
+        acceptance_criteria:
+          - "Orchestrates component-patterns and assertion-patterns"
+          - "Produces runnable bash scripts"
+          - "Scripts report pass/fail"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Create verification script for sample component"
+          - "Run script, verify it catches failures"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+  - id: P3
+    name: "Enforcement Infrastructure"
+    description: "Hooks and just integration for deterministic enforcement"
+    status: not_started
+    tasks:
+      - id: P3.1
+        name: "Create Justfile templates"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P3.1-justfile-templates.md"
+        deliverables:
+          - "lib/templates/justfile-node.just"
+          - "lib/templates/justfile-python.just"
+          - "lib/templates/justfile-rust.just"
+          - "lib/templates/justfile-generic.just"
+        acceptance_criteria:
+          - "Each has lint, test, typecheck, fix recipes"
+          - "All use log-based output pattern"
+          - "Summary only to stdout"
+        verification:
+          - "Copy template to test project"
+          - "Run just lint, verify log output"
+        estimated_sessions: 1
+
+      - id: P3.2
+        name: "Create scaffold command"
+        status: not_started
+        dependencies: [P3.1]
+        implementation_plan: "plans/task-briefs/P3.2-scaffold-command.md"
+        deliverables:
+          - "commands/scaffold.md"
+          - "scripts/scaffold.sh"
+        acceptance_criteria:
+          - "Detects project type"
+          - "Generates appropriate Justfile"
+          - "Creates logs directory"
+        verification:
+          - "Run in Node project, verify Justfile"
+          - "Run in Python project, verify correct template"
+        estimated_sessions: 1
+
+      - id: P3.3
+        name: "Create enforce-quality script"
+        status: not_started
+        dependencies: [P3.1]
+        implementation_plan: "plans/task-briefs/P3.3-enforce-quality.md"
+        deliverables:
+          - "scripts/enforce-quality.sh"
+        acceptance_criteria:
+          - "Uses ${CLAUDE_PLUGIN_ROOT} for plugin, $CLAUDE_PROJECT_DIR for project"
+          - "Calls just typecheck and lint"
+          - "Exit 2 on failure"
+          - "Truncates output"
+        verification:
+          - "Trigger with failing code, verify Exit 2"
+          - "Trigger with passing code, verify Exit 0"
+        estimated_sessions: 1
+
+      - id: P3.4
+        name: "Configure PostToolUse hook"
+        status: not_started
+        dependencies: [P3.3]
+        implementation_plan: "plans/task-briefs/P3.4-posttooluse-hook.md"
+        deliverables:
+          - "hooks/hooks.json"
+        acceptance_criteria:
+          - "Triggers on Edit and Write"
+          - "Matches code files"
+          - "Calls enforce-quality.sh"
+        verification:
+          - "Edit .ts file with error, verify blocked"
+        estimated_sessions: 1
+
+      - id: P3.5
+        name: "Create SessionStart protocol (once: true)"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P3.5-sessionstart-protocol.md"
+        deliverables:
+          - "scripts/inject-protocol.sh"
+        acceptance_criteria:
+          - "Hook configured with once: true (2.1.1)"
+          - "Injects governance protocol"
+          - "Reminds of review requirement"
+          - "Logs to hooks.log for verification"
+        verification:
+          - "Start session, verify protocol visible"
+          - "Force reload, verify protocol does NOT re-inject"
+          - "Verify hooks.log shows exactly one SessionStart entry"
+        estimated_sessions: 1
+
+  - id: P4
+    name: "Review Skills & Remaining Agents (as Skills)"
+    description: "Review skills and code auditor/implementer agents - implemented as skills"
+    status: not_started
+    tasks:
+      - id: P4.1
+        name: "Create security-heuristics skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P4.1-security-heuristics.md"
+        deliverables:
+          - "skills/security-heuristics/SKILL.md"
+        acceptance_criteria:
+          - "OWASP patterns covered"
+          - "Injection checks defined"
+          - "Auth/authz checks included"
+          - "Frontmatter: agent: sonnet (nuanced judgment)"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Apply to code with SQL injection"
+          - "Verify flagged"
+        estimated_sessions: 1
+
+      - id: P4.2
+        name: "Create type-safety skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P4.2-type-safety.md"
+        deliverables:
+          - "skills/type-safety/SKILL.md"
+        acceptance_criteria:
+          - "any usage detection"
+          - "Null handling patterns"
+          - "Unsafe assertion detection"
+          - "Frontmatter: agent: sonnet (nuanced judgment)"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Apply to code with any, verify flagged"
+        estimated_sessions: 1
+
+      - id: P4.3
+        name: "Create bug-magnet-data skill"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P4.3-bug-magnet-data.md"
+        deliverables:
+          - "skills/bug-magnet-data/SKILL.md"
+          - "skills/bug-magnet-data/data/heuristics.json"
+        acceptance_criteria:
+          - "String edge cases (unicode, emoji, injection)"
+          - "Number edge cases (0, negative, MAX_INT)"
+          - "Date edge cases (leap year, timezone)"
+          - "Frontmatter: agent: haiku (data retrieval)"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Pull edge case data for test"
+        estimated_sessions: 1
+
+      - id: P4.4
+        name: "Create code-review composite skill"
+        status: not_started
+        dependencies: [P4.1, P4.2]
+        implementation_plan: "plans/task-briefs/P4.4-code-review.md"
+        deliverables:
+          - "skills/code-review/SKILL.md"
+        acceptance_criteria:
+          - "Orchestrates security and type-safety"
+          - "Structured review output"
+          - "Severity categorization"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Review code with known issues"
+          - "Verify all identified"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+      - id: P4.5
+        name: "Create bulwark-code-auditor agent (as skill)"
+        status: not_started
+        dependencies: [P4.4, P0.1]
+        implementation_plan: "plans/task-briefs/P4.5-bulwark-code-auditor.md"
+        deliverables:
+          - "skills/bulwark-code-auditor/SKILL.md"
+          - "scripts/agents/finalize-code-auditor.sh"
+        acceptance_criteria:
+          - "Frontmatter: context: fork (isolated execution)"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+          - "Stop hook for finalization"
+          - "Uses code-review skill"
+          - "Never fixes, only identifies"
+          - "Output to logs/"
+          - "Diagnostic output to logs/diagnostics/"
+        verification:
+          - "Invoke on code with defects"
+          - "Verify returns list, not fixes"
+          - "Verify runs in forked context (check diagnostics)"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+      - id: P4.6
+        name: "Create bulwark-implementer agent (as skill)"
+        status: not_started
+        dependencies: [P0.1]
+        implementation_plan: "plans/task-briefs/P4.6-bulwark-implementer.md"
+        deliverables:
+          - "skills/bulwark-implementer/SKILL.md"
+          - "scripts/agents/finalize-implementer.sh"
+        acceptance_criteria:
+          - "Frontmatter: context: fork (isolated execution)"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+          - "Stop hook for finalization"
+          - "Agent-scoped PostToolUse hook for quality enforcement"
+          - "Follows Bulwark standards"
+          - "Produces code + tests"
+          - "Output to logs/"
+          - "Diagnostic output to logs/diagnostics/"
+        verification:
+          - "Invoke with plan"
+          - "Verify output quality"
+          - "Verify runs in forked context (check diagnostics)"
+          - "Verify PostToolUse hook fires on Write"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+  - id: P5
+    name: "Commands, Evolution, Testing, and Polish"
+    description: "User-facing commands, evolution tools with Ralph loops, and testing infrastructure"
+    status: not_started
+    tasks:
+      - id: P5.1
+        name: "Create audit command"
+        status: not_started
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.1-audit-command.md"
+        deliverables:
+          - "commands/audit.md"
+        acceptance_criteria:
+          - "Invokes test-audit skill"
+          - "Outputs YAML to file"
+          - "Summarizes findings"
+        verification:
+          - "Run /bulwark:audit"
+          - "Verify YAML generated"
+        estimated_sessions: 1
+
+      - id: P5.2
+        name: "Create verify command"
+        status: not_started
+        dependencies: [P2.3]
+        implementation_plan: "plans/task-briefs/P5.2-verify-command.md"
+        deliverables:
+          - "commands/verify.md"
+        acceptance_criteria:
+          - "Invokes verification-script skill"
+          - "Runs generated scripts"
+          - "Reports pass/fail"
+        verification:
+          - "Run /bulwark:verify"
+          - "Verify scripts execute"
+        estimated_sessions: 1
+
+      - id: P5.3
+        name: "Create continuous-feedback skill"
+        status: not_started
+        dependencies: [P0.2]
+        implementation_plan: "plans/task-briefs/P5.3-continuous-feedback.md"
+        deliverables:
+          - "skills/continuous-feedback/SKILL.md"
+        acceptance_criteria:
+          - "Learning capture procedure defined"
+          - "Skill enhancement workflow documented"
+          - "Backup and restore pattern included"
+          - "Frontmatter: user-invocable: false"
+        verification:
+          - "Capture sample learning"
+          - "Propose enhancement to existing skill"
+        estimated_sessions: 1
+
+      - id: P5.4
+        name: "Create skill-creator skill (with Ralph loop)"
+        status: not_started
+        dependencies: [P5.3]
+        implementation_plan: "plans/task-briefs/P5.4-skill-creator.md"
+        deliverables:
+          - "skills/skill-creator/SKILL.md"
+        acceptance_criteria:
+          - "Follows Bulwark skill patterns (2.1.1)"
+          - "4-iteration Ralph loop guidance included"
+          - "Includes anthropic-validator validation step"
+          - "Generates skills with correct frontmatter"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Create new skill using creator"
+          - "Verify passes anthropic-validator"
+          - "Verify 4-iteration guidance followed"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+      - id: P5.5
+        name: "Create agent-creator skill (context: fork + Ralph loop)"
+        status: not_started
+        dependencies: [P5.3]
+        implementation_plan: "plans/task-briefs/P5.5-agent-creator.md"
+        deliverables:
+          - "skills/agent-creator/SKILL.md"
+        acceptance_criteria:
+          - "Generates agents as skills with context: fork (2.1.1)"
+          - "4-iteration Ralph loop guidance included"
+          - "Includes 4-part template usage"
+          - "Generates Stop hook configuration"
+          - "Generates diagnostic output section"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Create new agent using creator"
+          - "Verify passes anthropic-validator"
+          - "Verify generated agent has context: fork"
+          - "Verify skill appears in / menu"
+        estimated_sessions: 1
+
+      - id: P5.6
+        name: "Finalize plugin manifest"
+        status: not_started
+        dependencies: [P5.1, P5.2, P4.5, P4.6, P1.1, P1.2]
+        implementation_plan: "plans/task-briefs/P5.6-plugin-manifest.md"
+        deliverables:
+          - ".claude-plugin/plugin.json"
+        acceptance_criteria:
+          - "All commands registered"
+          - "All skills discoverable (flat structure)"
+          - "Global hooks configured (hooks.json)"
+          - "No agents/ directory (agents are skills)"
+        verification:
+          - "Install plugin in test project"
+          - "Verify all components accessible"
+          - "Verify skills appear correctly in / menu"
+        estimated_sessions: 1
+
+      - id: P5.7
+        name: "Create rollout documentation"
+        status: not_started
+        dependencies: [P5.6]
+        implementation_plan: "plans/task-briefs/P5.7-rollout-docs.md"
+        deliverables:
+          - "docs/rollout-guide.md"
+          - "docs/quickstart.md"
+        acceptance_criteria:
+          - "Installation instructions"
+          - "Phased rollout guide"
+          - "2.1.1 features documented"
+          - "Troubleshooting section"
+        verification:
+          - "Follow quickstart in new project"
+          - "Verify all steps work"
+        estimated_sessions: 1
+
+      - id: P5.8
+        name: "Create testing infrastructure"
+        status: not_started
+        dependencies: [P1.1, P1.2, P4.5, P4.6]
+        implementation_plan: "plans/task-briefs/P5.8-testing-infrastructure.md"
+        deliverables:
+          - "tests/run-diagnostic-tests.sh"
+          - "tests/manual-test-protocol.md"
+          - "tests/fixtures/"
+        acceptance_criteria:
+          - "Automated diagnostic test script"
+          - "Tests context: fork isolation"
+          - "Tests once: true behavior"
+          - "Tests model selection"
+          - "Tests user-invocable visibility"
+          - "Manual test protocol documented"
+          - "Test fixtures for audit testing"
+        verification:
+          - "Run tests/run-diagnostic-tests.sh"
+          - "All automated tests pass"
+          - "Execute manual test protocol"
+          - "Document results"
+        estimated_sessions: 1
+
+# Summary
+summary:
+  total_tasks: 31
+  total_estimated_sessions: 31
+  phases:
+    P0: 8 tasks (Foundation & Test Audit Skills)
+    P1: 2 tasks (Early Agents as skills with context: fork)
+    P2: 3 tasks (Verification Scripts)
+    P3: 5 tasks (Enforcement Infrastructure with once: true)
+    P4: 6 tasks (Review Skills & Remaining Agents as skills)
+    P5: 8 tasks (Commands, Evolution with Ralph loops, Testing, and Polish)
+  claude_code_2_1_1_features:
+    - "context: fork for all agents"
+    - "agent: haiku/sonnet for model selection"
+    - "user-invocable: true/false for menu visibility"
+    - "once: true for SessionStart hooks"
+    - "Flat skills/ directory (no nesting)"
+    - "Ralph Wiggum loops for iterative creation"
+    - "Diagnostic output for behavioral testing"
