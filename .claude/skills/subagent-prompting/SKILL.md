@@ -162,27 +162,50 @@ Sub-agents CANNOT spawn other sub-agents. All pipeline orchestration happens fro
 
 ## Model Selection Guidance
 
-### Decision Matrix
+### Task-Type Based Selection (Objective)
 
-| Model | Use For | Cost | When to Choose |
-|-------|---------|------|----------------|
-| **Opus** | Planning, architecture, novel problems | Highest | System design decisions, security audits requiring judgment, complex trade-off analysis |
-| **Sonnet** | Development, complex analysis, integration | Medium | Feature implementation, code review, most sub-agent tasks |
-| **Haiku** | Operations, pattern matching, lookups | Lowest | Unit tests, classification tasks, quick file searches |
+Model selection is based on **task type**, not subjective complexity. This keeps selection deterministic and objective.
 
-### Model Selection Rules
+| Model | Task Type | Examples |
+|-------|-----------|----------|
+| **Haiku** | Lookups & Execution | Web fetch, file read/summarize, collect logs, run tests, typecheck, lint, simple classification |
+| **Sonnet** | Review & Analysis | Code review, test review, audits, failure analysis, security analysis |
+| **Opus** | Write & Fix | Write code, write tests, write fixes, apply changes |
 
-1. **Opus is ONLY for planning/architecture** - Reserve expensive models for decisions, not execution
-2. **Sonnet is the default** - Use for most sub-agent work requiring analysis
-3. **Haiku for simple tasks** - Pattern matching, classification, quick lookups
+### Selection Rules
+
+1. **Determine task type from the action verb**:
+   - Lookup/Execute/Run/Fetch → **Haiku**
+   - Review/Analyze/Audit/Classify → **Sonnet**
+   - Write/Fix/Implement/Apply → **Opus**
+
+2. **Custom agent override**: If a custom sub-agent has `agent:` in its frontmatter, use that model instead of these rules.
+
+3. **Always specify model**: Every Task() invocation must include `subagent_type`.
+
+### Pipeline Example
+
+```
+Orchestrator (Opus) writes initial code
+     ↓
+Sub-agent (Sonnet) reviews → finds issues
+     ↓
+Sub-agent (Opus) fixes
+     ↓
+Sub-agent (Sonnet) re-reviews
+     ↓
+[Loop until clean]
+```
 
 ### Anti-Patterns
 
 | Anti-Pattern | Why It's Wrong | Correct Approach |
 |--------------|----------------|------------------|
-| Using Opus for implementation | Wastes budget on execution | Use Sonnet for implementation |
-| Using Haiku for security audits | Misses nuanced vulnerabilities | Use Sonnet or Opus |
+| Using Opus for lookups | Wastes budget on simple tasks | Use Haiku for lookups |
+| Using Haiku for code review | Misses nuanced issues | Use Sonnet for analysis |
+| Using Sonnet for writing fixes | Suboptimal quality | Use Opus for writing |
 | No model specified | Unpredictable behavior | Always specify `subagent_type` |
+| Ignoring custom agent frontmatter | Overrides intended behavior | Respect `agent:` field |
 
 ---
 

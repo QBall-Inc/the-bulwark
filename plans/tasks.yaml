@@ -28,9 +28,9 @@
 project: the-bulwark
 version: 4.0.1
 created: 2026-01-04
-updated: 2026-01-10
+updated: 2026-01-11
 current_phase: P0
-current_task: P0.2
+current_task: P0.3
 
 phases:
   - id: P0
@@ -58,7 +58,7 @@ phases:
 
       - id: P0.2
         name: "Create subagent-output-templating skill"
-        status: not_started
+        status: completed
         dependencies: [P0.1]
         implementation_plan: "plans/task-briefs/P0.2-subagent-output-templating.md"
         deliverables:
@@ -82,16 +82,39 @@ phases:
         implementation_plan: "plans/task-briefs/P0.3-pipeline-templates.md"
         deliverables:
           - "skills/pipeline-templates/SKILL.md"
+          - "skills/pipeline-templates/references/code-review.md"
+          - "skills/pipeline-templates/references/fix-validation.md"
+          - "skills/pipeline-templates/references/test-audit.md"
+          - "skills/pipeline-templates/references/new-feature.md"
+          - "skills/pipeline-templates/references/research-planning.md"
+          - "skills/pipeline-templates/references/test-execution-fix.md"
+          - "scripts/hooks/validate-pipeline.sh"
+          - "scripts/hooks/track-pipeline-start.sh"
+          - "scripts/hooks/track-pipeline-stop.sh"
+          - "tests/agents/code-analyzer.md"
+          - "tests/agents/file-counter.md"
+          - "tests/manual-test-protocol.md"
         acceptance_criteria:
           - "Code review pipeline defined"
           - "Fix validation pipeline defined"
           - "Test audit pipeline defined"
           - "New feature pipeline defined"
+          - "Research & planning pipeline defined (min 3 iterations)"
+          - "Test execution & fix pipeline defined"
+          - "PreToolUse hook validates Task calls"
+          - "SubagentStart/Stop hooks track progress"
+          - "Single-agent tasks bypass validation silently"
+          - "Model selection references P0.1 task-type rubric"
           - "Frontmatter: user-invocable: false"
         verification:
           - "Execute sample pipeline flow"
           - "Verify conditional branching works"
+          - "Verify hook scripts fire correctly"
+          - "Verify single-agent bypass works"
           - "Verify skill does NOT appear in / menu"
+        notes:
+          - "Development hooks configured in .claude/settings.json"
+          - "P3.4 will migrate pipeline hooks to hooks/hooks.json"
         estimated_sessions: 1
 
       - id: P0.4
@@ -365,18 +388,24 @@ phases:
         estimated_sessions: 1
 
       - id: P3.4
-        name: "Configure PostToolUse hook"
+        name: "Configure global hooks (hooks.json)"
         status: not_started
         dependencies: [P3.3]
-        implementation_plan: "plans/task-briefs/P3.4-posttooluse-hook.md"
+        implementation_plan: "plans/task-briefs/P3.4-global-hooks.md"
         deliverables:
           - "hooks/hooks.json"
         acceptance_criteria:
-          - "Triggers on Edit and Write"
-          - "Matches code files"
-          - "Calls enforce-quality.sh"
+          - "PostToolUse (Edit|Write): Quality enforcement, calls enforce-quality.sh"
+          - "PreToolUse (Task): Pipeline validation (from P0.3)"
+          - "SubagentStart: Pipeline tracking (from P0.3)"
+          - "SubagentStop: Pipeline tracking (from P0.3)"
+          - "Matches code files for quality hooks"
         verification:
           - "Edit .ts file with error, verify blocked"
+          - "Invoke Task, verify pipeline hook fires"
+        notes:
+          - "Migrate P0.3 pipeline hooks from .claude/settings.json to hooks/hooks.json"
+          - "P0.3 hooks: scripts/hooks/validate-pipeline.sh, track-pipeline-start.sh, track-pipeline-stop.sh"
         estimated_sessions: 1
 
       - id: P3.5

@@ -419,6 +419,20 @@ Investigation
 |> CodeAuditor (final)
 ```
 
+**Development Hooks (P0.3):**
+
+Pipeline validation requires global hooks for deterministic skill loading:
+
+| Hook | Script | Purpose |
+|------|--------|---------|
+| PreToolUse (Task) | `scripts/hooks/validate-pipeline.sh` | Validate pipeline usage, inject guidance |
+| SubagentStart | `scripts/hooks/track-pipeline-start.sh` | Track pipeline stage start |
+| SubagentStop | `scripts/hooks/track-pipeline-stop.sh` | Track completion, support branching |
+
+- Configured in `.claude/settings.json` for development
+- Migrated to `hooks/hooks.json` in P3.4 for plugin deployment
+- Single-agent tasks (explore, lookup) bypass validation silently
+
 ### 4.4 anthropic-validator (P0.5)
 
 **Purpose**: Validate implementations against official Anthropic guidelines
