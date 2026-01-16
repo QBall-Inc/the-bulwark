@@ -5,14 +5,15 @@
 #
 # SCHEDULE RATIONALE:
 # - P0: Foundation skills + Test Audit skills (T1-T4 rules encoded here)
-# - P1: Early Agents (as skills with context: fork - available for rest of development)
+# - P1: Early Agents (custom sub-agents for pipeline stages)
 # - P2: Verification Scripts
 # - P3: Enforcement Infrastructure (hooks with once: true, just)
-# - P4: Review Skills + Code Auditor + Implementer (as skills with context: fork)
+# - P4: Review Skills + Standalone Auditor/Implementer agents
 # - P5: Commands, Evolution (Ralph loops), Testing, and Polish
 #
 # CLAUDE CODE 2.1.1 UPDATES:
-# - Agents implemented as skills with context: fork
+# - Custom sub-agents defined as markdown files in tests/agents/ or skills/
+# - Pipeline stages use general-purpose agents with role-based prompts + skill references
 # - Skills use flat directory structure (no atomic/composite nesting)
 # - User-invocable: false for internal skills
 # - agent: haiku/sonnet for model selection
@@ -20,15 +21,21 @@
 # - Diagnostic output REQUIRED for ALL skills (validated 2026-01-10)
 # - Ralph Wiggum loops for iterative creation
 #
+# ARCHITECTURE CLARIFICATION (Updated 2026-01-16):
+# - Pipelines orchestrate general-purpose sub-agents with specific roles
+# - Each pipeline stage loads relevant skill via frontmatter (skills: skill-name)
+# - Custom sub-agents (e.g., bulwark-issue-analyzer) encapsulate stage behavior
+# - Standalone agents (e.g., bulwark-code-auditor) for ad-hoc use outside pipelines
+#
 # DIAGNOSTIC OUTPUT REQUIREMENT (Added 2026-01-10):
 # All skills MUST include a Diagnostic Output section that writes to:
 #   logs/diagnostics/{skill-name}-{timestamp}.yaml
 # Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
 
 project: the-bulwark
-version: 4.0.1
+version: 4.1.0
 created: 2026-01-04
-updated: 2026-01-12
+updated: 2026-01-16
 current_phase: P0
 current_task: P0.4
 
@@ -119,21 +126,29 @@ phases:
 
       - id: P0.4
         name: "Create issue-debugging skill"
-        status: not_started
+        status: in_progress
         dependencies: [P0.1, P0.2]
         implementation_plan: "plans/task-briefs/P0.4-issue-debugging.md"
         deliverables:
           - "skills/issue-debugging/SKILL.md"
         acceptance_criteria:
-          - "Holistic analysis procedure defined"
-          - "Fix validation loop documented"
-          - "No one-fix-done checklist included"
-          - "Debug journey logging format defined"
+          - "Root cause analysis methodology (5 Whys, hypothesis-driven)"
+          - "Impact/dependency analysis procedure (upstream/downstream mapping)"
+          - "Debug report format defined (separate file: logs/debug-reports/)"
+          - "Tiered validation plan (P1 must, P2 should, P3 nice-to-have)"
+          - "Confidence rubric (high/medium/low criteria)"
+          - "Escalation triggers (low confidence + broad scope, OR cannot validate)"
+          - "Debug journey logging (required for medium/high complexity)"
+          - "Anti-patterns checklist (no shotgun debugging, no fix-without-verify)"
           - "Frontmatter: user-invocable: false"
         verification:
-          - "Apply to sample issue"
-          - "Verify loop continues until validation passes"
+          - "Apply to sample issue, verify debug report generated"
+          - "Verify validation plan includes tiered test priorities"
+          - "Verify confidence rubric applied correctly"
           - "Verify skill does NOT appear in / menu"
+        notes:
+          - "Used by bulwark-issue-analyzer agent (P1.2) in Fix Validation pipeline"
+          - "Debug report is contract between IssueAnalyzer → FixWriter → FixValidator"
         estimated_sessions: 1
 
       - id: P0.5
@@ -217,58 +232,83 @@ phases:
         estimated_sessions: 1
 
   - id: P1
-    name: "Early Agents (as Skills with context: fork)"
-    description: "Test auditor and issue debugger available for rest of development - implemented as skills"
+    name: "Pipeline Stage Agents"
+    description: "Custom sub-agents for Fix Validation pipeline stages - IssueAnalyzer and FixValidator"
     status: not_started
     tasks:
       - id: P1.1
-        name: "Create bulwark-test-auditor agent (as skill)"
+        name: "Create bulwark-test-auditor agent"
         status: not_started
         dependencies: [P0.8, P0.1]
         implementation_plan: "plans/task-briefs/P1.1-bulwark-test-auditor.md"
         deliverables:
-          - "skills/bulwark-test-auditor/SKILL.md"
+          - "agents/bulwark-test-auditor.md"
           - "scripts/agents/finalize-test-auditor.sh"
         acceptance_criteria:
-          - "Frontmatter: context: fork (isolated execution)"
+          - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: agent: sonnet"
-          - "Frontmatter: user-invocable: true"
+          - "Frontmatter: skills: test-audit"
           - "Stop hook for finalization"
-          - "Uses test-audit skill"
-          - "Classifies tests"
+          - "Produces YAML test classification"
           - "Output to logs/"
           - "Diagnostic output to logs/diagnostics/"
         verification:
-          - "Invoke on test suite"
-          - "Verify YAML classification"
-          - "Verify runs in forked context (check diagnostics)"
+          - "Invoke via Task tool with subagent_type=bulwark-test-auditor"
+          - "Verify YAML classification generated"
           - "Verify Stop hook fires"
-          - "Verify skill appears in / menu"
         estimated_sessions: 1
 
       - id: P1.2
-        name: "Create bulwark-issue-debugger agent (as skill)"
+        name: "Create bulwark-issue-analyzer agent"
         status: not_started
         dependencies: [P0.4]
-        implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-debugger.md"
+        implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-analyzer.md"
         deliverables:
-          - "skills/bulwark-issue-debugger/SKILL.md"
-          - "scripts/agents/finalize-issue-debugger.sh"
+          - "agents/bulwark-issue-analyzer.md"
+          - "scripts/agents/finalize-issue-analyzer.sh"
         acceptance_criteria:
-          - "Frontmatter: context: fork (isolated execution)"
+          - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: agent: sonnet"
-          - "Frontmatter: user-invocable: true"
+          - "Frontmatter: skills: issue-debugging"
           - "Stop hook for finalization"
-          - "Uses issue-debugging skill"
-          - "Enforces validation loop"
-          - "Documents debug journey"
+          - "Produces debug report at logs/debug-reports/"
+          - "Summary includes debug report path"
           - "Diagnostic output to logs/diagnostics/"
         verification:
-          - "Invoke on sample issue"
-          - "Verify loop until validated"
-          - "Verify runs in forked context (check diagnostics)"
+          - "Invoke via Task tool with subagent_type=bulwark-issue-analyzer"
+          - "Verify debug report generated with validation plan"
           - "Verify Stop hook fires"
-          - "Verify skill appears in / menu"
+        notes:
+          - "Pipeline stage: IssueAnalyzer in Fix Validation pipeline"
+          - "Renamed from bulwark-issue-debugger for pipeline consistency"
+        estimated_sessions: 1
+
+      - id: P1.3
+        name: "Create bulwark-fix-validator agent"
+        status: not_started
+        dependencies: [P0.4]
+        implementation_plan: "plans/task-briefs/P1.3-bulwark-fix-validator.md"
+        deliverables:
+          - "agents/bulwark-fix-validator.md"
+          - "scripts/agents/finalize-fix-validator.sh"
+        acceptance_criteria:
+          - "Custom sub-agent definition (markdown file)"
+          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: skills: issue-debugging"
+          - "Stop hook for finalization"
+          - "Reads debug report from IssueAnalyzer"
+          - "Executes tiered validation plan (P1/P2/P3 tests)"
+          - "Outputs confidence level (high/medium/low)"
+          - "Escalates to manual testing when required"
+          - "Diagnostic output to logs/diagnostics/"
+        verification:
+          - "Invoke via Task tool with subagent_type=bulwark-fix-validator"
+          - "Verify reads debug report and executes validation plan"
+          - "Verify confidence assessment in output"
+          - "Verify escalation triggers work"
+        notes:
+          - "Pipeline stage: FixValidator in Fix Validation pipeline"
+          - "NEW: Added to support validation loop"
         estimated_sessions: 1
 
   - id: P2
@@ -427,50 +467,42 @@ phases:
         estimated_sessions: 1
 
   - id: P4
-    name: "Review Skills & Remaining Agents (as Skills)"
-    description: "Review skills and code auditor/implementer agents - implemented as skills"
+    name: "Review Skills & Standalone Agents"
+    description: "Unified code-review skill with sections + standalone agents for ad-hoc use"
     status: not_started
     tasks:
       - id: P4.1
-        name: "Create security-heuristics skill"
+        name: "Create code-review skill (unified with sections)"
         status: not_started
         dependencies: []
-        implementation_plan: "plans/task-briefs/P4.1-security-heuristics.md"
+        implementation_plan: "plans/task-briefs/P4.1-code-review.md"
         deliverables:
-          - "skills/security-heuristics/SKILL.md"
+          - "skills/code-review/SKILL.md"
         acceptance_criteria:
-          - "OWASP patterns covered"
-          - "Injection checks defined"
-          - "Auth/authz checks included"
-          - "Frontmatter: agent: sonnet (nuanced judgment)"
-          - "Frontmatter: user-invocable: false"
+          - "Section: Security (OWASP patterns, injection checks, auth/authz)"
+          - "Section: Type Safety (any detection, null handling, unsafe assertions)"
+          - "Section: Linting (code style, formatting, complexity)"
+          - "Section: Coding Standards (naming, documentation, patterns)"
+          - "Each section independently referenceable by role-based agents"
+          - "Structured review output format"
+          - "Severity categorization (critical/high/medium/low)"
+          - "Frontmatter: user-invocable: true"
         verification:
-          - "Apply to code with SQL injection"
-          - "Verify flagged"
+          - "Apply security section to code with SQL injection"
+          - "Apply type-safety section to code with any"
+          - "Verify each section works independently"
+          - "Verify skill appears in / menu"
+        notes:
+          - "Consolidates previous P4.1 (security-heuristics) and P4.2 (type-safety)"
+          - "Adds linting and coding-standards sections"
+          - "Pipeline uses role-based general-purpose agents referencing sections"
         estimated_sessions: 1
 
       - id: P4.2
-        name: "Create type-safety skill"
-        status: not_started
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P4.2-type-safety.md"
-        deliverables:
-          - "skills/type-safety/SKILL.md"
-        acceptance_criteria:
-          - "any usage detection"
-          - "Null handling patterns"
-          - "Unsafe assertion detection"
-          - "Frontmatter: agent: sonnet (nuanced judgment)"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Apply to code with any, verify flagged"
-        estimated_sessions: 1
-
-      - id: P4.3
         name: "Create bug-magnet-data skill"
         status: not_started
         dependencies: []
-        implementation_plan: "plans/task-briefs/P4.3-bug-magnet-data.md"
+        implementation_plan: "plans/task-briefs/P4.2-bug-magnet-data.md"
         deliverables:
           - "skills/bug-magnet-data/SKILL.md"
           - "skills/bug-magnet-data/data/heuristics.json"
@@ -482,63 +514,48 @@ phases:
           - "Frontmatter: user-invocable: false"
         verification:
           - "Pull edge case data for test"
+        notes:
+          - "Renumbered from P4.3"
         estimated_sessions: 1
 
-      - id: P4.4
-        name: "Create code-review composite skill"
+      - id: P4.3
+        name: "Create bulwark-code-auditor agent (standalone)"
         status: not_started
-        dependencies: [P4.1, P4.2]
-        implementation_plan: "plans/task-briefs/P4.4-code-review.md"
+        dependencies: [P4.1, P0.1]
+        implementation_plan: "plans/task-briefs/P4.3-bulwark-code-auditor.md"
         deliverables:
-          - "skills/code-review/SKILL.md"
-        acceptance_criteria:
-          - "Orchestrates security and type-safety"
-          - "Structured review output"
-          - "Severity categorization"
-          - "Frontmatter: agent: sonnet"
-          - "Frontmatter: user-invocable: true"
-        verification:
-          - "Review code with known issues"
-          - "Verify all identified"
-          - "Verify skill appears in / menu"
-        estimated_sessions: 1
-
-      - id: P4.5
-        name: "Create bulwark-code-auditor agent (as skill)"
-        status: not_started
-        dependencies: [P4.4, P0.1]
-        implementation_plan: "plans/task-briefs/P4.5-bulwark-code-auditor.md"
-        deliverables:
-          - "skills/bulwark-code-auditor/SKILL.md"
+          - "agents/bulwark-code-auditor.md"
           - "scripts/agents/finalize-code-auditor.sh"
         acceptance_criteria:
-          - "Frontmatter: context: fork (isolated execution)"
+          - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: agent: sonnet"
-          - "Frontmatter: user-invocable: true"
+          - "Frontmatter: skills: code-review"
           - "Stop hook for finalization"
-          - "Uses code-review skill"
+          - "Runs all code-review sections (security, type-safety, linting, standards)"
           - "Never fixes, only identifies"
           - "Output to logs/"
           - "Diagnostic output to logs/diagnostics/"
         verification:
-          - "Invoke on code with defects"
-          - "Verify returns list, not fixes"
-          - "Verify runs in forked context (check diagnostics)"
-          - "Verify skill appears in / menu"
+          - "Invoke via Task tool with subagent_type=bulwark-code-auditor"
+          - "Verify returns findings list, not fixes"
+          - "Verify all sections executed"
+        notes:
+          - "Renumbered from P4.5"
+          - "For standalone ad-hoc code auditing outside pipelines"
+          - "Pipeline Code Review uses role-based agents with section references instead"
         estimated_sessions: 1
 
-      - id: P4.6
-        name: "Create bulwark-implementer agent (as skill)"
+      - id: P4.4
+        name: "Create bulwark-implementer agent"
         status: not_started
         dependencies: [P0.1]
-        implementation_plan: "plans/task-briefs/P4.6-bulwark-implementer.md"
+        implementation_plan: "plans/task-briefs/P4.4-bulwark-implementer.md"
         deliverables:
-          - "skills/bulwark-implementer/SKILL.md"
+          - "agents/bulwark-implementer.md"
           - "scripts/agents/finalize-implementer.sh"
         acceptance_criteria:
-          - "Frontmatter: context: fork (isolated execution)"
+          - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: agent: sonnet"
-          - "Frontmatter: user-invocable: true"
           - "Stop hook for finalization"
           - "Agent-scoped PostToolUse hook for quality enforcement"
           - "Follows Bulwark standards"
@@ -546,11 +563,11 @@ phases:
           - "Output to logs/"
           - "Diagnostic output to logs/diagnostics/"
         verification:
-          - "Invoke with plan"
+          - "Invoke via Task tool with subagent_type=bulwark-implementer"
           - "Verify output quality"
-          - "Verify runs in forked context (check diagnostics)"
           - "Verify PostToolUse hook fires on Write"
-          - "Verify skill appears in / menu"
+        notes:
+          - "Renumbered from P4.6"
         estimated_sessions: 1
 
   - id: P5
@@ -653,7 +670,7 @@ phases:
       - id: P5.6
         name: "Finalize plugin manifest"
         status: not_started
-        dependencies: [P5.1, P5.2, P4.5, P4.6, P1.1, P1.2]
+        dependencies: [P5.1, P5.2, P4.3, P4.4, P1.1, P1.2, P1.3]
         implementation_plan: "plans/task-briefs/P5.6-plugin-manifest.md"
         deliverables:
           - ".claude-plugin/plugin.json"
@@ -689,7 +706,7 @@ phases:
       - id: P5.8
         name: "Create testing infrastructure"
         status: not_started
-        dependencies: [P1.1, P1.2, P4.5, P4.6]
+        dependencies: [P1.1, P1.2, P1.3, P4.3, P4.4]
         implementation_plan: "plans/task-briefs/P5.8-testing-infrastructure.md"
         deliverables:
           - "tests/run-diagnostic-tests.sh"
@@ -712,17 +729,22 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 31
-  total_estimated_sessions: 31
+  total_tasks: 28
+  total_estimated_sessions: 28
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills)
-    P1: 2 tasks (Early Agents as skills with context: fork)
+    P1: 3 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator, TestAuditor)
     P2: 3 tasks (Verification Scripts)
     P3: 5 tasks (Enforcement Infrastructure with once: true)
-    P4: 6 tasks (Review Skills & Remaining Agents as skills)
+    P4: 4 tasks (Review Skills & Standalone Agents)
     P5: 8 tasks (Commands, Evolution with Ralph loops, Testing, and Polish)
+  architecture_notes:
+    pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
+    skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
+    standalone_agents: "bulwark-code-auditor for ad-hoc use outside pipelines"
+    custom_sub_agents: "bulwark-issue-analyzer, bulwark-fix-validator for pipeline stages"
   claude_code_2_1_1_features:
-    - "context: fork for all agents"
+    - "Custom sub-agents defined as markdown files"
     - "agent: haiku/sonnet for model selection"
     - "user-invocable: true/false for menu visibility"
     - "once: true for SessionStart hooks"
