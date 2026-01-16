@@ -1,6 +1,7 @@
 # Logs
-logs/diagnostics/*.yaml
+logs/*.yaml
 logs/*.log
+logs/diagnostics/*.yaml
 
 # Keep log directories but ignore contents
 !logs/.gitkeep
