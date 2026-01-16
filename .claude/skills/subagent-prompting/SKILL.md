@@ -160,6 +160,83 @@ Sub-agents CANNOT spawn other sub-agents. All pipeline orchestration happens fro
 
 ---
 
+## Custom Agent vs Built-in Agent
+
+### Agent Selection Priority
+
+Before spawning a pipeline stage:
+
+1. **Check `.claude/agents/`** for a custom agent matching the task
+2. **If custom agent exists**: Use its `name` field as `subagent_type` - this invokes the custom agent
+3. **If no custom agent**: Use `general-purpose` and provide full specialized instructions in the prompt
+
+### Important: 4-Part Prompt Always Required
+
+Regardless of agent type, every Task invocation MUST include the 4-part prompt (GOAL/CONSTRAINTS/CONTEXT/OUTPUT) and follow subagent-output-templating for output format.
+
+### Built-in Agent Types
+
+| Type | Use Case |
+|------|----------|
+| `general-purpose` | Multi-step tasks, code writing, analysis |
+| `Explore` | Fast codebase exploration, file search |
+| `Plan` | Architecture planning, implementation design |
+| `Bash` | Command execution |
+
+### Example: Custom Agent EXISTS
+
+```python
+# .claude/agents/security-auditor.md exists with name: security-auditor
+Task(
+    description="Security audit",
+    subagent_type="security-auditor",  # Invokes the custom agent
+    prompt="""
+## GOAL
+Identify security vulnerabilities in calculator.ts
+
+## CONSTRAINTS
+- Do NOT modify files
+
+## CONTEXT
+File: src/calculator.ts
+
+## OUTPUT
+Write to: logs/security-audit-{timestamp}.yaml
+"""
+)
+```
+
+### Example: Custom Agent DOES NOT Exist
+
+```python
+# No custom agent for this task - use general-purpose
+Task(
+    description="Security audit",
+    subagent_type="general-purpose",
+    model="sonnet",
+    prompt="""
+## GOAL
+Identify security vulnerabilities in calculator.ts using OWASP Top 10 patterns.
+
+## CONSTRAINTS
+- Do NOT modify files
+- Focus on injection, auth, and data exposure risks
+
+## CONTEXT
+File: src/calculator.ts
+This is a calculator module with arithmetic operations.
+
+## OUTPUT
+Write findings to: logs/security-audit-{timestamp}.yaml
+Format: YAML with findings array, severity, and recommendations
+"""
+)
+```
+
+Note: When no custom agent exists, the prompt must include all specialized instructions that would otherwise be in the custom agent's markdown file.
+
+---
+
 ## Model Selection Guidance
 
 ### Task-Type Based Selection (Objective)

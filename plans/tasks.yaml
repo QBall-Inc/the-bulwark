@@ -28,9 +28,9 @@
 project: the-bulwark
 version: 4.0.1
 created: 2026-01-04
-updated: 2026-01-11
+updated: 2026-01-12
 current_phase: P0
-current_task: P0.3
+current_task: P0.4
 
 phases:
   - id: P0
@@ -77,7 +77,7 @@ phases:
 
       - id: P0.3
         name: "Create pipeline-templates skill"
-        status: not_started
+        status: completed
         dependencies: [P0.1, P0.2]
         implementation_plan: "plans/task-briefs/P0.3-pipeline-templates.md"
         deliverables:

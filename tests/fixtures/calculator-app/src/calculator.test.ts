@@ -34,9 +34,192 @@ describe('add - REAL TESTS', () => {
 });
 
 describe('subtract - REAL TESTS', () => {
-  // REAL: Verifies actual output
-  it('should subtract two numbers', () => {
-    expect(subtract(5, 3)).toBe(2);
+  // ==========================================================================
+  // Basic Operations
+  // ==========================================================================
+
+  // REAL: Verifies subtraction of two positive numbers
+  it('should subtract two positive numbers', () => {
+    expect(subtract(10, 3)).toBe(7);
+  });
+
+  // REAL: Verifies subtraction resulting in negative
+  it('should return negative when second number is larger', () => {
+    expect(subtract(3, 10)).toBe(-7);
+  });
+
+  // REAL: Verifies subtraction of negative numbers
+  it('should subtract two negative numbers', () => {
+    expect(subtract(-5, -3)).toBe(-2);
+  });
+
+  // REAL: Verifies mixed sign subtraction
+  it('should subtract negative from positive', () => {
+    expect(subtract(5, -3)).toBe(8);
+  });
+
+  // REAL: Verifies subtracting positive from negative
+  it('should subtract positive from negative', () => {
+    expect(subtract(-5, 3)).toBe(-8);
+  });
+
+  // ==========================================================================
+  // Edge Cases
+  // ==========================================================================
+
+  // REAL: Verifies subtraction with zero
+  it('should return the same number when subtracting zero', () => {
+    expect(subtract(5, 0)).toBe(5);
+  });
+
+  // REAL: Verifies subtracting from zero
+  it('should return negated number when subtracting from zero', () => {
+    expect(subtract(0, 5)).toBe(-5);
+  });
+
+  // REAL: Verifies zero minus zero
+  it('should return zero when subtracting zero from zero', () => {
+    expect(subtract(0, 0)).toBe(0);
+  });
+
+  // REAL: Verifies decimal subtraction
+  it('should handle decimal numbers', () => {
+    expect(subtract(5.5, 2.2)).toBeCloseTo(3.3);
+  });
+
+  // REAL: Verifies very small decimal subtraction
+  it('should handle very small decimals', () => {
+    expect(subtract(0.1, 0.1)).toBeCloseTo(0);
+  });
+
+  // REAL: Verifies same number subtraction
+  it('should return zero when subtracting a number from itself', () => {
+    expect(subtract(42, 42)).toBe(0);
+  });
+
+  // ==========================================================================
+  // Input Validation - Type Errors
+  // ==========================================================================
+
+  // REAL: Verifies error on string input for first argument
+  it('should throw error when first argument is a string', () => {
+    expect(() => subtract('5' as any, 3)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on string input for second argument
+  it('should throw error when second argument is a string', () => {
+    expect(() => subtract(5, '3' as any)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on null input
+  it('should throw error when input is null', () => {
+    expect(() => subtract(null as any, 3)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on undefined input
+  it('should throw error when input is undefined', () => {
+    expect(() => subtract(undefined as any, 3)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on object input
+  it('should throw error when input is an object', () => {
+    expect(() => subtract({} as any, 3)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on array input
+  it('should throw error when input is an array', () => {
+    expect(() => subtract([1, 2] as any, 3)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // ==========================================================================
+  // Input Validation - NaN
+  // ==========================================================================
+
+  // REAL: Verifies error on NaN first argument
+  it('should throw error when first argument is NaN', () => {
+    expect(() => subtract(NaN, 3)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // REAL: Verifies error on NaN second argument
+  it('should throw error when second argument is NaN', () => {
+    expect(() => subtract(5, NaN)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // REAL: Verifies error when both arguments are NaN
+  it('should throw error when both arguments are NaN', () => {
+    expect(() => subtract(NaN, NaN)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // ==========================================================================
+  // Input Validation - Infinity
+  // ==========================================================================
+
+  // REAL: Verifies error on positive Infinity first argument
+  it('should throw error when first argument is Infinity', () => {
+    expect(() => subtract(Infinity, 3)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on negative Infinity first argument
+  it('should throw error when first argument is negative Infinity', () => {
+    expect(() => subtract(-Infinity, 3)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on Infinity second argument
+  it('should throw error when second argument is Infinity', () => {
+    expect(() => subtract(5, Infinity)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on negative Infinity second argument
+  it('should throw error when second argument is negative Infinity', () => {
+    expect(() => subtract(5, -Infinity)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // ==========================================================================
+  // Boundary Tests - Safe Integer Limits
+  // ==========================================================================
+
+  // REAL: Verifies subtraction at MAX_SAFE_INTEGER boundary
+  it('should handle subtraction at MAX_SAFE_INTEGER', () => {
+    expect(subtract(Number.MAX_SAFE_INTEGER, 1)).toBe(Number.MAX_SAFE_INTEGER - 1);
+  });
+
+  // REAL: Verifies subtraction at MIN_SAFE_INTEGER boundary
+  it('should handle subtraction at MIN_SAFE_INTEGER', () => {
+    expect(subtract(Number.MIN_SAFE_INTEGER, -1)).toBe(Number.MIN_SAFE_INTEGER + 1);
+  });
+
+  // REAL: Verifies overflow detection when result exceeds MAX_SAFE_INTEGER
+  it('should throw RangeError when result exceeds MAX_SAFE_INTEGER', () => {
+    expect(() => subtract(Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER))
+      .toThrow(RangeError);
+  });
+
+  // REAL: Verifies overflow detection when result is below MIN_SAFE_INTEGER
+  it('should throw RangeError when result is below MIN_SAFE_INTEGER', () => {
+    expect(() => subtract(-Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER))
+      .toThrow(RangeError);
+  });
+
+  // REAL: Verifies the error message includes overflow details
+  it('should include overflow details in error message', () => {
+    expect(() => subtract(Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER))
+      .toThrow(/Overflow detected/);
+  });
+
+  // ==========================================================================
+  // Large Number Handling
+  // ==========================================================================
+
+  // REAL: Verifies handling of large but safe numbers
+  it('should handle large numbers within safe bounds', () => {
+    const largeNum = 1e10;
+    expect(subtract(largeNum, 1e9)).toBe(9e9);
+  });
+
+  // REAL: Verifies handling of very small (negative large) numbers
+  it('should handle very small negative numbers within safe bounds', () => {
+    const smallNum = -1e10;
+    expect(subtract(smallNum, -1e9)).toBe(-9e9);
   });
 });
 
@@ -65,6 +248,192 @@ describe('Calculator class - MOCK-HEAVY TESTS', () => {
 
     // BAD: Tests the mock, not the actual addition
     expect(result).toBe(100);
+  });
+});
+
+describe('divide - REAL TESTS', () => {
+  // ==========================================================================
+  // Basic Operations
+  // ==========================================================================
+
+  // REAL: Verifies division of two positive numbers
+  it('should divide two positive numbers', () => {
+    expect(divide(10, 2)).toBe(5);
+  });
+
+  // REAL: Verifies division resulting in decimal
+  it('should return decimal when result is not whole', () => {
+    expect(divide(7, 2)).toBe(3.5);
+  });
+
+  // REAL: Verifies division of negative numbers
+  it('should divide two negative numbers', () => {
+    expect(divide(-12, -4)).toBe(3);
+  });
+
+  // REAL: Verifies mixed sign division
+  it('should divide positive by negative', () => {
+    expect(divide(12, -4)).toBe(-3);
+  });
+
+  // REAL: Verifies division of negative by positive
+  it('should divide negative by positive', () => {
+    expect(divide(-12, 4)).toBe(-3);
+  });
+
+  // ==========================================================================
+  // Edge Cases
+  // ==========================================================================
+
+  // REAL: Verifies zero dividend
+  it('should return zero when dividing zero by non-zero', () => {
+    expect(divide(0, 5)).toBe(0);
+  });
+
+  // REAL: Verifies decimal division
+  it('should handle decimal numbers', () => {
+    expect(divide(5.5, 2.2)).toBeCloseTo(2.5);
+  });
+
+  // REAL: Verifies very small decimal division
+  it('should handle very small decimals', () => {
+    expect(divide(0.1, 0.1)).toBeCloseTo(1);
+  });
+
+  // REAL: Verifies same number division
+  it('should return one when dividing a number by itself', () => {
+    expect(divide(42, 42)).toBe(1);
+  });
+
+  // ==========================================================================
+  // Division by Zero
+  // ==========================================================================
+
+  // REAL: Verifies error on division by zero
+  it('should throw error when dividing by zero', () => {
+    expect(() => divide(10, 0)).toThrow('Division by zero: cannot divide by zero');
+  });
+
+  // REAL: Verifies error on zero divided by zero
+  it('should throw error when dividing zero by zero', () => {
+    expect(() => divide(0, 0)).toThrow('Division by zero: cannot divide by zero');
+  });
+
+  // REAL: Verifies error on negative number divided by zero
+  it('should throw error when dividing negative by zero', () => {
+    expect(() => divide(-5, 0)).toThrow('Division by zero: cannot divide by zero');
+  });
+
+  // ==========================================================================
+  // Input Validation - Type Errors
+  // ==========================================================================
+
+  // REAL: Verifies error on string input for first argument
+  it('should throw error when first argument is a string', () => {
+    expect(() => divide('10' as any, 2)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on string input for second argument
+  it('should throw error when second argument is a string', () => {
+    expect(() => divide(10, '2' as any)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on null input
+  it('should throw error when input is null', () => {
+    expect(() => divide(null as any, 2)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on undefined input
+  it('should throw error when input is undefined', () => {
+    expect(() => divide(undefined as any, 2)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on object input
+  it('should throw error when input is an object', () => {
+    expect(() => divide({} as any, 2)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // REAL: Verifies error on array input
+  it('should throw error when input is an array', () => {
+    expect(() => divide([10] as any, 2)).toThrow('Invalid input: both arguments must be numbers');
+  });
+
+  // ==========================================================================
+  // Input Validation - NaN
+  // ==========================================================================
+
+  // REAL: Verifies error on NaN first argument
+  it('should throw error when first argument is NaN', () => {
+    expect(() => divide(NaN, 2)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // REAL: Verifies error on NaN second argument
+  it('should throw error when second argument is NaN', () => {
+    expect(() => divide(10, NaN)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // REAL: Verifies error when both arguments are NaN
+  it('should throw error when both arguments are NaN', () => {
+    expect(() => divide(NaN, NaN)).toThrow('Invalid input: NaN values are not allowed');
+  });
+
+  // ==========================================================================
+  // Input Validation - Infinity
+  // ==========================================================================
+
+  // REAL: Verifies error on positive Infinity first argument
+  it('should throw error when first argument is Infinity', () => {
+    expect(() => divide(Infinity, 2)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on negative Infinity first argument
+  it('should throw error when first argument is negative Infinity', () => {
+    expect(() => divide(-Infinity, 2)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on Infinity second argument
+  it('should throw error when second argument is Infinity', () => {
+    expect(() => divide(10, Infinity)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // REAL: Verifies error on negative Infinity second argument
+  it('should throw error when second argument is negative Infinity', () => {
+    expect(() => divide(10, -Infinity)).toThrow('Invalid input: Infinity values are not allowed');
+  });
+
+  // ==========================================================================
+  // Boundary Tests - Safe Integer Limits
+  // ==========================================================================
+
+  // REAL: Verifies division at MAX_SAFE_INTEGER boundary
+  it('should handle division at MAX_SAFE_INTEGER', () => {
+    expect(divide(Number.MAX_SAFE_INTEGER, 1)).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
+  // REAL: Verifies division at MIN_SAFE_INTEGER boundary
+  it('should handle division at MIN_SAFE_INTEGER', () => {
+    expect(divide(Number.MIN_SAFE_INTEGER, 1)).toBe(Number.MIN_SAFE_INTEGER);
+  });
+
+  // REAL: Verifies division resulting in value within safe bounds
+  it('should handle division that results in safe integer', () => {
+    expect(divide(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)).toBe(1);
+  });
+
+  // ==========================================================================
+  // Large Number Handling
+  // ==========================================================================
+
+  // REAL: Verifies handling of large but safe numbers
+  it('should handle large numbers within safe bounds', () => {
+    const largeNum = 1e10;
+    expect(divide(largeNum, 1e5)).toBe(1e5);
+  });
+
+  // REAL: Verifies handling of very small (negative large) numbers
+  it('should handle very small negative numbers within safe bounds', () => {
+    const smallNum = -1e10;
+    expect(divide(smallNum, -1e5)).toBe(1e5);
   });
 });
 

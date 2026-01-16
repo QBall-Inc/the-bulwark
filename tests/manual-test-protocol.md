@@ -1,7 +1,8 @@
 # P0.3 Pipeline Templates - Manual Test Protocol
 
-**Purpose**: Verify all 6 pipeline templates work correctly via manual invocation.
+**Purpose**: Verify pipeline templates and PostToolUse hook work correctly.
 **Prerequisite**: P0.3 implementation complete, hooks configured in `.claude/settings.json`
+**Design**: PostToolUse hook on Write|Edit suggests pipelines based on file type and change size.
 
 ---
 
@@ -9,204 +10,198 @@
 
 1. Ensure P0.3 skill is copied to `.claude/skills/pipeline-templates/`
 2. Ensure hooks are configured in `.claude/settings.json`
-3. Start a fresh Claude Code session
-4. Verify `/skills` shows `pipeline-templates`
+3. Ensure test agents are in `.claude/agents/` (code-analyzer, file-counter)
+4. Start a fresh Claude Code session
+5. Verify `/skills` shows `pipeline-templates` is NOT listed (user-invocable: false)
 
 ---
 
-## Test 1: Code Review Pipeline
+## Test 1: PostToolUse Hook - Small Change Bypass
 
 **Prompt**:
 ```
-Review the calculator app code for security and architecture issues.
-Use the pipeline-templates skill for orchestration.
+Add a comment to calculator.ts explaining what the add function does.
 Target: tests/fixtures/calculator-app/src/calculator.ts
 ```
 
 **Expected Behavior**:
-1. PreToolUse hook fires, injects pipeline guidance
-2. CodeAuditor (Sonnet) runs security analysis
-3. CodeAuditor (Sonnet) runs architecture analysis
-4. TestAuditor (Sonnet) checks test coverage
-5. If findings > 0, IssueDebugger runs
-6. Logs written to `logs/`
+1. Claude edits the file (small change, ~2-3 lines)
+2. PostToolUse hook fires
+3. Change size < 5 lines threshold
+4. Hook exits silently (no pipeline suggestion)
 
 **Verification**:
-- [ ] Hook fired (check `logs/pipeline-tracking.log`)
-- [ ] All stages executed in order
-- [ ] Output follows subagent-output-templating format
+- [x] File edited successfully
+- [x] Check `logs/hooks.log` shows "SKIP (small change)"
+- [x] No pipeline suggestion in Claude's response
 
 ---
 
-## Test 2: Fix Validation Pipeline
+## Test 2: PostToolUse Hook - Code Review Suggestion
 
 **Prompt**:
 ```
-Fix the division by zero issue in calculator.ts and validate the fix.
-Use the fix validation pipeline.
+Add a new subtract function to calculator.ts with error handling and validation.
+Make it comprehensive with input validation, overflow checking, and detailed comments.
 Target: tests/fixtures/calculator-app/src/calculator.ts
 ```
 
 **Expected Behavior**:
-1. IssueDebugger (Sonnet) analyzes root cause
-2. FixWriter (Opus) applies fix
-3. CodeAuditor (Sonnet) reviews fix
-4. TestAuditor (Sonnet) verifies tests pass
-5. Loop if issues remain (max 3 iterations)
+1. Claude writes significant code (>5 lines)
+2. PostToolUse hook fires
+3. Change size > 5 lines threshold
+4. Hook injects additionalContext suggesting Code Review pipeline
+5. Claude may acknowledge the suggestion
 
 **Verification**:
-- [ ] Fix applied correctly
-- [ ] Review stage ran
-- [ ] Loop terminated appropriately
-- [ ] Output follows format
+- [x] File edited with new function
+- [x] Check `logs/hooks.log` shows "SUGGEST (Code Review for X lines)"
+- [x] Claude receives pipeline suggestion context
 
 ---
 
-## Test 3: Test Audit Pipeline
+## Test 3: PostToolUse Hook - Test Audit Suggestion
 
 **Prompt**:
 ```
-Audit the test quality in calculator.test.ts.
-Identify mock-heavy tests and recommend rewrites.
-Use the test audit pipeline.
+Add comprehensive tests for the subtract function in calculator.test.ts.
+Include edge cases, error handling tests, and boundary tests.
+Target: tests/fixtures/calculator-app/src/calculator.test.ts
 ```
 
 **Expected Behavior**:
-1. TestAuditor (Sonnet) classifies tests
-2. If mock_heavy > 0, VerificationScriptCreator runs
-3. Recommendations provided for rewrites
+1. Claude writes test file (>10 lines for test files)
+2. PostToolUse hook fires
+3. Detects test file pattern (*.test.ts)
+4. Hook suggests Test Audit pipeline
 
 **Verification**:
-- [ ] Tests classified (real vs mock-heavy)
-- [ ] Conditional branching worked
-- [ ] YAML output valid
+- [x] Test file updated
+- [x] Check `logs/hooks.log` shows "SUGGEST (Test Audit for X lines)"
+- [x] Pipeline suggestion recommends Test Audit (not Code Review)
 
 ---
 
-## Test 4: New Feature Pipeline
+## Test 4: Pipeline Orchestration - Code Review
 
 **Prompt**:
 ```
-Add a power function (exponentiation) to the calculator.
-Use the new feature pipeline.
-Include tests and code review.
+I just made significant code changes. Please run a Code Review pipeline:
+1. Load the pipeline-templates skill
+2. Follow the Code Review pipeline stages
+3. Use the test agents (code-analyzer, file-counter) as stand-ins
+Target: tests/fixtures/calculator-app/
 ```
 
 **Expected Behavior**:
-1. Investigation (Haiku) researches existing patterns
-2. Implementer (Opus) writes code
-3. TestAuditor (Sonnet) identifies test gaps
-4. Implementer (Opus) writes tests
-5. CodeAuditor (Sonnet) final review
+1. Claude loads pipeline-templates skill
+2. Claude invokes file-counter agent (stage 1)
+3. Claude invokes code-analyzer agent (stage 2)
+4. SubagentStart/SubagentStop hooks log each invocation
+5. Results synthesized
 
 **Verification**:
-- [ ] Feature implemented
-- [ ] Tests added
-- [ ] Review completed
-- [ ] All stages logged
+- [x] Pipeline-templates skill referenced
+- [x] Check `logs/pipeline-tracking.log` for SubagentStart/SubagentStop entries
+- [x] Both agents executed in sequence
+- [x] Logs written to `logs/`
 
 ---
 
-## Test 5: Research & Planning Pipeline
+## Test 5: Pipeline Orchestration - Chained Agents
 
 **Prompt**:
 ```
-Research and plan how to add a formula parser to the calculator.
-Use the research & planning pipeline.
-Ensure the plan is reviewed at least 3 times.
+Run a two-stage analysis pipeline on the calculator app:
+Stage 1: Use file-counter agent to count files
+Stage 2: Use code-analyzer agent to analyze code structure
+Chain the results - pass stage 1 output to stage 2 context.
 ```
 
 **Expected Behavior**:
-1. Researcher (Haiku) searches for patterns, docs
-2. Orchestrator synthesizes plan draft
-3. PlanReviewer (Sonnet) critically reviews
-4. Orchestrator applies feedback
-5. Loop repeats minimum 3 times
+1. First Task spawns file-counter
+2. file-counter completes, returns summary
+3. Claude synthesizes and invokes code-analyzer
+4. code-analyzer receives context from stage 1
+5. Final synthesis of both stages
 
 **Verification**:
-- [ ] Research phase completed (web/file search)
-- [ ] Plan synthesized
-- [ ] Review feedback incorporated
-- [ ] Minimum 3 iterations completed
-- [ ] Final plan quality improved
+- [x] Two SubagentStart entries in logs
+- [x] Two SubagentStop entries in logs
+- [x] Stage 2 has context from Stage 1
+- [x] Both agent outputs in `logs/`
 
 ---
 
-## Test 6: Test Execution & Fix Pipeline
+## Test 6: Documentation Change - Higher Threshold
 
 **Prompt**:
 ```
-Run the calculator tests and fix any failures.
-Use the test execution & fix pipeline.
+Update the README.md with a detailed description of the calculator app.
+Add at least 15 lines of documentation.
+Target: tests/fixtures/calculator-app/README.md
 ```
 
 **Expected Behavior**:
-1. TestRunner (Haiku) executes tests
-2. If failures, FailureAnalyzer (Sonnet) analyzes
-3. FixWriter (Opus) applies fixes
-4. TestRunner (Haiku) re-executes
-5. Loop until pass or max iterations
+1. Claude writes documentation (markdown file)
+2. PostToolUse hook fires
+3. For .md files, threshold is 10 lines
+4. If >10 lines, suggests "light review or skip"
 
 **Verification**:
-- [ ] Tests executed
-- [ ] Failures analyzed
-- [ ] Fixes applied
-- [ ] Re-execution verified
-- [ ] Loop terminated correctly
+- [ ] Documentation updated
+- [ ] Check `logs/hooks.log` for doc threshold (10 lines)
+- [ ] Suggestion is "light review or skip" (not Code Review)
 
 ---
 
-## Test 7: Single-Agent Bypass
+## Test 7: Config File - Security Focus
 
 **Prompt**:
 ```
-Explore the calculator app codebase structure.
+Add a new configuration section to the calculator app's config.json.
+Add environment settings, API keys placeholder, and feature flags.
+Target: tests/fixtures/calculator-app/config.json
 ```
 
 **Expected Behavior**:
-1. PreToolUse hook fires
-2. Detects simple lookup task
-3. Allows silently WITHOUT pipeline guidance injection
+1. Claude edits config file
+2. PostToolUse hook fires
+3. Config file threshold is 3 lines
+4. If >3 lines, suggests "Code Review (security focus)"
 
 **Verification**:
-- [ ] No pipeline guidance injected
-- [ ] Task completed directly
-- [ ] No unnecessary overhead
+- [ ] Config file updated
+- [ ] Check `logs/hooks.log` shows config detected
+- [ ] Suggestion mentions "security focus"
 
 ---
 
-## Test 8: Model Selection Verification
+## Test 8: Menu Visibility Check
 
-For each pipeline, verify correct models used:
+**Action**: Type `/` in Claude Code to open skill menu
 
-| Stage Type | Expected Model |
-|------------|----------------|
-| Lookup/Execute/Run | Haiku |
-| Review/Analyze/Audit | Sonnet |
-| Write/Fix/Implement | Opus |
+**Expected Behavior**:
+- `pipeline-templates` should NOT appear in the menu
+- Only user-invocable skills should appear
 
 **Verification**:
-- [ ] Check `logs/diagnostics/` for `model_actual` field
-- [ ] Compare against expected model per stage type
+- [ ] Skill NOT in `/` menu
+- [ ] `user-invocable: false` working correctly
 
 ---
 
 ## Post-Test Checklist
 
-- [ ] All 6 pipelines executed successfully
-- [ ] Single-agent bypass works
-- [ ] Model selection follows P0.1 task-type rubric
-- [ ] Hooks fired correctly (PreToolUse, SubagentStart, SubagentStop)
-- [ ] All logs valid YAML
-- [ ] Pipeline tracking log shows all stages
-
----
-
-## Known Limitations
-
-1. **Cannot automate**: Pipeline invocation requires interactive Claude Code session
-2. **Manual judgment**: Some verification requires human review of output quality
-3. **Loop verification**: Min 3 iterations for Research & Planning must be counted manually
+- [ ] PostToolUse hook fires on Write/Edit
+- [ ] Small changes bypass correctly (no suggestion)
+- [ ] Significant changes trigger suggestion
+- [ ] File type detection works (code, test, config, doc)
+- [ ] Correct pipeline recommended per file type
+- [ ] SubagentStart/SubagentStop logging works
+- [ ] Chained agents execute sequentially
+- [ ] Skill NOT in `/` menu
+- [ ] All logs valid and readable
 
 ---
 
@@ -219,32 +214,55 @@ tester: [name]
 session_id: [from /context]
 
 results:
-  code_review:
+  small_change_bypass:
     status: pass|fail
     notes: ""
-  fix_validation:
+  code_review_suggestion:
+    status: pass|fail
+    lines_changed: X
+    notes: ""
+  test_audit_suggestion:
+    status: pass|fail
+    lines_changed: X
+    notes: ""
+  pipeline_orchestration:
+    status: pass|fail
+    agents_invoked: [file-counter, code-analyzer]
+    notes: ""
+  chained_agents:
     status: pass|fail
     notes: ""
-  test_audit:
+  doc_threshold:
     status: pass|fail
     notes: ""
-  new_feature:
+  config_security:
     status: pass|fail
     notes: ""
-  research_planning:
-    status: pass|fail
-    iteration_count: 3
-    notes: ""
-  test_execution_fix:
-    status: pass|fail
-    notes: ""
-  single_agent_bypass:
-    status: pass|fail
-    notes: ""
-  model_selection:
+  menu_visibility:
     status: pass|fail
     notes: ""
 
 overall: pass|fail
 blockers: []
 ```
+
+---
+
+## Known Limitations
+
+1. **Cannot fully automate**: Hook integration requires interactive Claude Code session
+2. **additionalContext is suggestion, not directive**: Claude may or may not follow pipeline suggestion
+3. **Agent skills loading**: Test agents have `skills: subagent-output-templating` but skill availability depends on session
+4. **Manual judgment**: Output quality requires human review
+
+---
+
+## Design Notes (Session 3 Changes)
+
+| Original Design | Revised Design |
+|-----------------|----------------|
+| PreToolUse on Task | PostToolUse on Write\|Edit |
+| Validates before sub-agent spawn | Suggests after code change |
+| Pattern matching on task description | File type + change size detection |
+| `systemMessage` injection | `additionalContext` injection |
+| Blocking validation | Non-blocking suggestion |
