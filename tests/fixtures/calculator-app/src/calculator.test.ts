@@ -498,3 +498,77 @@ describe('Calculator integration - MIXED', () => {
 // - incrementAsync() function (race condition)
 // - divide() with zero (bug)
 // - multiply() with large numbers (overflow)
+
+// =============================================================================
+// P0.4 VERIFICATION TESTS - These will FAIL due to intentional bugs
+// =============================================================================
+
+import { percentage, safeDivide, safeMultiply, safeAdd } from './calculator';
+
+describe('P0.4 Verification - Small Bug (off-by-one)', () => {
+  // P1 PRIORITY: Direct unit test - will FAIL due to off-by-one bug in add()
+  it('should add 2 + 2 = 4', () => {
+    expect(add(2, 2)).toBe(4);  // FAILS: returns 5 due to bug
+  });
+
+  it('should add 0 + 0 = 0', () => {
+    expect(add(0, 0)).toBe(0);  // FAILS: returns 1 due to bug
+  });
+});
+
+describe('P0.4 Verification - Medium Bug (null handling)', () => {
+  // P1 PRIORITY: Direct test of percentage function
+  it('should calculate percentage correctly', () => {
+    expect(percentage(25, 100)).toBe(25);  // PASSES (no null)
+  });
+
+  it('should handle null value gracefully', () => {
+    // FAILS: Returns NaN instead of throwing error
+    expect(() => percentage(null as any, 100)).toThrow();
+  });
+
+  // P2 PRIORITY: Integration test - Calculator chaining
+  it('should get last result doubled after operation', () => {
+    const calc = new Calculator();
+    calc.add(5, 5);
+    expect(calc.getLastResultDoubled()).toBe(20);  // PASSES after add
+  });
+
+  it('should handle getLastResultDoubled before any operation', () => {
+    const calc = new Calculator();
+    // FAILS: Throws because lastResult is null, no graceful handling
+    expect(() => calc.getLastResultDoubled()).toThrow();
+  });
+});
+
+describe('P0.4 Verification - Large Bug (inverted validation)', () => {
+  // P1 PRIORITY: Direct tests - ALL FAIL due to inverted validateNumber()
+  it('should safely divide valid numbers', () => {
+    expect(safeDivide(10, 2)).toBe(5);  // FAILS: throws "Invalid number" for valid input
+  });
+
+  it('should safely multiply valid numbers', () => {
+    expect(safeMultiply(3, 4)).toBe(12);  // FAILS: throws "Invalid number"
+  });
+
+  it('should safely add valid numbers', () => {
+    expect(safeAdd(1, 2)).toBe(3);  // FAILS: throws "Invalid number"
+  });
+
+  // P2 PRIORITY: Integration - chained operations
+  it('should chain safe operations', () => {
+    const a = safeAdd(1, 2);
+    const b = safeMultiply(a, 3);
+    const c = safeDivide(b, 3);
+    expect(c).toBe(3);  // FAILS: first operation throws
+  });
+
+  // These SHOULD throw but WON'T due to inverted logic
+  it('should reject NaN in safeDivide', () => {
+    expect(() => safeDivide(NaN, 2)).toThrow();  // FAILS: doesn't throw for NaN
+  });
+
+  it('should reject Infinity in safeMultiply', () => {
+    expect(() => safeMultiply(Infinity, 2)).toThrow();  // FAILS: doesn't throw
+  });
+});

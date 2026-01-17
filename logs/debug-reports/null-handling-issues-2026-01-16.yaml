@@ -1,0 +1,190 @@
+debug_report:
+  metadata:
+    issue_id: "null-handling-issues"
+    timestamp: "2026-01-16T00:00:00Z"
+    analyzer: "bulwark-issue-analyzer"
+    complexity: medium
+    issue_count: 2
+
+  issues:
+    - id: "issue-1-crash-on-fresh-app"
+      symptom: "App crashes when getting double the last result on fresh open"
+      root_cause: "getLastResultDoubled() uses non-null assertion on null lastResult"
+      fix_location:
+        file: "tests/fixtures/calculator-app/src/calculator.ts"
+        lines: "349-352"
+        function: "Calculator.getLastResultDoubled()"
+      fix_approach: "Add null check before accessing lastResult, throw descriptive error"
+      current_code: |
+        getLastResultDoubled(): number {
+          return this.lastResult! * 2;  // Will throw if lastResult is null
+        }
+      suggested_fix: |
+        getLastResultDoubled(): number {
+          if (this.lastResult === null) {
+            throw new Error('No result available: perform a calculation first');
+          }
+          return this.lastResult * 2;
+        }
+
+    - id: "issue-2-percentage-nan"
+      symptom: "Calculating percentages returns 'NaN' instead of numbers"
+      root_cause: "percentage() has no input validation, null/undefined produces NaN"
+      fix_location:
+        file: "tests/fixtures/calculator-app/src/calculator.ts"
+        lines: "328-332"
+        function: "percentage()"
+      fix_approach: "Add input validation matching other calculator functions"
+      current_code: |
+        export function percentage(value: number, total: number): number {
+          return (value / total) * 100;
+        }
+      suggested_fix: |
+        export function percentage(value: number, total: number): number {
+          if (typeof value !== 'number' || typeof total !== 'number') {
+            throw new Error('Invalid input: both arguments must be numbers');
+          }
+          if (Number.isNaN(value) || Number.isNaN(total)) {
+            throw new Error('Invalid input: NaN values are not allowed');
+          }
+          if (total === 0) {
+            throw new Error('Division by zero: total cannot be zero');
+          }
+          return (value / total) * 100;
+        }
+
+  analysis:
+    common_theme: "Null/undefined handling deficiencies"
+    pattern: "Functions lack defensive input validation present in other calculator functions"
+    severity: medium
+
+  impact_analysis:
+    affected_files:
+      - path: "tests/fixtures/calculator-app/src/calculator.ts"
+        reason: "Contains both buggy functions"
+    upstream_dependencies:
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        tests:
+          - "calculator.test.ts:534 - getLastResultDoubled after add"
+          - "calculator.test.ts:537-540 - getLastResultDoubled before operation"
+          - "calculator.test.ts:522 - percentage with valid input"
+          - "calculator.test.ts:527 - percentage with null input"
+    downstream_effects:
+      - description: "Issue 1: App crash on fresh open, poor user experience"
+      - description: "Issue 2: NaN propagates silently, corrupts dependent calculations"
+      - description: "Issue 2: UI displays 'NaN' confusing users"
+    risk_scope: medium
+
+  validation_plan:
+    tests_to_execute:
+      # Issue 1 tests
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        test_name: "should handle getLastResultDoubled before any operation"
+        reason: "Direct reproduction of crash"
+        priority: 1
+        issue: "issue-1"
+
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        test_name: "should get last result doubled after operation"
+        reason: "Verify fix doesn't break happy path"
+        priority: 1
+        issue: "issue-1"
+
+      # Issue 2 tests
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        test_name: "should handle null value gracefully"
+        reason: "Direct reproduction of NaN issue"
+        priority: 1
+        issue: "issue-2"
+
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        test_name: "should calculate percentage correctly"
+        reason: "Verify fix doesn't break happy path"
+        priority: 1
+        issue: "issue-2"
+
+      - path: "tests/fixtures/calculator-app/src/calculator.test.ts"
+        test_name: "Calculator history tests"
+        reason: "Related class functionality"
+        priority: 2
+        issue: "issue-1"
+
+    functionalities_to_validate:
+      - issue: "issue-1"
+        validations:
+          - "Fresh Calculator + getLastResultDoubled() throws meaningful error"
+          - "Calculator after add(5,5) + getLastResultDoubled() returns 20"
+
+      - issue: "issue-2"
+        validations:
+          - "percentage(null, 100) throws error, not NaN"
+          - "percentage(undefined, 100) throws error, not NaN"
+          - "percentage(25, 100) returns 25"
+          - "percentage(50, 200) returns 25"
+          - "percentage(10, 0) throws division by zero error"
+
+  confidence_criteria:
+    high:
+      - "All P1 tests pass after fix"
+      - "No regressions in Calculator class"
+      - "No regressions in percentage function"
+      - "Error messages are descriptive"
+    medium:
+      - "P1 tests pass but edge cases need more coverage"
+    low:
+      - "Tests cannot reliably validate null handling paths"
+
+  five_whys:
+    issue_1:
+      - question: "Why does the app crash on fresh open?"
+        answer: "getLastResultDoubled() throws when called"
+      - question: "Why does it throw?"
+        answer: "It tries to multiply null by 2"
+      - question: "Why is lastResult null?"
+        answer: "No calculation has been performed yet"
+      - question: "Why doesn't the method check for null?"
+        answer: "Uses non-null assertion (!) bypassing TypeScript's null checks"
+      - question: "Why was non-null assertion used?"
+        answer: "Intentional bug for P0.4 verification testing"
+
+    issue_2:
+      - question: "Why does percentage return NaN?"
+        answer: "Arithmetic with null/undefined produces NaN"
+      - question: "Why is null/undefined passed?"
+        answer: "Caller passed invalid input"
+      - question: "Why doesn't percentage reject invalid input?"
+        answer: "No input validation in the function"
+      - question: "Why is there no validation?"
+        answer: "Unlike other functions, it assumes inputs are valid"
+      - question: "Why the inconsistency?"
+        answer: "Intentional bug for P0.4 verification testing"
+
+  escalation:
+    required: false
+    reason: "Medium complexity but clear fixes, P1 tests cover both issues"
+
+  debug_journey:
+    started_at: "2026-01-16T00:00:00Z"
+    complexity_justification: "Two related issues with common theme, affects multiple code paths"
+
+    hypotheses_tested:
+      - hypothesis: "Crash caused by uninitialized Calculator state"
+        tested_at: "2026-01-16T00:00:00Z"
+        method: "Read Calculator class initialization"
+        result: confirmed
+        evidence: "lastResult initialized to null, getLastResultDoubled uses ! assertion"
+
+      - hypothesis: "NaN caused by missing input validation"
+        tested_at: "2026-01-16T00:00:00Z"
+        method: "Read percentage function and compare to other functions"
+        result: confirmed
+        evidence: "Other functions (divide, multiply, subtract) have typeof checks, percentage does not"
+
+    investigation_path:
+      - "User reported two symptoms: crash and NaN values"
+      - "Identified both relate to null handling"
+      - "Located getLastResultDoubled in Calculator class"
+      - "Located percentage function"
+      - "Compared to well-implemented functions (divide, subtract)"
+      - "Identified missing validation as common pattern"
+      - "Classified as medium complexity due to two affected areas"

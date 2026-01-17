@@ -37,7 +37,7 @@ version: 4.1.0
 created: 2026-01-04
 updated: 2026-01-16
 current_phase: P0
-current_task: P0.4
+current_task: P0.5
 
 phases:
   - id: P0
@@ -126,7 +126,7 @@ phases:
 
       - id: P0.4
         name: "Create issue-debugging skill"
-        status: in_progress
+        status: completed
         dependencies: [P0.1, P0.2]
         implementation_plan: "plans/task-briefs/P0.4-issue-debugging.md"
         deliverables:

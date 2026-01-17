@@ -15,6 +15,18 @@
 # - Config files: < 3 lines
 # - Documentation: <= 10 lines
 # - Scripts: < 3 lines
+#
+# ENABLE/DISABLE:
+# - To enable:  touch ${CLAUDE_PROJECT_DIR}/.claude/enable-pipeline-hooks
+# - To disable: rm ${CLAUDE_PROJECT_DIR}/.claude/enable-pipeline-hooks
+# - Hook is DISABLED by default
+
+# Check if hook is enabled via flag file
+FLAG_FILE="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/enable-pipeline-hooks"
+if [ ! -f "$FLAG_FILE" ]; then
+  # Hook disabled - exit silently
+  exit 0
+fi
 
 # Ensure logs directory exists
 LOGS_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}/logs"
@@ -127,11 +139,13 @@ fi
 echo "[$TIMESTAMP] Pipeline: SUGGEST ($RECOMMENDED_PIPELINE for $CHANGE_SIZE lines)" >> "$LOGS_DIR/hooks.log"
 
 # Inject mandatory pipeline instruction - framed as task incompleteness
+# NOTE: The instruction chain is explicit to prevent loopholes where sub-agents
+# return inline instead of writing to logs. Each step must be followed in order.
 cat << EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": "STOP - TASK INCOMPLETE\n\nYou modified $FILE_PATH ($CHANGE_SIZE lines).\n\nThis implementation is NOT COMPLETE. Per project requirements configured by the user:\n1. You MUST run the $RECOMMENDED_PIPELINE pipeline before responding\n2. Do NOT summarize or report completion until the pipeline has executed\n3. The user has explicitly configured this requirement - skipping violates their intent\n\nLoad pipeline-templates skill and orchestrate sub-agents now."
+    "additionalContext": "STOP - TASK INCOMPLETE\n\nYou modified $FILE_PATH ($CHANGE_SIZE lines).\n\nThis implementation is NOT COMPLETE. Per project requirements:\n\n1. Load the subagent-prompting skill to get the 4-part prompt template\n   (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)\n\n2. Load the subagent-output-templating skill and pass it to each sub-agent\n   so they write structured output to logs/\n\n3. Run the $RECOMMENDED_PIPELINE pipeline, prompting each sub-agent\n   using the 4-part template from step 1\n\n4. Do NOT summarize or report completion until the pipeline has executed\n   AND sub-agent logs have been written to logs/\n\n5. The user has explicitly configured this requirement - skipping violates\n   their intent"
   }
 }
 EOF

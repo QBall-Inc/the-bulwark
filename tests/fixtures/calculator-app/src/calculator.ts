@@ -135,14 +135,14 @@ export function multiply(a: number, b: number): number {
   return result;
 }
 
-// Correct implementation for comparison
-// Adds two numbers together after validating both inputs are numbers.
-// Throws an error if either input is not a number.
+// INTENTIONAL BUG (P0.4 verification): Off-by-one error
+// Bug Type: Small - isolated, single function affected
+// Expected: Tests should catch this via direct unit tests
 export function add(a: number, b: number): number {
   if (typeof a !== 'number' || typeof b !== 'number') {
     throw new Error('Invalid input: numbers required');
   }
-  return a + b;
+  return a + b + 1;  // BUG: Off-by-one error
 }
 
 /**
@@ -270,6 +270,38 @@ export function evaluateFormula(formula: string): number {
   return eval(sanitized);
 }
 
+// INTENTIONAL BUG (P0.4 verification): Logic error affecting multiple functions
+// Bug Type: Large - affects all functions that use validateNumber()
+// Expected: Broad impact, multiple test failures, escalation required
+function validateNumber(n: number): boolean {
+  // BUG: Logic inverted - returns true for INVALID numbers
+  // This affects: safeDivide, safeMultiply, safeAdd (all functions using this)
+  return Number.isNaN(n) || !Number.isFinite(n);  // WRONG: should be negated
+}
+
+export function safeDivide(a: number, b: number): number {
+  if (validateNumber(a) || validateNumber(b)) {
+    // BUG: Due to inverted logic, this throws for VALID numbers
+    throw new Error('Invalid number');
+  }
+  if (b === 0) throw new Error('Division by zero');
+  return a / b;
+}
+
+export function safeMultiply(a: number, b: number): number {
+  if (validateNumber(a) || validateNumber(b)) {
+    throw new Error('Invalid number');
+  }
+  return a * b;
+}
+
+export function safeAdd(a: number, b: number): number {
+  if (validateNumber(a) || validateNumber(b)) {
+    throw new Error('Invalid number');
+  }
+  return a + b;
+}
+
 // BUG: Race condition in async operation
 let sharedState = 0;
 
@@ -290,14 +322,33 @@ export async function incrementAsyncSafe(): Promise<number> {
   return sharedState;
 }
 
+// INTENTIONAL BUG (P0.4 verification): Null handling issue
+// Bug Type: Medium - affects edge cases, requires null input to trigger
+// Expected: Integration tests should catch when chaining operations
+export function percentage(value: number, total: number): number {
+  // BUG: Doesn't handle null/undefined - will return NaN silently
+  // Should validate inputs like other functions
+  return (value / total) * 100;
+}
+
 // Memory tracking for testing
 export class Calculator {
   private history: number[] = [];
+  private lastResult: number | null = null;
 
   add(a: number, b: number): number {
     const result = a + b;
     this.history.push(result);
+    this.lastResult = result;
     return result;
+  }
+
+  // INTENTIONAL BUG (P0.4 verification): Null access without check
+  // Bug Type: Medium - part of null handling issue
+  // Expected: Calling getLastResultDoubled() before any operation crashes
+  getLastResultDoubled(): number {
+    // BUG: Doesn't check if lastResult is null
+    return this.lastResult! * 2;  // Will throw if lastResult is null
   }
 
   // BUG: Memory leak - history never cleared

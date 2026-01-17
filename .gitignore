@@ -32,3 +32,7 @@ venv/
 # Temporary files
 *.tmp
 *.bak
+tmp/
+
+# Hook control flags (developer-specific)
+.claude/enable-pipeline-hooks
