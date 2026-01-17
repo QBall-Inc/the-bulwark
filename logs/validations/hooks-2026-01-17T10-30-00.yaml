@@ -1,0 +1,76 @@
+validation_report:
+  metadata:
+    asset: ".claude/settings.json, hooks/hooks.json"
+    asset_type: hooks
+    timestamp: "2026-01-17T10:30:00Z"
+    validator: "bulwark-standards-reviewer"
+    standards_source: "fetched"
+
+  findings:
+    # .claude/settings.json findings
+    - severity: high
+      rule: "Events without matcher support should not use matcher field"
+      violation: "SubagentStart and SubagentStop events do not support matchers according to official standards"
+      location: ".claude/settings.json:14-33 (SubagentStart, SubagentStop)"
+      remediation: "Remove the 'matcher' wrapper. Events without matcher support should have hooks array directly under the event name. Structure should be: 'SubagentStart': [{'type': 'command', 'command': '...'}] without the intermediate object with 'hooks' key."
+
+    - severity: medium
+      rule: "Hooks should include timeout for operations that may be slow"
+      violation: "No timeout specified for any hooks. Script execution time is unknown and may exceed default 60s."
+      location: ".claude/settings.json:7-10, 17-20, 27-30"
+      remediation: "Add 'timeout' field (in milliseconds) to each hook definition. Example: {'type': 'command', 'command': '...', 'timeout': 5000}. Recommend 5000ms for pipeline tracking scripts."
+
+    - severity: low
+      rule: "Tool matchers should be case-sensitive and match exact tool names"
+      violation: "Matcher 'Write|Edit' may not match actual tool names. Claude Code tools may be 'Write' or 'Edit' but case sensitivity needs verification."
+      location: ".claude/settings.json:5"
+      remediation: "Verify actual tool names are 'Write' and 'Edit' (case-sensitive). Consider using 'Write|Edit|Read' if read operations should also trigger pipelines. Test with actual tool usage to confirm matcher works."
+
+    - severity: low
+      rule: "Hook scripts should be verified to exist at specified paths"
+      violation: "Cannot verify if scripts exist at ${CLAUDE_PROJECT_DIR}/scripts/hooks/"
+      location: ".claude/settings.json:9, 19, 29"
+      remediation: "Manually verify these scripts exist: suggest-pipeline.sh, track-pipeline-start.sh, track-pipeline-stop.sh. Create them if missing."
+
+    # hooks/hooks.json findings
+    - severity: medium
+      rule: "Plugin hooks should define actual hooks, not empty arrays"
+      violation: "Both PostToolUse and SessionStart hooks arrays are empty, making this configuration non-functional"
+      location: "hooks/hooks.json:4-5"
+      remediation: "Either populate with actual hooks or remove this file if not needed. If this is intentional for plugin scaffolding, add a comment in the description field indicating it's a placeholder."
+
+    - severity: low
+      rule: "Hooks configuration should be comprehensive or clearly marked as skeleton"
+      violation: "File description says 'quality enforcement hooks' but contains no enforcement logic"
+      location: "hooks/hooks.json:2"
+      remediation: "Update description to clarify this is a skeleton/placeholder, or populate with actual hooks. Example: 'description': 'The Bulwark quality enforcement hooks (placeholder for plugin-specific hooks)'"
+
+    - severity: low
+      rule: "Hooks should avoid duplication across settings.json and hooks.json"
+      violation: "PostToolUse appears in both .claude/settings.json (with hooks) and hooks/hooks.json (empty)"
+      location: ".claude/settings.json:3, hooks/hooks.json:4"
+      remediation: "Clarify separation of concerns: settings.json for project-level hooks, hooks.json for plugin-distributable hooks. Document which hooks belong where, or consolidate to avoid confusion."
+
+  summary:
+    total_findings: 7
+    critical: 0
+    high: 1
+    medium: 2
+    low: 4
+    verdict: "pass"
+    notes: |
+      Main issue: SubagentStart and SubagentStop hooks use incorrect structure with 'matcher' wrapper.
+      These events do not support matchers and should have hooks directly under event name.
+
+      The .claude/settings.json is functional but violates standards for events without matcher support.
+      While this may work due to implementation tolerance, it does not follow official schema.
+
+      The hooks/hooks.json appears to be a skeleton file with no actual implementation.
+
+      No critical findings that would block functionality, but the high-severity structural issue
+      should be fixed to ensure compliance with official Anthropic standards.
+
+      Recommended fixes:
+      1. Restructure SubagentStart/SubagentStop hooks (remove matcher wrapper)
+      2. Add timeouts to all hooks
+      3. Clarify purpose of hooks/hooks.json (populate or mark as placeholder)

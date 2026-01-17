@@ -1,0 +1,18 @@
+validation_report:
+  metadata:
+    asset: /mnt/c/projects/the-bulwark/.claude/skills/subagent-output-templating/SKILL.md
+    asset_type: skill
+    timestamp: 2026-01-17T13-00-00
+    validator: bulwark-standards-reviewer
+    standards_source: Anthropic skill standards
+
+  findings: []
+
+  summary:
+    total_findings: 0
+    critical: 0
+    high: 0
+    medium: 0
+    low: 0
+    verdict: pass
+    notes: "Skill meets all Anthropic standards for skills. Frontmatter valid, required fields present and correctly typed, optional fields properly configured, file structure optimal."

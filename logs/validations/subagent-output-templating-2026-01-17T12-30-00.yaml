@@ -1,0 +1,58 @@
+validation_report:
+  metadata:
+    asset: "/mnt/c/projects/the-bulwark/.claude/skills/subagent-output-templating/SKILL.md"
+    asset_type: skill
+    timestamp: "2026-01-17T12:30:00Z"
+    validator: "bulwark-standards-reviewer"
+    standards_source: "fetched from project documentation"
+
+  findings:
+    - severity: medium
+      rule: "Skills should include 'Related Skills' section with actual skill references"
+      violation: "References skills 'subagent-prompting' and 'pipeline-templates' which do exist in codebase, but should consider adding more related skills"
+      location: "lines 366-367"
+      remediation: "Consider referencing additional related skills such as 'session-handoff' which also uses structured output formatting"
+
+    - severity: low
+      rule: "Skills should follow consistent ISO-8601 timestamp formatting in documentation"
+      violation: "Examples show 'YYYYMMDD-HHMMSS' format (line 30) which conflicts with ISO-8601 standard used elsewhere (line 41)"
+      location: "lines 30, 41"
+      remediation: "Standardize on ISO-8601 format throughout or clarify when each format should be used (e.g., filename-safe vs standard ISO-8601)"
+
+    - severity: low
+      rule: "Skills should provide clear guidance on token counts"
+      violation: "Summary format specifies '100-300 tokens' but doesn't explain how to measure tokens or what happens if exceeded"
+      location: "lines 200-206"
+      remediation: "Add guidance on token counting methods (approximate words * 1.3) and handling of summaries that exceed limits"
+
+  summary:
+    total_findings: 3
+    critical: 0
+    high: 0
+    medium: 1
+    low: 2
+    verdict: pass
+    notes: |
+      The skill demonstrates strong adherence to Anthropic standards with comprehensive
+      structure and clear documentation. All required frontmatter fields are present
+      and correctly formatted:
+
+      - name: matches directory name (subagent-output-templating)
+      - description: present and descriptive
+      - user-invocable: correctly set to false (internal skill)
+
+      The skill is well within the 500-line recommended limit at 374 lines. Content is
+      well-organized with clear sections, multiple examples, and reference tables. The
+      YAML examples provided are syntactically valid and follow consistent formatting.
+
+      Referenced files verified:
+      - subagent-prompting skill exists in codebase
+      - pipeline-templates skill exists in codebase
+      - references/examples.md exists in skill directory
+
+      The medium-severity finding is a recommendation to expand related skills references.
+      The low-severity findings are recommendations for enhanced clarity regarding
+      timestamp formats and token counting but do not impact functionality.
+
+      No critical or high-severity issues detected. Skill is production-ready with
+      minor enhancements recommended for documentation consistency.

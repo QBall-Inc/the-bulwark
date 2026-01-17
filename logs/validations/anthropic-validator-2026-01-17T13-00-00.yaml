@@ -1,0 +1,27 @@
+validation_report:
+  metadata:
+    asset: /mnt/c/projects/the-bulwark/.claude/skills/anthropic-validator/SKILL.md
+    asset_type: skill
+    timestamp: "2026-01-17T13:00:00Z"
+    validator: "bulwark-standards-reviewer"
+    standards_source: "embedded"
+
+  findings:
+    - severity: low
+      rule: "File length recommendation (under 500 lines preferred)"
+      violation: "Skill file is 554 lines, exceeding the 500-line recommendation"
+      location: "overall file length"
+      remediation: "Consider splitting large skills into multiple focused skills, or defer advanced usage sections to linked documentation. Currently acceptable but approaching threshold."
+
+  summary:
+    total_findings: 1
+    critical: 0
+    high: 0
+    medium: 0
+    low: 1
+    verdict: pass
+    notes: |
+      Skill passes all required standards. The name field correctly matches the directory name
+      'anthropic-validator'. Description is present and comprehensive. user-invocable is properly
+      set as a boolean. The single low-severity finding is a style recommendation about file length,
+      which does not block functionality. All validation criteria met.

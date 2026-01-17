@@ -1,0 +1,64 @@
+validation_report:
+  metadata:
+    asset: /mnt/c/projects/the-bulwark/.claude/skills/issue-debugging/SKILL.md
+    asset_type: skill
+    timestamp: "2026-01-17T13:00:00Z"
+    validator: bulwark-standards-reviewer
+    standards_source: Anthropic Claude Code Guidelines
+
+  findings:
+    - severity: low
+      rule: "File line count should be under 500 lines recommended"
+      violation: "Skill file contains 386 lines, which exceeds recommended guidelines for maintainability"
+      location: "entire file"
+      remediation: "Consider splitting content into multiple related skills or creating referenced documentation files (e.g., references/debug-report-schema.md) to keep primary skill file under 500 lines"
+
+  summary:
+    total_findings: 1
+    critical: 0
+    high: 0
+    medium: 0
+    low: 1
+    verdict: pass
+    notes: "Skill passes all required standards. Name matches directory (issue-debugging), description is present and comprehensive. Optional field 'user-invocable' is correctly set to boolean (false). File length recommendation slightly exceeded but acceptable for comprehensive methodology skill."
+
+validation_checks_performed:
+  - check_id: "required_name_field"
+    rule: "name field must be present and match directory name"
+    result: pass
+    details: "Found 'name: issue-debugging' in frontmatter, matches directory name '.claude/skills/issue-debugging/'"
+
+  - check_id: "required_description_field"
+    rule: "description field must be present and non-empty"
+    result: pass
+    details: "Found comprehensive description: 'Systematic methodology for issue debugging including root cause analysis, impact mapping, tiered validation plans, and confidence assessment. Use when analyzing bugs, fixing issues, or validating fixes.'"
+
+  - check_id: "optional_user_invocable_field"
+    rule: "If present, user-invocable must be boolean"
+    result: pass
+    details: "user-invocable field present with boolean value 'false' - valid"
+
+  - check_id: "optional_agent_field"
+    rule: "If present, agent must be one of: haiku, sonnet, opus"
+    result: not_applicable
+    details: "agent field not present in frontmatter"
+
+  - check_id: "optional_context_field"
+    rule: "If present, context must be 'fork'"
+    result: not_applicable
+    details: "context field not present in frontmatter"
+
+  - check_id: "file_location"
+    rule: "Skill must be at .claude/skills/{name}/SKILL.md or skills/{name}/SKILL.md"
+    result: pass
+    details: "File correctly located at .claude/skills/issue-debugging/SKILL.md"
+
+  - check_id: "frontmatter_yaml_validity"
+    rule: "Frontmatter must be valid YAML between --- delimiters"
+    result: pass
+    details: "Valid YAML frontmatter present (lines 1-5)"
+
+  - check_id: "file_line_count"
+    rule: "File should not exceed 500 lines (recommendation)"
+    result: pass_with_warning
+    details: "File contains 386 lines, approaching recommended limit but within acceptable range"

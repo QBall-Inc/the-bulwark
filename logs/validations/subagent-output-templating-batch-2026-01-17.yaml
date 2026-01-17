@@ -1,0 +1,18 @@
+validation_report:
+  metadata:
+    asset: ".claude/skills/subagent-output-templating/SKILL.md"
+    asset_type: skill
+    timestamp: "2026-01-17T12:00:00Z"
+    validator: "bulwark-standards-reviewer"
+    standards_source: "fetched"
+
+  findings: []
+
+  summary:
+    total_findings: 0
+    critical: 0
+    high: 0
+    medium: 0
+    low: 0
+    verdict: pass
+    notes: "Excellent skill implementation. All required frontmatter fields present and correct (name, description, user-invocable: false). Content is comprehensive, well-organized, and provides clear templates and examples. Correctly references related skills. Under 500 line soft limit (374 lines)."

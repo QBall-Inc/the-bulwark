@@ -1,0 +1,23 @@
+validation_report:
+  metadata:
+    asset: ".claude/skills/session-handoff/SKILL.md"
+    asset_type: skill
+    timestamp: "2026-01-17T12:00:00Z"
+    validator: "bulwark-standards-reviewer"
+    standards_source: "fetched"
+
+  findings:
+    - severity: low
+      rule: "Skills should provide context about when to use them"
+      violation: "Overview section could be more explicit about when NOT to use this skill"
+      location: "lines 7-9"
+      remediation: "Add a 'When NOT to use' section or expand the overview to clarify appropriate usage boundaries"
+
+  summary:
+    total_findings: 1
+    critical: 0
+    high: 0
+    medium: 0
+    low: 1
+    verdict: pass
+    notes: "Skill is well-structured with all required frontmatter fields present. Name matches directory, description is clear and comprehensive. user-invocable is correctly set to true. Content is organized logically with good examples and checklists."

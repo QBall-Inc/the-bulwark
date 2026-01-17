@@ -10,6 +10,26 @@ Systematic methodology for debugging that prevents the "first error fix and decl
 
 ---
 
+## When to Use This Skill
+
+**Load this skill when the user request matches ANY of these patterns:**
+
+| Trigger Pattern | Example User Request |
+|-----------------|---------------------|
+| Bug investigation | "Why is X failing?", "Debug this error", "Investigate this issue" |
+| Test failures | "Tests are failing", "Fix the broken tests", "Why did CI fail?" |
+| Error analysis | "Getting this error...", "Exception in...", "Stack trace shows..." |
+| Regression hunting | "This used to work", "Something broke after...", "Regression in..." |
+| Fix validation | "Did the fix work?", "Verify this change", "Make sure it's fixed" |
+| Root cause requests | "What's causing this?", "Find the root cause", "Why does this happen?" |
+
+**DO NOT use for:**
+- New feature implementation (no existing bug)
+- Refactoring without reported issues
+- General code questions
+
+---
+
 ## Overview
 
 ### The Problem

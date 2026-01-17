@@ -37,7 +37,7 @@ version: 4.1.0
 created: 2026-01-04
 updated: 2026-01-16
 current_phase: P0
-current_task: P0.5
+current_task: P0.6
 
 phases:
   - id: P0
@@ -153,19 +153,24 @@ phases:
 
       - id: P0.5
         name: "Create anthropic-validator skill (2.1.1 updated)"
-        status: not_started
+        status: completed
         dependencies: []
         implementation_plan: "plans/task-briefs/P0.5-anthropic-validator.md"
         deliverables:
           - "skills/anthropic-validator/SKILL.md"
+          - "skills/anthropic-validator/references/*.md"
+          - "agents/bulwark-standards-reviewer.md"
         acceptance_criteria:
-          - "Hooks validation checklist (includes once: true)"
+          - "Hooks validation checklist (includes once: true, matcher support by event)"
           - "Skills validation checklist (2.1.1 fields: context, agent, user-invocable, hooks)"
-          - "Agents-as-skills validation checklist (context: fork required)"
+          - "Agents validation checklist (frontmatter, lookup priority)"
           - "Plugin validation checklist (flat skills/ structure)"
-          - "Diagnostic output validation checklist"
+          - "Commands validation checklist (merged with skills)"
+          - "MCP validation checklist"
           - "Reference docs linked"
-          - "Frontmatter: user-invocable: false"
+          - "Frontmatter: user-invocable: true (user-facing validation tool)"
+          - "Argument handling via $ARGUMENTS/$1"
+          - "Batch validation with individual processing"
         verification:
           - "Validate a sample hook against checklist"
           - "Validate a sample skill with 2.1.1 frontmatter"
