@@ -179,61 +179,75 @@ phases:
         estimated_sessions: 1
 
       # Test Audit Skills (moved from P1 - encodes T1-T4 rules)
+      # Architecture: Skills as prompt templates, orchestrator spawns general-purpose sub-agents
+      # See consolidated brief: plans/task-briefs/P0.6-8-test-audit-skills.md
       - id: P0.6
-        name: "Create test-classification skill"
-        status: not_started
+        name: "Create test-classification skill (prompt template)"
+        status: in_progress
         dependencies: []
-        implementation_plan: "plans/task-briefs/P0.6-test-classification.md"
+        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
           - "skills/test-classification/SKILL.md"
         acceptance_criteria:
+          - "4-part prompt template for Haiku sub-agent"
           - "Real integration test indicators defined"
           - "Mock-based test indicators defined"
-          - "Classification output format specified"
-          - "Frontmatter: agent: haiku (pattern matching)"
+          - "Classification output schema specified"
           - "Frontmatter: user-invocable: false"
+          - "Frontmatter: NO agent field (orchestrator spawns general-purpose)"
         verification:
+          - "Orchestrator spawns Haiku with skill prompt"
           - "Classify sample real integration test"
           - "Classify sample mock-heavy test"
           - "Verify skill does NOT appear in / menu"
         estimated_sessions: 1
 
       - id: P0.7
-        name: "Create mock-detection skill"
+        name: "Create mock-detection skill (prompt template)"
         status: not_started
         dependencies: [P0.6]
-        implementation_plan: "plans/task-briefs/P0.7-mock-detection.md"
+        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
           - "skills/mock-detection/SKILL.md"
         acceptance_criteria:
-          - "High-risk patterns identified"
-          - "Warning signs documented"
-          - "Detection procedure defined"
-          - "Frontmatter: agent: haiku (pattern matching)"
+          - "4-part prompt template for Haiku sub-agent"
+          - "T1-T4 violation patterns documented"
+          - "High-risk mock patterns identified"
+          - "Detection output schema with line numbers"
           - "Frontmatter: user-invocable: false"
+          - "Frontmatter: NO agent field (orchestrator spawns general-purpose)"
         verification:
+          - "Orchestrator spawns Haiku with skill prompt + P0.6 context"
           - "Detect mocked spawn() in sample test"
           - "Verify real test not flagged"
           - "Verify skill does NOT appear in / menu"
         estimated_sessions: 1
 
       - id: P0.8
-        name: "Create test-audit composite skill"
+        name: "Create test-audit skill (orchestration + synthesis)"
         status: not_started
         dependencies: [P0.6, P0.7]
-        implementation_plan: "plans/task-briefs/P0.8-test-audit.md"
+        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
           - "skills/test-audit/SKILL.md"
         acceptance_criteria:
-          - "Orchestrates test-classification and mock-detection"
-          - "Produces YAML inventory output"
-          - "Priority field for rewrite urgency"
-          - "Frontmatter: agent: sonnet (complex analysis)"
+          - "User-invocable entry point (/test-audit)"
+          - "Orchestration instructions for full pipeline"
+          - "Synthesis prompt template for Sonnet sub-agent"
+          - "REWRITE_REQUIRED directive logic"
+          - "Automatic rewrite when directive is true"
           - "Frontmatter: user-invocable: true"
+          - "Frontmatter: NO agent field (Main Context Orchestration pattern)"
         verification:
-          - "Audit sample test directory"
-          - "Verify YAML output valid and complete"
+          - "/test-audit triggers full pipeline"
+          - "Orchestrator spawns Haiku (P0.6), Haiku (P0.7), Sonnet (synthesis)"
+          - "Verify YAML audit output with REWRITE_REQUIRED directive"
+          - "Verify automatic rewrite triggers correctly"
           - "Verify skill appears in / menu"
+        notes:
+          - "Main Context Orchestration pattern (like anthropic-validator)"
+          - "Opus orchestrates, Haiku/Sonnet audit (bias avoidance)"
+          - "Same flow for explicit (/test-audit) and implicit (hook) invocation"
         estimated_sessions: 1
 
   - id: P1
@@ -261,6 +275,11 @@ phases:
           - "Invoke via Task tool with subagent_type=bulwark-test-auditor"
           - "Verify YAML classification generated"
           - "Verify Stop hook fires"
+        review_notes:
+          - "REVIEW NEEDED: P0.8 (test-audit) now uses Main Context Orchestration pattern"
+          - "P0.8 orchestrates test-classification → mock-detection → synthesis directly"
+          - "This agent may be redundant - evaluate if wrapper agent adds value"
+          - "Consider: Does pipeline need agent invocation, or is skill loading sufficient?"
         estimated_sessions: 1
 
       - id: P1.2
@@ -451,6 +470,8 @@ phases:
         notes:
           - "Migrate P0.3 pipeline hooks from .claude/settings.json to hooks/hooks.json"
           - "P0.3 hooks: scripts/hooks/validate-pipeline.sh, track-pipeline-start.sh, track-pipeline-stop.sh"
+          - "HOOK CHAINING ORDER: enforce-quality.sh runs FIRST (typecheck+lint), then suggest-pipeline.sh"
+          - "Both scripts on same PostToolUse event - quality enforcement gates pipeline suggestion"
         estimated_sessions: 1
 
       - id: P3.5

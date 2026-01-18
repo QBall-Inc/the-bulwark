@@ -594,3 +594,411 @@ blockers: []
 | Pattern matching on task description | File type + change size detection |
 | `systemMessage` injection | `additionalContext` injection |
 | Blocking validation | Non-blocking suggestion |
+
+---
+
+# P0.6-8 Test Audit Skills - Manual Test Protocol
+
+**Purpose**: Verify test-classification (P0.6), mock-detection (P0.7), and test-audit (P0.8) skills work correctly.
+**Prerequisite**: P0.6-8 implementation complete, skills copied to `.claude/skills/`
+**Design**: Main Context Orchestration - Orchestrator spawns Haiku/Sonnet sub-agents using skill prompt templates.
+
+---
+
+## Pre-Test Setup (P0.6-8)
+
+1. Ensure skills are copied to `.claude/skills/`:
+   - `test-classification/SKILL.md`
+   - `mock-detection/SKILL.md`
+   - `test-audit/SKILL.md`
+2. Ensure test fixtures exist in `tests/fixtures/test-audit/`
+3. Ensure `logs/` directory exists
+4. Start a fresh Claude Code session
+5. Verify `/skills` shows `test-audit` (user-invocable: true)
+6. Verify `test-classification` and `mock-detection` are NOT in menu
+
+---
+
+## Test P0.6-1: Classification - Clean Test
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/clean/calculator.test.ts
+Focus on the classification stage only for now.
+```
+
+**Expected Behavior**:
+1. Claude loads test-audit skill
+2. Claude spawns Haiku sub-agent for classification
+3. Classification output written to `logs/test-classification-{timestamp}.yaml`
+4. File classified as `unit`, `needs_deep_analysis: false`
+
+**Verification**:
+- [ ] Classification YAML exists in `logs/`
+- [ ] `category: unit`
+- [ ] `needs_deep_analysis: false`
+- [ ] `verification_lines` count present
+
+---
+
+## Test P0.6-2: Classification - T1 Violation Detection
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/t1-violation/proxy.test.ts
+Focus on the classification stage only.
+```
+
+**Expected Behavior**:
+1. Classification detects `jest.spyOn(child_process, 'spawn')`
+2. File flagged with `needs_deep_analysis: true`
+3. Reason: "Unit test mocks core module (spawn)"
+
+**Verification**:
+- [ ] `category: unit`
+- [ ] `needs_deep_analysis: true`
+- [ ] `mock_indicators` includes spawn pattern
+- [ ] `deep_analysis_reason` mentions core module
+
+---
+
+## Test P0.6-3: Classification - Integration File with Mocks
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/t3-violation/api.integration.ts
+Focus on the classification stage only.
+```
+
+**Expected Behavior**:
+1. Filename pattern `.integration.ts` → `category: integration`
+2. Mock detected → `needs_deep_analysis: true`
+3. Reason: "Integration test contains mocks"
+
+**Verification**:
+- [ ] `category: integration` (from filename)
+- [ ] `needs_deep_analysis: true`
+- [ ] `mock_indicators` includes fetch mock
+
+---
+
+## Test P0.6-4: Classification - Mixed Types Risk
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/mixed-types/everything.test.ts
+Focus on the classification stage only.
+```
+
+**Expected Behavior**:
+1. File contains unit, integration, AND e2e tests
+2. Classified as `unit` (default) but flagged for `test_management` risk
+3. Recommendation to split file
+
+**Verification**:
+- [ ] `risk: test_management` present
+- [ ] Recommendation mentions splitting files
+- [ ] `needs_deep_analysis: true`
+
+---
+
+## Test P0.7-1: Detection - T1 Violation Analysis
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/t1-violation/proxy.test.ts
+Run both classification AND detection stages.
+```
+
+**Expected Behavior**:
+1. Classification runs first (Haiku)
+2. Detection runs on flagged file (Sonnet)
+3. T1 violation detected with violation scope
+4. `priority: P0` (false confidence)
+
+**Verification**:
+- [ ] Detection YAML exists in `logs/`
+- [ ] `rule: T1`
+- [ ] `severity: critical`
+- [ ] `priority: P0`
+- [ ] `violation_scope` shows affected line range
+- [ ] `affected_lines` calculated
+- [ ] `suggested_fix` provided
+
+---
+
+## Test P0.7-2: Detection - T3+ Broken Chain
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/t3plus-violation/workflow.integration.ts
+Run both classification AND detection stages.
+```
+
+**Expected Behavior**:
+1. Detection identifies broken integration chain
+2. Mock data used instead of real function output
+3. `rule: T3+`, `priority: P0`
+
+**Verification**:
+- [ ] `rule: T3+`
+- [ ] `pattern: "Broken integration chain"`
+- [ ] `priority: P0`
+- [ ] Reason explains data flow break
+- [ ] Multiple violation scopes (lines 45, 62, 78)
+
+---
+
+## Test P0.7-3: Detection - T2 Call-Only Assertion
+
+**Prompt**:
+```
+Run the test-audit skill on tests/fixtures/test-audit/t2-violation/db.test.ts
+Run both classification AND detection stages.
+```
+
+**Expected Behavior**:
+1. T2 violations detected (toHaveBeenCalled without result check)
+2. Single-line scopes (minimal impact)
+3. `priority: P1` (incomplete verification)
+
+**Verification**:
+- [ ] `rule: T2`
+- [ ] `severity: high`
+- [ ] `priority: P1`
+- [ ] `violation_scope` is single line each
+- [ ] `test_effectiveness` is high (>90%)
+
+---
+
+## Test P0.8-1: Full Pipeline - Gate 1 Trigger
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/t1-violation/
+```
+
+**Expected Behavior**:
+1. Full pipeline runs (classification → detection → synthesis)
+2. P0 violation found (T1)
+3. Gate 1 triggered (P0 violation exists)
+4. `REWRITE_REQUIRED: true`
+
+**Verification**:
+- [ ] All three YAML files in `logs/`
+- [ ] `directive.REWRITE_REQUIRED: true`
+- [ ] `directive.gate_triggered: "Gate 1: Impact"`
+- [ ] Audit summary presented before rewrite
+- [ ] Orchestrator begins rewrite (or asks for confirmation)
+
+---
+
+## Test P0.8-2: Full Pipeline - Gate 2 Trigger
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/t3-violation/
+```
+
+**Expected Behavior**:
+1. P1 violation found (T3)
+2. test_effectiveness < 95%
+3. Gate 2 triggered
+4. `REWRITE_REQUIRED: true`
+
+**Verification**:
+- [ ] `directive.REWRITE_REQUIRED: true`
+- [ ] `directive.gate_triggered: "Gate 2: Threshold"`
+- [ ] `test_effectiveness` shown below 95%
+
+---
+
+## Test P0.8-3: Full Pipeline - Advisory Only
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/t2-violation/
+```
+
+**Expected Behavior**:
+1. P1 violation found (T2)
+2. test_effectiveness >= 95% (small impact)
+3. Neither gate triggered
+4. `REWRITE_REQUIRED: false` (advisory)
+
+**Verification**:
+- [ ] `directive.REWRITE_REQUIRED: false`
+- [ ] `files_advisory` list present
+- [ ] Reason: "Above 95% threshold"
+- [ ] No automatic rewrite triggered
+
+---
+
+## Test P0.8-4: Full Pipeline - Clean Tests
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/clean/
+```
+
+**Expected Behavior**:
+1. No violations found
+2. `REWRITE_REQUIRED: false`
+3. No recommendations
+
+**Verification**:
+- [ ] `directive.REWRITE_REQUIRED: false`
+- [ ] No violations in detection output
+- [ ] Summary shows 100% test effectiveness
+
+---
+
+## Test P0.8-5: Full Pipeline - All Fixtures
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/
+```
+
+**Expected Behavior**:
+1. All 6 fixtures classified
+2. 5 flagged for deep analysis
+3. Multiple violations detected
+4. Gate 1 triggered (P0 violations exist)
+5. Priority rewrite list generated
+
+**Verification**:
+- [ ] 6 files in classification output
+- [ ] 4+ files with violations in detection
+- [ ] `files_to_rewrite` ordered by priority (P0 first)
+- [ ] `files_advisory` includes high-effectiveness P1 files
+
+---
+
+## Test P0.8-6: Menu Visibility
+
+**Action**: Type `/` in Claude Code to open skill menu
+
+**Expected Behavior**:
+- `test-audit` SHOULD appear in the menu
+- `test-classification` should NOT appear
+- `mock-detection` should NOT appear
+
+**Verification**:
+- [ ] `test-audit` in menu (user-invocable: true)
+- [ ] `test-classification` NOT in menu
+- [ ] `mock-detection` NOT in menu
+
+---
+
+## Test P0.8-7: Model Selection Verification
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/t1-violation/
+After running, show me the diagnostic outputs to verify model selection.
+```
+
+**Verification**:
+- [ ] Check `logs/diagnostics/test-classification-*.yaml` shows `model: haiku`
+- [ ] Check `logs/diagnostics/mock-detection-*.yaml` shows `model: sonnet`
+- [ ] Check `logs/diagnostics/test-audit-*.yaml` shows `model: sonnet`
+
+---
+
+## Post-Test Checklist (P0.6-8)
+
+- [ ] test-audit appears in `/` menu
+- [ ] test-classification and mock-detection NOT in menu
+- [ ] Classification correctly categorizes by filename
+- [ ] Classification flags mock+integration mismatches
+- [ ] Classification counts verification_lines correctly
+- [ ] Detection uses Sonnet (not Haiku)
+- [ ] Detection tracks violation_scope (not just line)
+- [ ] Detection calculates test_effectiveness
+- [ ] Synthesis applies two-gate logic correctly
+- [ ] Gate 1 triggers on any P0 violation
+- [ ] Gate 2 triggers on P1 + <95% effectiveness
+- [ ] Advisory mode for P1 with >=95% or P2 only
+- [ ] Rewrite direction provided (not pseudo-code)
+- [ ] All YAML outputs valid and parseable
+
+---
+
+## Test Results Template (P0.6-8)
+
+```yaml
+# tests/logs/test-audit-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  classification_clean:
+    status: pass|fail
+    notes: ""
+  classification_t1:
+    status: pass|fail
+    needs_deep_analysis: true|false
+    notes: ""
+  classification_integration:
+    status: pass|fail
+    notes: ""
+  classification_mixed:
+    status: pass|fail
+    risk_detected: true|false
+    notes: ""
+  detection_t1:
+    status: pass|fail
+    priority: P0|P1|P2
+    notes: ""
+  detection_t3plus:
+    status: pass|fail
+    priority: P0|P1|P2
+    notes: ""
+  detection_t2:
+    status: pass|fail
+    effectiveness: X%
+    notes: ""
+  full_pipeline_gate1:
+    status: pass|fail
+    rewrite_required: true|false
+    notes: ""
+  full_pipeline_gate2:
+    status: pass|fail
+    rewrite_required: true|false
+    notes: ""
+  full_pipeline_advisory:
+    status: pass|fail
+    rewrite_required: true|false
+    notes: ""
+  full_pipeline_clean:
+    status: pass|fail
+    notes: ""
+  full_pipeline_all:
+    status: pass|fail
+    files_classified: X
+    violations_found: X
+    notes: ""
+  menu_visibility:
+    status: pass|fail
+    notes: ""
+  model_selection:
+    status: pass|fail
+    haiku_used_for_classification: true|false
+    sonnet_used_for_detection: true|false
+    sonnet_used_for_synthesis: true|false
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Known Limitations (P0.6-8)
+
+1. **Test effectiveness calculation**: Requires accurate line counting which may vary by code style
+2. **Violation scope detection**: Call graph analysis has heuristic limits
+3. **T3+ (broken chain)**: Requires understanding data flow intent, may have false positives
+4. **Automatic rewrite**: Opus implements fixes based on direction; quality depends on direction clarity

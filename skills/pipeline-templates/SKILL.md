@@ -41,7 +41,7 @@ Is this a multi-agent task?
 |----------|----------|---------------|-----------|
 | Code Review | PR review, code audit | Sonnet (role-based, 4 sections) | `references/code-review.md` |
 | Fix Validation | Bug fixes, issue resolution | Sonnet (analyze) → Opus (fix) → Sonnet (validate) → Sonnet (review) | `references/fix-validation.md` |
-| Test Audit | Test quality assessment | Haiku (classify) → Sonnet (audit) | `references/test-audit.md` |
+| Test Audit | Test quality assessment | Haiku (classify) → Sonnet (detect) → Sonnet (audit) | `references/test-audit.md` |
 | New Feature | Feature implementation | Haiku (research) → Opus (write) → Sonnet (review) | `references/new-feature.md` |
 | Research & Planning | Pre-implementation research | Haiku (lookup) → Sonnet (review) → loop(min=3) | `references/research-planning.md` |
 | Test Execution & Fix | Run tests, fix failures | Haiku (execute) → Sonnet (analyze) → Opus (fix) | `references/test-execution-fix.md` |

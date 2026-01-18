@@ -113,24 +113,26 @@ Investigation |> Implementation |> TestAudit |> Validation
 | `subagent-prompting` | 4-part template (GOAL/CONSTRAINTS/CONTEXT/OUTPUT) + pipeline syntax | `user-invocable: false` |
 | `subagent-output-templating` | Structured log output, task completion reports | `user-invocable: false` |
 | `pipeline-templates` | Pre-defined F# pipe workflows for common scenarios | `user-invocable: false` |
-| `test-classification` | Criteria for real vs mock-based test classification | `agent: haiku`, `user-invocable: false` |
-| `mock-detection` | Patterns indicating mock-heavy tests | `agent: haiku`, `user-invocable: false` |
+| `test-classification` | Prompt template for test classification (Haiku stage) | `user-invocable: false` |
+| `mock-detection` | Prompt template for T1-T4 violation detection (Haiku stage) | `user-invocable: false` |
 | `assertion-patterns` | Real output verification vs mock calls | `user-invocable: false` |
 | `security-heuristics` | OWASP checks, injection patterns | `agent: sonnet`, `user-invocable: false` |
 | `type-safety` | Type safety review patterns | `agent: sonnet`, `user-invocable: false` |
 | `bug-magnet-data` | Edge case data for test injection | `agent: haiku`, `user-invocable: false` |
 | `component-patterns` | Per-component-type verification approaches | `user-invocable: false` |
 | `continuous-feedback` | Skill enhancement from learnings | `user-invocable: false` |
-| `anthropic-validator` | Validate against official Anthropic guidelines | `user-invocable: false` |
+| `anthropic-validator` | Validate against official Anthropic guidelines | `user-invocable: true` |
 
 ### Composite Skills (User-Facing)
 
 | Skill | Uses | Purpose | Frontmatter |
 |-------|------|---------|-------------|
-| `test-audit` | test-classification, mock-detection | Audit tests, produce YAML inventory | `agent: sonnet`, `user-invocable: true` |
+| `test-audit` | test-classification, mock-detection | Main Context Orchestration: audit tests, spawn Haiku/Sonnet sub-agents | `user-invocable: true` (no `agent:` field) |
 | `code-review` | security-heuristics, type-safety | Comprehensive code review | `agent: sonnet`, `user-invocable: true` |
 | `verification-script` | component-patterns, assertion-patterns | Create runnable verification scripts | `agent: sonnet`, `user-invocable: true` |
 | `issue-debugging` | Multiple foundation skills | Holistic fix with validation loop | `user-invocable: false` |
+
+**Note on Main Context Orchestration**: The `test-audit` skill uses the same pattern as `anthropic-validator` - the orchestrator (Opus) follows skill instructions and spawns general-purpose sub-agents with explicit model selection. This enables bias avoidance (Haiku/Sonnet audit, Opus implements fixes).
 
 ### Agent Skills (context: fork)
 
@@ -166,10 +168,12 @@ IssueDebugger (root cause)
 
 **Test Audit Pipeline:**
 ```fsharp
-TestAuditor (classify all)
-|> (if mock_heavy > 0 then VerificationScriptCreator else Done)
-|> Implementer (rewrite flagged)
-|> TestAuditor (re-verify)
+// Main Context Orchestration pattern
+// Orchestrator spawns general-purpose sub-agents with explicit model selection
+test-classification (Haiku, prompt template)
+|> mock-detection (Haiku, prompt template + classification context)
+|> test-audit synthesis (Sonnet, analysis + REWRITE_REQUIRED directive)
+|> (if REWRITE_REQUIRED then Orchestrator (Opus) rewrites else Done)
 ```
 
 ---
