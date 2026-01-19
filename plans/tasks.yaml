@@ -37,7 +37,7 @@ version: 4.2.0
 created: 2026-01-04
 updated: 2026-01-19
 current_phase: P1
-current_task: P1.2
+current_task: P1.3
 
 phases:
   - id: P0
@@ -280,7 +280,7 @@ phases:
 
       - id: P1.2
         name: "Create bulwark-issue-analyzer agent"
-        status: in_progress
+        status: completed
         dependencies: [P0.4]
         implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-analyzer.md"
         deliverables:
@@ -289,55 +289,64 @@ phases:
           - "tests/fixtures/issue-analyzer-expected/"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: user-invocable: true (direct invocation + pipeline)"
-          - "Frontmatter: agent: sonnet"
+          - "Frontmatter: model: sonnet"
           - "Frontmatter: skills: issue-debugging, subagent-output-templating, subagent-prompting"
-          - "Argument handling for path ($ARGUMENTS)"
+          - "Invoked via Task tool (agents don't appear in / menu)"
+          - "Input passed via CONTEXT in prompt (not $ARGUMENTS)"
           - "Handles production code bugs AND test code issues"
           - "Produces debug report at logs/debug-reports/"
           - "Summary includes debug report path"
           - "Diagnostic output to logs/diagnostics/"
           - "No code modification constraint enforced"
         verification:
-          - "Agent appears in / menu (user-invocable)"
-          - "Test P1.2-1: Explicit invocation - production bug"
-          - "Test P1.2-2: Explicit invocation - test bug"
+          - "Test P1.2-1: Conversational invocation - production bug"
+          - "Test P1.2-2: Conversational invocation - test bug"
           - "Test P1.2-3: Pipeline integration (Stage 1)"
+          - "Test P1.2-4: N/A - agents don't appear in / menu"
           - "Test P1.2-5: No code modification constraint"
           - "Manual tests in tests/manual-test-protocol.md"
         notes:
           - "Pipeline stage: IssueAnalyzer in Fix Validation pipeline"
-          - "Also user-invocable for ad-hoc issue analysis"
+          - "Invoked via Task tool or conversational request (NOT slash command)"
           - "Test fixtures must NOT contain bias (no explanatory comments)"
           - "Manual testing required in separate session"
+          - "LEARNING: user-invocable field applies to skills, not agents"
         estimated_sessions: 1
 
       - id: P1.3
         name: "Create bulwark-fix-validator agent"
         status: not_started
-        dependencies: [P0.4]
+        dependencies: [P0.4, P1.2]
         implementation_plan: "plans/task-briefs/P1.3-bulwark-fix-validator.md"
         deliverables:
           - "agents/bulwark-fix-validator.md"
-          - "scripts/agents/finalize-fix-validator.sh"
+          - "tests/fixtures/fix-validator/"
+          - "tests/fixtures/fix-validator-expected/"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: agent: sonnet"
-          - "Frontmatter: skills: issue-debugging"
-          - "Stop hook for finalization"
-          - "Reads debug report from IssueAnalyzer"
+          - "Frontmatter: model: sonnet"
+          - "Frontmatter: skills: issue-debugging, subagent-output-templating, subagent-prompting"
+          - "Invoked via Task tool (agents don't appear in / menu)"
+          - "Reads debug report from IssueAnalyzer (validation plan, confidence criteria)"
           - "Executes tiered validation plan (P1/P2/P3 tests)"
-          - "Outputs confidence level (high/medium/low)"
+          - "Multiple test execution strategies (native runner, script, manual)"
+          - "Outputs confidence level (high/medium/low) with rationale"
+          - "Produces validation report at logs/validations/"
           - "Escalates to manual testing when required"
           - "Diagnostic output to logs/diagnostics/"
+          - "No code modification constraint enforced"
         verification:
-          - "Invoke via Task tool with subagent_type=bulwark-fix-validator"
-          - "Verify reads debug report and executes validation plan"
-          - "Verify confidence assessment in output"
-          - "Verify escalation triggers work"
+          - "Test P1.3-1: Basic fix validation"
+          - "Test P1.3-2: Validation with test failures"
+          - "Test P1.3-3: Pipeline integration"
+          - "Test P1.3-4: No code modification constraint"
+          - "Manual tests in tests/manual-test-protocol.md"
         notes:
-          - "Pipeline stage: FixValidator in Fix Validation pipeline"
-          - "NEW: Added to support validation loop"
+          - "Pipeline stage: FixValidator (Stage 4) in Fix Validation pipeline"
+          - "Depends on bulwark-issue-analyzer debug report"
+          - "INSIGHT (Session 14): Improvised validator generated JS scripts for test execution"
+          - "INSIGHT (Session 14): Wrote readable validation-results.txt in addition to YAML"
+          - "LEARNING: user-invocable field applies to skills, not agents"
         estimated_sessions: 1
 
   - id: P2

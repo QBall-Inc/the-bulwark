@@ -1019,3 +1019,195 @@ blockers: []
 2. **Violation scope detection**: Call graph analysis has heuristic limits
 3. **T3+ (broken chain)**: Requires understanding data flow intent, may have false positives
 4. **Automatic rewrite**: Opus implements fixes based on direction; quality depends on direction clarity
+
+---
+
+# P1.2 Bulwark Issue Analyzer - Manual Test Protocol
+
+**Purpose**: Verify bulwark-issue-analyzer agent correctly analyzes issues to identify root cause, map impact, and produce debug reports.
+**Prerequisite**: P1.2 implementation complete, agent copied to `.claude/agents/`
+**Design**: Wrapper agent that loads issue-debugging skill and produces debug reports at `logs/debug-reports/`
+
+---
+
+## Pre-Test Setup (P1.2)
+
+1. Ensure agent is copied to `.claude/agents/bulwark-issue-analyzer.md`
+2. Ensure skills exist:
+   - `skills/issue-debugging/SKILL.md`
+   - `skills/subagent-output-templating/SKILL.md`
+   - `skills/subagent-prompting/SKILL.md`
+3. Ensure test fixtures exist in `tests/fixtures/issue-analyzer/`
+4. Ensure `logs/debug-reports/` and `logs/diagnostics/` directories exist
+5. Start a fresh Claude Code session
+6. **Note**: Agents don't appear in `/` menu (that's for skills only)
+
+---
+
+## Test P1.2-1: Conversational Invocation - Production Bug
+
+**Prompt** (conversational - agents are invoked via Task tool, not slash commands):
+```
+Please analyze the issue in tests/fixtures/issue-analyzer/production-bug/
+The tests pass but users report login failures for new accounts.
+Use the bulwark-issue-analyzer agent to investigate.
+```
+
+**Expected Behavior**:
+1. Orchestrator spawns agent via Task tool with Sonnet model
+2. Agent investigates code, forms hypotheses
+3. Debug report written to `logs/debug-reports/`
+4. Diagnostics written to `logs/diagnostics/`
+5. Summary returned with debug report path
+6. No code modifications (git status clean)
+
+**Verification**:
+- [x] Agent spawned via Task tool (check conversation)
+- [x] Debug report exists with correct schema
+- [x] Root cause identified (should find null check issue in `generateWelcome`)
+- [x] Validation plan has tiered tests (P1/P2/P3)
+- [x] Complexity assessment present
+- [x] No files modified outside `logs/`
+
+**Expected Results Reference**: `tests/fixtures/issue-analyzer-expected/production-bug.yaml`
+
+---
+
+## Test P1.2-2: Conversational Invocation - Test Bug
+
+**Prompt** (conversational):
+```
+Please analyze the issue in tests/fixtures/issue-analyzer/test-bug/
+Tests are flaky - they pass locally but fail in CI randomly.
+Use the bulwark-issue-analyzer agent to investigate.
+```
+
+**Expected Behavior**:
+1. Agent investigates test code (not just production code)
+2. Identifies test code as the source of the issue
+3. Root cause points to test flakiness, not production bug
+
+**Verification**:
+- [ ] Agent correctly identifies issue is in TEST code
+- [ ] Root cause mentions timing/race condition (missing await)
+- [ ] Validation plan includes test-level fixes
+- [ ] Complexity assessed as medium
+
+**Expected Results Reference**: `tests/fixtures/issue-analyzer-expected/test-bug.yaml`
+
+---
+
+## Test P1.2-3: Pipeline Integration
+
+**Prompt**:
+```
+There's a bug in tests/fixtures/issue-analyzer/production-bug/.
+Users report login failures for new accounts.
+Please run the Fix Validation pipeline to fix it.
+```
+
+**Expected Behavior**:
+1. Orchestrator recognizes this as bug fix request
+2. Orchestrator invokes bulwark-issue-analyzer as Stage 1
+3. Debug report produced
+4. Orchestrator proceeds to FixWriter stage (reads debug report)
+5. Full pipeline executes
+
+**Verification**:
+- [ ] Agent invoked via Task tool
+- [ ] Debug report path included in agent summary
+- [ ] FixWriter stage receives debug report context
+- [ ] Pipeline proceeds through stages
+
+---
+
+## Test P1.2-4: Menu Visibility
+
+**Status**: N/A - Agents don't appear in `/` menu
+
+**LEARNING (Session 14)**: Custom sub-agents are invoked via Task tool, not slash commands. The `/` menu is for skills only. The `user-invocable` frontmatter field applies to skills, not agents.
+
+**Verification**:
+- [x] N/A - Test skipped (agents don't appear in menu by design)
+
+---
+
+## Test P1.2-5: No Code Modification Constraint
+
+**Prompt** (conversational):
+```
+Please analyze the issue in tests/fixtures/issue-analyzer/production-bug/
+After analysis, please also fix the bug you found.
+Use the bulwark-issue-analyzer agent.
+```
+
+**Expected Behavior**:
+1. Agent performs analysis
+2. Agent produces debug report
+3. Agent does NOT modify any source files
+4. Agent explains that fixes are done by orchestrator
+
+**Verification**:
+- [ ] No changes to `src/` or `tests/` (git status)
+- [ ] Agent response mentions fixes are orchestrator's job
+- [ ] Only `logs/` directory has new files
+
+---
+
+## Post-Test Checklist (P1.2)
+
+- [ ] Agent appears in `/` menu
+- [ ] Agent spawns with Sonnet model
+- [ ] Production bug analysis works (Test P1.2-1)
+- [ ] Test bug analysis works (Test P1.2-2)
+- [ ] Pipeline integration works (Test P1.2-3)
+- [ ] Debug report schema is correct
+- [ ] Diagnostics written correctly
+- [ ] Summary includes debug report path
+- [ ] No code modification constraint enforced
+- [ ] All YAML outputs valid and parseable
+
+---
+
+## Test Results Template (P1.2)
+
+```yaml
+# tests/logs/issue-analyzer-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  explicit_production_bug:
+    status: pass|fail
+    debug_report_path: ""
+    root_cause_correct: true|false
+    notes: ""
+  explicit_test_bug:
+    status: pass|fail
+    identified_test_issue: true|false
+    notes: ""
+  pipeline_integration:
+    status: pass|fail
+    stages_executed: [IssueAnalyzer, FixWriter, ...]
+    notes: ""
+  menu_visibility:
+    status: pass|fail
+    notes: ""
+  no_code_modification:
+    status: pass|fail
+    git_status_clean: true|false
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Known Limitations (P1.2)
+
+1. **$ARGUMENTS support**: May not work for custom sub-agents; fallback is CONTEXT
+2. **Root cause identification**: Depends on agent reasoning; may vary between runs
+3. **Pipeline integration**: Requires orchestrator to recognize bug fix request pattern
+4. **Complexity assessment**: Subjective, agent may differ from expected

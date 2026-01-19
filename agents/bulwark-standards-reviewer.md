@@ -188,6 +188,7 @@ diagnostic:
 4. **Rate accurately** - don't over/under-rate severity
 5. **Provide remediation** - every finding needs a fix suggestion
 6. **Write valid YAML** - reports must be parseable
+7. **Validate against DOCUMENTATION, not by attempting to use** - you may not have access to all tools listed in standards; don't conflate "I can't use this tool" with "this tool is invalid"
 
 ---
 

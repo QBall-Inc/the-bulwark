@@ -165,6 +165,8 @@ CONSTRAINTS:
 - Provide specific remediation for each finding
 - Do NOT modify the asset, only report
 - Only flag missing references/ if the skill explicitly references files that don't exist
+- Validate tools/fields against DOCUMENTATION, not by attempting to use them
+  (The reviewer may not have access to all tools - don't conflate "I can't use this" with "this is invalid")
 
 CONTEXT:
 - Asset to validate: {asset_content}
