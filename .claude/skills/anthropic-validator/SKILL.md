@@ -125,6 +125,33 @@ OUTPUT:
 - Any version-specific notes
 ```
 
+### Step 2.5: Gather Supporting Files (Skills Only)
+
+For skills, check for supporting subdirectories and files:
+
+```
+IF asset_type == "skill":
+    1. Check for references/ subdirectory
+       - List all files if present
+       - Note: references/ is OPTIONAL (not all skills have it)
+
+    2. Check for other common subdirectories
+       - examples/, scripts/, templates/, data/
+       - List files if present
+
+    3. Scan SKILL.md for file references
+       - Look for patterns: `references/*.md`, `examples/*`, etc.
+       - Verify referenced files exist
+
+    4. Build supporting_files inventory:
+       supporting_files = {
+         references: [list of files or "none"],
+         examples: [list of files or "none"],
+         scripts: [list of files or "none"],
+         referenced_but_missing: [any files mentioned but not found]
+       }
+```
+
 ### Step 3: Critical Analysis
 
 Spawn `bulwark-standards-reviewer` agent (Task tool with `subagent_type: bulwark-standards-reviewer`):
@@ -137,11 +164,14 @@ CONSTRAINTS:
 - Rate findings by severity (Critical/High/Medium/Low)
 - Provide specific remediation for each finding
 - Do NOT modify the asset, only report
+- Only flag missing references/ if the skill explicitly references files that don't exist
 
 CONTEXT:
 - Asset to validate: {asset_content}
 - Current standards: {fetched_standards from Step 2}
 - Asset type: {asset_type}
+- Supporting files inventory: {supporting_files from Step 2.5, if skill}
+- Referenced files verified: {yes/no with details}
 
 OUTPUT:
 Write structured YAML to logs/validations/{asset-name}-{timestamp}.yaml
@@ -162,13 +192,23 @@ https://docs.anthropic.com/en/docs/claude-code/skills
 ### Validation Workflow
 
 1. Read the skill's `SKILL.md` file
-2. Spawn `claude-code-guide` with prompt:
+2. **Check for supporting subdirectories**:
+   - `references/` - list files if present (OPTIONAL - not all skills need this)
+   - `examples/`, `scripts/`, `templates/`, `data/` - list if present
+3. **Verify referenced files** - scan SKILL.md for file mentions (`references/*.md`, etc.) and confirm they exist
+4. Spawn `claude-code-guide` with prompt:
    ```
    Fetch current standards for Claude Code skills from https://docs.anthropic.com/en/docs/claude-code/skills
    Focus on: frontmatter fields, SKILL.md structure, user-invocable, agent field, context field
    ```
-3. Spawn `bulwark-standards-reviewer` with skill content and fetched standards
-4. Write report to `logs/validations/`
+5. Spawn `bulwark-standards-reviewer` with:
+   - Skill content
+   - Fetched standards
+   - **Supporting files inventory** (list of files in references/, examples/, etc.)
+   - **Referenced files verification** (which mentioned files exist/missing)
+6. Write report to `logs/validations/`
+
+**Important**: A missing `references/` folder is NOT a violation unless the skill explicitly references files that don't exist. Many skills are self-contained and don't need supporting files.
 
 ### Key Validation Points
 

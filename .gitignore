@@ -2,10 +2,12 @@
 logs/*.yaml
 logs/*.log
 logs/diagnostics/*.yaml
+logs/validations/*.yaml
 
 # Keep log directories but ignore contents
 !logs/.gitkeep
 !logs/diagnostics/.gitkeep
+!logs/validations/.gitkeep
 
 # OS files
 .DS_Store
