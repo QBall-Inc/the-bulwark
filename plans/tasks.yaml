@@ -37,7 +37,7 @@ version: 4.2.0
 created: 2026-01-04
 updated: 2026-01-18
 current_phase: P1
-current_task: P1.1
+current_task: P1.2
 
 phases:
   - id: P0
@@ -260,30 +260,23 @@ phases:
     tasks:
       - id: P1.1
         name: "Create bulwark-test-auditor agent"
-        status: not_started
+        status: skipped
+        skip_reason: "Redundant - Main Context Orchestration pattern handles test-audit"
         dependencies: [P0.8, P0.1]
-        implementation_plan: "plans/task-briefs/P1.1-bulwark-test-auditor.md"
-        deliverables:
-          - "agents/bulwark-test-auditor.md"
-          - "scripts/agents/finalize-test-auditor.sh"
-        acceptance_criteria:
-          - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: agent: sonnet"
-          - "Frontmatter: skills: test-audit"
-          - "Stop hook for finalization"
-          - "Produces YAML test classification"
-          - "Output to logs/"
-          - "Diagnostic output to logs/diagnostics/"
-        verification:
-          - "Invoke via Task tool with subagent_type=bulwark-test-auditor"
-          - "Verify YAML classification generated"
-          - "Verify Stop hook fires"
-        review_notes:
-          - "REVIEW NEEDED: P0.8 (test-audit) now uses Main Context Orchestration pattern"
-          - "P0.8 orchestrates test-classification → mock-detection → synthesis directly"
-          - "This agent may be redundant - evaluate if wrapper agent adds value"
-          - "Consider: Does pipeline need agent invocation, or is skill loading sufficient?"
-        estimated_sessions: 1
+        implementation_plan: "N/A - skipped"
+        deliverables: []
+        acceptance_criteria: []
+        verification: []
+        decision_notes:
+          - "Session 12 (2026-01-19): Reviewed necessity after P0.8 completion"
+          - "ARCHITECTURAL CONSTRAINT: Sub-agents cannot spawn other sub-agents"
+          - "test-audit requires 3-stage orchestration (classification → detection → synthesis)"
+          - "A wrapper agent couldn't orchestrate these stages internally"
+          - "SOLUTION: Main Context Orchestration pattern - orchestrator loads test-audit skill and follows its instructions to spawn sub-agents"
+          - "This pattern is validated and working (P0.6-8 complete)"
+          - "Pipeline chaining: When other pipelines need test-audit, orchestrator loads the skill directly"
+          - "CONTRAST with P1.2/P1.3: Those agents are single-stage (no internal sub-agent spawning) and benefit from isolated context for bias avoidance"
+        estimated_sessions: 0
 
       - id: P1.2
         name: "Create bulwark-issue-analyzer agent"
@@ -854,11 +847,14 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 32
-  total_estimated_sessions: 33
+  total_tasks: 31  # Was 32, P1.1 skipped
+  total_estimated_sessions: 32  # Was 33, P1.1 skipped
+  skipped_tasks:
+    - id: P1.1
+      reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
-    P1: 3 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator, TestAuditor)
+    P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED
     P2: 3 tasks (Verification Scripts)
     P3: 5 tasks (Enforcement Infrastructure with once: true)
     P4: 4 tasks (Review Skills & Standalone Agents)
@@ -868,6 +864,7 @@ summary:
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
     standalone_agents: "bulwark-code-auditor for ad-hoc use outside pipelines"
     custom_sub_agents: "bulwark-issue-analyzer, bulwark-fix-validator for pipeline stages"
+    main_context_orchestration: "test-audit uses Main Context Orchestration - orchestrator loads skill and spawns sub-agents directly"
   claude_code_2_1_1_features:
     - "Custom sub-agents defined as markdown files"
     - "agent: haiku/sonnet for model selection"

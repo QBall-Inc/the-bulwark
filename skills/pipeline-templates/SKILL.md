@@ -45,6 +45,7 @@ Is this a multi-agent task?
 | New Feature | Feature implementation | Haiku (research) → Opus (write) → Sonnet (review) | `references/new-feature.md` |
 | Research & Planning | Pre-implementation research | Haiku (lookup) → Sonnet (review) → loop(min=3) | `references/research-planning.md` |
 | Test Execution & Fix | Run tests, fix failures | Haiku (execute) → Sonnet (analyze) → Opus (fix) | `references/test-execution-fix.md` |
+| **Code Change Workflow** | **Full automation after code edit** | **Composite: chains multiple pipelines** | `references/code-change-workflow.md` |
 
 ### Pipeline Architecture Notes
 
@@ -183,8 +184,10 @@ IssueAnalyzer (bulwark-issue-analyzer, produces debug_report)
 |> (if !approved then IssueAnalyzer else Done)
 |> LOOP(max=3)
 
-// Test Audit
-TestClassifier |> MockDetector |> (if rewrites then TestRewriter else Done)
+// Test Audit (Main Context Orchestration - skill-based)
+TestClassifier |> MockDetector |> AuditSynthesizer
+|> (if REWRITE_REQUIRED then TestRewriter else Done)
+|> LOOP(max=2)
 
 // New Feature
 Researcher |> Implementer |> TestWriter |> CodeReviewer
@@ -194,4 +197,11 @@ Researcher |> PlanDraft |> PlanReviewer |> LOOP(min=3)
 
 // Test Execution & Fix
 TestRunner |> (if failures then FailureAnalyzer |> FixWriter |> LOOP else Done)
+
+// CODE CHANGE WORKFLOW (Composite - chains pipelines after code edit)
+// See references/code-change-workflow.md for full details
+CodeReviewPipeline
+|> TestAuditPipeline (Main Context Orchestration)
+|> TestExecutionPipeline
+|> (if code_bugs then FixValidationPipeline else Done)
 ```

@@ -39,12 +39,21 @@ Is this a multi-agent task?
 
 | Pipeline | Use Case | Model Pattern | Reference |
 |----------|----------|---------------|-----------|
-| Code Review | PR review, code audit | Sonnet (audit) → Sonnet (review) | `references/code-review.md` |
-| Fix Validation | Bug fixes, issue resolution | Sonnet (analyze) → Opus (fix) → Sonnet (review) | `references/fix-validation.md` |
-| Test Audit | Test quality assessment | Haiku (classify) → Sonnet (audit) | `references/test-audit.md` |
+| Code Review | PR review, code audit | Sonnet (role-based, 4 sections) | `references/code-review.md` |
+| Fix Validation | Bug fixes, issue resolution | Sonnet (analyze) → Opus (fix) → Sonnet (validate) → Sonnet (review) | `references/fix-validation.md` |
+| Test Audit | Test quality assessment | Haiku (classify) → Sonnet (detect) → Sonnet (audit) | `references/test-audit.md` |
 | New Feature | Feature implementation | Haiku (research) → Opus (write) → Sonnet (review) | `references/new-feature.md` |
 | Research & Planning | Pre-implementation research | Haiku (lookup) → Sonnet (review) → loop(min=3) | `references/research-planning.md` |
 | Test Execution & Fix | Run tests, fix failures | Haiku (execute) → Sonnet (analyze) → Opus (fix) | `references/test-execution-fix.md` |
+| **Code Change Workflow** | **Full automation after code edit** | **Composite: chains multiple pipelines** | `references/code-change-workflow.md` |
+
+### Pipeline Architecture Notes
+
+**Role-Based Agents**: Code Review pipeline uses general-purpose sub-agents with specific roles. Each agent loads the `code-review` skill and references a specific section (Security, Type Safety, Linting, Coding Standards).
+
+**Custom Sub-Agents**: Fix Validation pipeline uses custom sub-agents (`bulwark-issue-analyzer`, `bulwark-fix-validator`) that encapsulate stage behavior and load relevant skills via frontmatter.
+
+**Standalone Agents**: For ad-hoc use outside pipelines, use `bulwark-code-auditor` which runs all code-review sections.
 
 ## Model Selection
 
@@ -159,14 +168,26 @@ Logs written to: `logs/pipeline-tracking.log`
 ## Quick Reference
 
 ```fsharp
-// Code Review
-SecurityAuditor |> TypeAuditor |> (if issues then FixWriter else Done)
+// Code Review (role-based agents, each loads code-review skill)
+SecurityReviewer (section: Security)
+|> TypeSafetyReviewer (section: Type Safety)
+|> LintReviewer (section: Linting)
+|> StandardsReviewer (section: Coding Standards)
+|> (if critical_issues then FixWriter else Done)
 
-// Fix Validation
-IssueAnalyzer |> FixWriter |> CodeReviewer |> (if !approved then LOOP else Done)
+// Fix Validation (custom sub-agents + orchestrator)
+IssueAnalyzer (bulwark-issue-analyzer, produces debug_report)
+|> FixWriter (orchestrator implements fix)
+|> TestWriter (orchestrator writes tests)
+|> FixValidator (bulwark-fix-validator, validates against debug_report)
+|> CodeReviewer (reviews all, approves/rejects)
+|> (if !approved then IssueAnalyzer else Done)
+|> LOOP(max=3)
 
-// Test Audit
-TestClassifier |> MockDetector |> (if rewrites then TestRewriter else Done)
+// Test Audit (Main Context Orchestration - skill-based)
+TestClassifier |> MockDetector |> AuditSynthesizer
+|> (if REWRITE_REQUIRED then TestRewriter else Done)
+|> LOOP(max=2)
 
 // New Feature
 Researcher |> Implementer |> TestWriter |> CodeReviewer
@@ -176,4 +197,11 @@ Researcher |> PlanDraft |> PlanReviewer |> LOOP(min=3)
 
 // Test Execution & Fix
 TestRunner |> (if failures then FailureAnalyzer |> FixWriter |> LOOP else Done)
+
+// CODE CHANGE WORKFLOW (Composite - chains pipelines after code edit)
+// See references/code-change-workflow.md for full details
+CodeReviewPipeline
+|> TestAuditPipeline (Main Context Orchestration)
+|> TestExecutionPipeline
+|> (if code_bugs then FixValidationPipeline else Done)
 ```
