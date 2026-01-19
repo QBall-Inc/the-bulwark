@@ -1,0 +1,27 @@
+# Expected findings for t3plus-violation/workflow.integration.ts
+# Used to validate test-audit pipeline output
+
+classification:
+  category: integration
+  needs_deep_analysis: true
+  deep_analysis_reason: "Integration test with potential broken chain (mock data patterns)"
+
+detection:
+  violations:
+    - rule: T3+
+      severity: critical
+      priority: P0
+      pattern: "Broken integration chain - mock data instead of real function output"
+      locations:
+        - "processOrder tests use mockOrderData instead of createOrder() output"
+        - "completeOrder test uses mockOrder/mockProcessedOrder"
+      reason: "Integration test uses hardcoded mock data breaking the workflow chain"
+
+  # processOrder and completeOrder tests all use mock data
+  violation_scope_approximate: [28, 65]
+  affected_lines_minimum: 30
+  test_effectiveness_maximum: 40%
+
+synthesis:
+  REWRITE_REQUIRED: true
+  gate_triggered: "Gate 1: Impact (P0 violation - false confidence)"

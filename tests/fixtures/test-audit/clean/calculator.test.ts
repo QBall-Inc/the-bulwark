@@ -1,17 +1,3 @@
-/**
- * Fixture: Clean Test (No Violations)
- *
- * Expected classification:
- * - category: unit
- * - needs_deep_analysis: false
- * - test_effectiveness: 100%
- *
- * This test has no T1-T4 violations:
- * - No mocking of system under test
- * - Verifies actual results (not just calls)
- * - No integration boundary mocks
- */
-
 import { Calculator } from '../../../src/calculator';
 
 describe('Calculator', () => {

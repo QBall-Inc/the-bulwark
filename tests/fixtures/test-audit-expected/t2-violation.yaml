@@ -1,0 +1,32 @@
+# Expected findings for t2-violation/db.test.ts
+# Used to validate test-audit pipeline output
+
+classification:
+  category: unit
+  needs_deep_analysis: true
+  deep_analysis_reason: "Unit test with >3 top-level mocks"
+  mock_indicators:
+    - "jest.mock('../../../src/database')"
+    - "jest.mock('../../../src/logger')"
+    - "jest.mock('../../../src/events')"
+
+detection:
+  violations:
+    - rule: T2
+      severity: high
+      priority: P1
+      pattern: "toHaveBeenCalled() without result verification"
+      locations:
+        - "saveConfig test - mockDb.save"
+        - "saveConfig test - mockLogger.info"
+        - "emit event test - mockEvents.emit"
+        - "deleteConfig test - mockDb.delete"
+
+  # T2 violations affect single lines each
+  affected_lines_approximate: 4
+  test_effectiveness_minimum: 90%
+
+synthesis:
+  REWRITE_REQUIRED: false
+  gate_triggered: "Advisory only (P1 with effectiveness >= 95%)"
+  # Note: If effectiveness calculation shows < 95%, this would trigger Gate 2

@@ -1,24 +1,7 @@
-/**
- * Fixture: Mixed Test Types - Test Management Risk
- *
- * Expected classification:
- * - category: unit (default from .test.ts)
- * - needs_deep_analysis: true (mixed types detected)
- * - risk: test_management
- * - recommendation: "Split into separate files by test type"
- *
- * This file contains unit, integration, AND e2e tests mixed together.
- * This is a test management anti-pattern that makes it hard to:
- * - Run tests by type (fast unit vs slow integration)
- * - Understand test coverage by category
- * - Maintain appropriate test isolation
- */
-
 import { UserService } from '../../../src/user-service';
 import { Database } from '../../../src/database';
 import puppeteer from 'puppeteer';
 
-// UNIT TEST - should be in user-service.test.ts
 describe('UserService Unit Tests', () => {
   it('should validate email format', () => {
     const userService = new UserService();
@@ -36,7 +19,6 @@ describe('UserService Unit Tests', () => {
   });
 });
 
-// INTEGRATION TEST - should be in user-service.integration.ts
 describe('UserService Integration Tests', () => {
   let db: Database;
   let userService: UserService;
@@ -59,7 +41,6 @@ describe('UserService Integration Tests', () => {
 
     expect(user.id).toBeDefined();
 
-    // Verify in database
     const dbUser = await db.findOne('users', { id: user.id });
     expect(dbUser.email).toBe('test@example.com');
   });
@@ -67,14 +48,13 @@ describe('UserService Integration Tests', () => {
   it('should handle duplicate email', async () => {
     await expect(
       userService.createUser({
-        email: 'test@example.com', // Already exists
+        email: 'test@example.com',
         password: 'another123',
       })
     ).rejects.toThrow('Email already exists');
   });
 });
 
-// E2E TEST - should be in user-registration.e2e.ts
 describe('User Registration E2E', () => {
   let browser: puppeteer.Browser;
   let page: puppeteer.Page;

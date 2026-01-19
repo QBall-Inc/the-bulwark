@@ -1,25 +1,5 @@
-/**
- * Fixture: T3 Violation - Mock at Integration Boundary
- *
- * Expected classification:
- * - category: integration (filename pattern: .integration.ts)
- * - needs_deep_analysis: true (integration file with mocks)
- *
- * Expected violations:
- * - rule: T3
- * - severity: critical
- * - priority: P1 (incomplete verification - defeats integration purpose)
- * - violation_scope: [8, 65] (all tests depend on mocked fetch)
- * - affected_lines: ~57
- * - test_effectiveness: ~15%
- *
- * VIOLATION: Integration test mocks node-fetch, defeating the purpose
- * of integration testing (verifying real HTTP communication).
- */
-
 import { ApiClient } from '../../../src/api-client';
 
-// T3 VIOLATION: Mocking HTTP in an integration test
 jest.mock('node-fetch');
 import fetch from 'node-fetch';
 
@@ -35,7 +15,6 @@ describe('ApiClient Integration', () => {
 
   describe('getUser', () => {
     it('should fetch user from API', async () => {
-      // Mock response - defeats integration testing
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({ id: 1, name: 'John Doe' }),

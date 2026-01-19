@@ -155,8 +155,14 @@ TestAuditor (classify)
 | Skill | Purpose | Model | User-Invocable |
 |-------|---------|-------|----------------|
 | `test-classification` | Criteria for real vs mock-based tests | `haiku` | `false` |
-| `mock-detection` | Patterns indicating mock-heavy tests | `haiku` | `false` |
+| `mock-detection` | Patterns indicating mock-heavy tests | `sonnet` | `false` |
 | `test-audit` | Audit tests, produce YAML inventory | `sonnet` | `true` |
+
+**Option B+ Enhancements (Session 11):**
+- Always-flag rule: Integration/e2e files flagged regardless of mock indicators
+- Parallel batching: >20 files (classification), >10 flagged files (detection)
+- Known limitations documented (T3+ fragility, line counting approximation)
+- Production hardening deferred to P5.10-12
 
 #### Verification Skills (Phase 2)
 
@@ -189,28 +195,31 @@ TestAuditor (classify)
 
 **Schedule Rationale**: "Both" rules (T1-T4, SA1-SA5, ID1-ID4) are scheduled early so their encoded skills/agents are available during development.
 
-### Phase 0: Foundation & Test Audit Skills
+### Phase 0: Foundation & Test Audit Skills ✓ COMPLETED
 
 **Goal**: Create workflow skills + test audit skills (T1-T4 rules encoded here)
 
-| Task | Deliverable | Dependencies |
-|------|-------------|--------------|
-| P0.1 | `subagent-prompting` skill | None |
-| P0.2 | `subagent-output-templating` skill | P0.1 |
-| P0.3 | `pipeline-templates` skill | P0.1, P0.2 |
-| P0.4 | `issue-debugging` skill | P0.1, P0.2 |
-| P0.5 | `anthropic-validator` skill | None |
-| P0.6 | `test-classification` skill | None |
-| P0.7 | `mock-detection` skill | P0.6 |
-| P0.8 | `test-audit` composite skill | P0.6, P0.7 |
+**Status**: Completed (Session 11, 2026-01-18)
 
-**Exit Criteria**:
+| Task | Deliverable | Dependencies | Status |
+|------|-------------|--------------|--------|
+| P0.1 | `subagent-prompting` skill | None | ✓ |
+| P0.2 | `subagent-output-templating` skill | P0.1 | ✓ |
+| P0.3 | `pipeline-templates` skill | P0.1, P0.2 | ✓ |
+| P0.4 | `issue-debugging` skill | P0.1, P0.2 | ✓ |
+| P0.5 | `anthropic-validator` skill | None | ✓ |
+| P0.6 | `test-classification` skill | None | ✓ (Option B+) |
+| P0.7 | `mock-detection` skill | P0.6 | ✓ (Option B+) |
+| P0.8 | `test-audit` composite skill | P0.6, P0.7 | ✓ (Option B+) |
+
+**Exit Criteria**: All met
 - Sub-agent invocations follow 4-part template
 - Output goes to logs with structured format
 - Pipeline workflows can be defined and executed
 - Issue fixes go through validation loop
 - Implementations can be validated against Anthropic guidelines
 - Can audit test suites and produce YAML inventory
+- Parallel batching for scale (Option B+)
 
 ### Phase 1: Early Agents (as Skills with `context: fork`)
 
@@ -288,9 +297,9 @@ TestAuditor (classify)
 - Implementer follows Bulwark standards
 - Both write diagnostic output for behavioral testing
 
-### Phase 5: Commands, Evolution, and Polish
+### Phase 5: Commands, Evolution, Testing, and Polish
 
-**Goal**: User-facing commands and evolution tools
+**Goal**: User-facing commands, evolution tools, testing infrastructure, and test audit hardening
 
 | Task | Deliverable | Dependencies |
 |------|-------------|--------------|
@@ -301,11 +310,23 @@ TestAuditor (classify)
 | P5.5 | `agent-creator` skill | P5.3 |
 | P5.6 | Plugin manifest finalization | All above |
 | P5.7 | Rollout documentation | All above |
+| P5.8 | Testing infrastructure | P1.x, P4.x |
+| P5.9 | Customizable status line | P5.6 |
+| P5.10 | Test audit AST scripts | P0.8 |
+| P5.11 | Test audit dual-mode | P0.8 |
+| P5.12 | Test audit advanced patterns | P0.8 |
+
+**Test Audit Production Hardening (P5.10-12):**
+Deferred from P0.6-8 Option B+ - addresses known limitations:
+- P5.10: AST scripts for T3+ detection, precise line counting, T4 detection
+- P5.11: Dual-mode (deep ≤5 files, scale >5 files)
+- P5.12: Advanced patterns (stub detection, false positive prevention)
 
 **Exit Criteria**:
 - Plugin installable via Claude Code mechanism
 - Can create new skills and agents
 - Documentation complete
+- Test audit handles 50-100 file projects reliably (with P5.10-12)
 
 ---
 

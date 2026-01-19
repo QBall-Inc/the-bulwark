@@ -1,0 +1,26 @@
+# Expected findings for t3-violation/api.integration.ts
+# Used to validate test-audit pipeline output
+
+classification:
+  category: integration
+  needs_deep_analysis: true
+  deep_analysis_reason: "Integration test contains mocks"
+  mock_indicators:
+    - "jest.mock('node-fetch')"
+
+detection:
+  violations:
+    - rule: T3
+      severity: critical
+      priority: P1
+      pattern: "jest.mock('node-fetch') in integration test"
+      reason: "Integration test should verify real HTTP communication"
+
+  # All tests depend on mocked fetch
+  violation_scope_approximate: [3, 60]
+  affected_lines_minimum: 40
+  test_effectiveness_maximum: 25%
+
+synthesis:
+  REWRITE_REQUIRED: true
+  gate_triggered: "Gate 2: Threshold (P1 + effectiveness < 95%)"

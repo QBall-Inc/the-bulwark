@@ -33,17 +33,17 @@
 # Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
 
 project: the-bulwark
-version: 4.1.0
+version: 4.2.0
 created: 2026-01-04
-updated: 2026-01-16
-current_phase: P0
-current_task: P0.6
+updated: 2026-01-18
+current_phase: P1
+current_task: P1.1
 
 phases:
   - id: P0
     name: "Foundation & Test Audit Skills"
     description: "Skills needed for workflow + test auditing (T1-T4 rules encoded here)"
-    status: in_progress
+    status: completed
     tasks:
       - id: P0.1
         name: "Create subagent-prompting skill"
@@ -183,7 +183,8 @@ phases:
       # See consolidated brief: plans/task-briefs/P0.6-8-test-audit-skills.md
       - id: P0.6
         name: "Create test-classification skill (prompt template)"
-        status: in_progress
+        status: completed
+        completion_notes: "Option B+ applied: always-flag rule for integration/e2e, parallel batching"
         dependencies: []
         implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
@@ -204,7 +205,8 @@ phases:
 
       - id: P0.7
         name: "Create mock-detection skill (prompt template)"
-        status: not_started
+        status: completed
+        completion_notes: "Option B+ applied: parallel batching for >10 flagged files"
         dependencies: [P0.6]
         implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
@@ -225,7 +227,8 @@ phases:
 
       - id: P0.8
         name: "Create test-audit skill (orchestration + synthesis)"
-        status: not_started
+        status: completed
+        completion_notes: "Option B+ applied: batching orchestration, Known Limitations documented"
         dependencies: [P0.6, P0.7]
         implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
         deliverables:
@@ -753,17 +756,113 @@ phases:
           - "Document results"
         estimated_sessions: 1
 
+      - id: P5.9
+        name: "Create customizable status line"
+        status: not_started
+        dependencies: [P5.6]
+        implementation_plan: "plans/task-briefs/P5.9-statusline.md"
+        deliverables:
+          - "scripts/statusline/statusline.sh"
+          - "scripts/statusline/install.sh"
+          - "lib/templates/statusline-default.yaml"
+          - "skills/statusline-init/SKILL.md"
+          - "skills/statusline/SKILL.md"
+        acceptance_criteria:
+          - "Multi-line status display (model, gauge, file, git)"
+          - "Color-coded gauge bar (<60% green, 60-70% yellow, >70% red)"
+          - "Model name with background colors (Opus=purple, Sonnet=blue, Haiku=teal)"
+          - "Git display: repo-name/branch (N files pending commit)"
+          - "Presets: minimal, developer, cost, custom"
+          - "Interactive custom segment selection"
+          - "YAML config at ~/.bulwark/statusline.yaml"
+          - "Pastel color palette by default"
+        verification:
+          - "Run /bulwark:statusline-init"
+          - "Verify status line appears in Claude Code"
+          - "Test preset switching via /bulwark:statusline [preset]"
+          - "Test custom segment selection"
+          - "Verify gauge colors change at thresholds"
+        notes:
+          - "Nice-to-have feature for improved UX"
+          - "Multi-line supported via sequential output"
+        estimated_sessions: 1
+
+      # Test Audit Production Hardening (deferred from P0.6-8 Option B+)
+      - id: P5.10
+        name: "Test audit AST scripts"
+        status: not_started
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.10-test-audit-ast-scripts.md"
+        deliverables:
+          - "skills/test-audit/scripts/data-flow-analyzer.ts"
+          - "skills/test-audit/scripts/verification-counter.ts"
+          - "skills/test-audit/scripts/skip-detector.ts"
+        acceptance_criteria:
+          - "data-flow-analyzer: AST-based T3+ detection via data flow tracing"
+          - "verification-counter: Precise line counting (not heuristic)"
+          - "skip-detector: T4 detection (.skip, .only, .todo markers)"
+          - "All scripts integrate with test-audit skill"
+        verification:
+          - "Run data-flow-analyzer on T3+ fixture"
+          - "Verify accurate line counts vs heuristic counts"
+          - "Detect skipped tests in fixture"
+        notes:
+          - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Addresses T3+ detection fragility and line counting approximation"
+        estimated_sessions: 2
+
+      - id: P5.11
+        name: "Test audit dual-mode"
+        status: not_started
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.11-test-audit-dual-mode.md"
+        deliverables:
+          - "skills/test-audit/SKILL.md (updated)"
+        acceptance_criteria:
+          - "Mode detection based on file count"
+          - "Deep mode (<=5 files): Skip classification, full analysis on all"
+          - "Scale mode (>5 files): Full pipeline with batching"
+          - "Automatic mode selection"
+        verification:
+          - "Run on 3 files, verify deep mode used"
+          - "Run on 50 files, verify scale mode used"
+        notes:
+          - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Optimizes for small vs large test suites"
+        estimated_sessions: 1
+
+      - id: P5.12
+        name: "Test audit advanced patterns"
+        status: not_started
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.12-test-audit-advanced-patterns.md"
+        deliverables:
+          - "skills/test-audit/references/stub-patterns.md"
+          - "skills/test-audit/references/false-positive-prevention.md"
+          - "skills/mock-detection/SKILL.md (updated)"
+        acceptance_criteria:
+          - "Manual stub class detection (StubX, FakeX, MockX)"
+          - "Reference docs for false positive prevention"
+          - "T3+ patterns beyond mock* naming conventions"
+        verification:
+          - "Detect StubSharedContext pattern in fixture"
+          - "Verify false positive rate reduced"
+        notes:
+          - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Addresses manual stub pattern detection gap"
+        estimated_sessions: 1
+
 # Summary
 summary:
-  total_tasks: 28
-  total_estimated_sessions: 28
+  total_tasks: 32
+  total_estimated_sessions: 33
   phases:
-    P0: 8 tasks (Foundation & Test Audit Skills)
+    P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
     P1: 3 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator, TestAuditor)
     P2: 3 tasks (Verification Scripts)
     P3: 5 tasks (Enforcement Infrastructure with once: true)
     P4: 4 tasks (Review Skills & Standalone Agents)
-    P5: 8 tasks (Commands, Evolution with Ralph loops, Testing, and Polish)
+    P5: 12 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening)
   architecture_notes:
     pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
