@@ -87,7 +87,7 @@ Task(subagent_type="general-purpose", model="haiku", prompt=<skill template>)
 - Test file patterns: `*.test.*`, `*.spec.*`, `test_*`
 - Project test framework (Jest, Vitest, etc.)
 
-**OUTPUT**: `logs/test-classification-{timestamp}.yaml`
+**OUTPUT**: `logs/test-classification-{YYYYMMDD-HHMMSS}.yaml`
 ```yaml
 metadata:
   agent: test-classification
@@ -147,12 +147,12 @@ Task(subagent_type="general-purpose", model="sonnet", prompt=<skill template + c
 - Mock appropriateness rubric (unit vs integration vs e2e)
 - T1-T4 rules from Rules.md
 
-**OUTPUT**: `logs/mock-detection-{timestamp}.yaml`
+**OUTPUT**: `logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml`
 ```yaml
 metadata:
   skill: mock-detection
   timestamp: {ISO-8601}
-  classification_source: logs/test-classification-{timestamp}.yaml
+  classification_source: logs/test-classification-{YYYYMMDD-HHMMSS}.yaml
   model: sonnet
   files_analyzed: 5
 
@@ -221,14 +221,14 @@ Task(subagent_type="general-purpose", model="sonnet", prompt=<synthesis template
 - Violations from Stage 2
 - T1-T4 rules reference
 
-**OUTPUT**: `logs/test-audit-{timestamp}.yaml`
+**OUTPUT**: `logs/test-audit-{YYYYMMDD-HHMMSS}.yaml`
 ```yaml
 metadata:
   agent: test-audit
   timestamp: {ISO-8601}
   sources:
-    classification: logs/test-classification-{timestamp}.yaml
-    violations: logs/mock-detection-{timestamp}.yaml
+    classification: logs/test-classification-{YYYYMMDD-HHMMSS}.yaml
+    violations: logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml
   model: sonnet
 
 audit:
@@ -320,19 +320,19 @@ rewrites:
 1. Load `test-classification` skill
 2. Construct 4-part prompt using skill template
 3. Task(subagent_type="general-purpose", model="haiku", prompt=...)
-4. Read output: logs/test-classification-{timestamp}.yaml
+4. Read output: logs/test-classification-{YYYYMMDD-HHMMSS}.yaml
 
 ### Step 3: Detection Stage (Sonnet)
 1. Load `mock-detection` skill
 2. Construct 4-part prompt + include classification as CONTEXT
 3. Task(subagent_type="general-purpose", model="sonnet", prompt=...)
-4. Read output: logs/mock-detection-{timestamp}.yaml
+4. Read output: logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml
 
 ### Step 4: Synthesis Stage
 1. Construct synthesis prompt from test-audit skill
 2. Include classification + violations as CONTEXT
 3. Task(subagent_type="general-purpose", model="sonnet", prompt=...)
-4. Read output: logs/test-audit-{timestamp}.yaml
+4. Read output: logs/test-audit-{YYYYMMDD-HHMMSS}.yaml
 
 ### Step 5: Present Summary
 Display audit summary to user before proceeding.

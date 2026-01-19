@@ -35,7 +35,7 @@
 project: the-bulwark
 version: 4.2.0
 created: 2026-01-04
-updated: 2026-01-18
+updated: 2026-01-19
 current_phase: P1
 current_task: P1.2
 
@@ -280,27 +280,36 @@ phases:
 
       - id: P1.2
         name: "Create bulwark-issue-analyzer agent"
-        status: not_started
+        status: in_progress
         dependencies: [P0.4]
         implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-analyzer.md"
         deliverables:
           - "agents/bulwark-issue-analyzer.md"
-          - "scripts/agents/finalize-issue-analyzer.sh"
+          - "tests/fixtures/issue-analyzer/"
+          - "tests/fixtures/issue-analyzer-expected/"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
+          - "Frontmatter: user-invocable: true (direct invocation + pipeline)"
           - "Frontmatter: agent: sonnet"
-          - "Frontmatter: skills: issue-debugging"
-          - "Stop hook for finalization"
+          - "Frontmatter: skills: issue-debugging, subagent-output-templating, subagent-prompting"
+          - "Argument handling for path ($ARGUMENTS)"
+          - "Handles production code bugs AND test code issues"
           - "Produces debug report at logs/debug-reports/"
           - "Summary includes debug report path"
           - "Diagnostic output to logs/diagnostics/"
+          - "No code modification constraint enforced"
         verification:
-          - "Invoke via Task tool with subagent_type=bulwark-issue-analyzer"
-          - "Verify debug report generated with validation plan"
-          - "Verify Stop hook fires"
+          - "Agent appears in / menu (user-invocable)"
+          - "Test P1.2-1: Explicit invocation - production bug"
+          - "Test P1.2-2: Explicit invocation - test bug"
+          - "Test P1.2-3: Pipeline integration (Stage 1)"
+          - "Test P1.2-5: No code modification constraint"
+          - "Manual tests in tests/manual-test-protocol.md"
         notes:
           - "Pipeline stage: IssueAnalyzer in Fix Validation pipeline"
-          - "Renamed from bulwark-issue-debugger for pipeline consistency"
+          - "Also user-invocable for ad-hoc issue analysis"
+          - "Test fixtures must NOT contain bias (no explanatory comments)"
+          - "Manual testing required in separate session"
         estimated_sessions: 1
 
       - id: P1.3

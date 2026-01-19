@@ -97,9 +97,9 @@ TestRunner (Haiku, execute tests)
 **Stages**:
 1. Load `test-audit` skill
 2. Follow skill instructions to spawn:
-   - TestClassifier (Haiku) → `logs/test-classification-{ts}.yaml`
-   - MockDetector (Sonnet) → `logs/mock-detection-{ts}.yaml`
-   - AuditSynthesizer (Sonnet) → `logs/test-audit-{ts}.yaml`
+   - TestClassifier (Haiku) → `logs/test-classification-{YYYYMMDD-HHMMSS}.yaml`
+   - MockDetector (Sonnet) → `logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml`
+   - AuditSynthesizer (Sonnet) → `logs/test-audit-{YYYYMMDD-HHMMSS}.yaml`
 3. Read `REWRITE_REQUIRED` directive from audit output
 4. If true: Orchestrator (Opus) rewrites flagged tests
 5. Loop up to 2 times to verify rewrites resolved issues

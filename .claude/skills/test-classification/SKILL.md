@@ -249,7 +249,7 @@ The orchestrator (P0.8) constructs the full prompt by:
 1. Loading this skill content
 2. Substituting `{target}` with user-provided path or inferred target
 3. Spawning: `Task(subagent_type="general-purpose", model="haiku", prompt=...)`
-4. Reading output from `logs/test-classification-{timestamp}.yaml`
+4. Reading output from `logs/test-classification-{YYYYMMDD-HHMMSS}.yaml`
 
 ### Downstream Usage
 

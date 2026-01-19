@@ -60,7 +60,7 @@ IssueAnalyzer (root cause + debug report)     // Sonnet - bulwark-issue-analyzer
 - Error logs / stack traces
 - Reproduction steps (if available)
 
-**OUTPUT**: Debug report at `logs/debug-reports/{issue-id}-{timestamp}.yaml`
+**OUTPUT**: Debug report at `logs/debug-reports/{issue-id}-{YYYYMMDD-HHMMSS}.yaml`
 ```yaml
 debug_report:
   metadata:

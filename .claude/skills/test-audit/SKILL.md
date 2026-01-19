@@ -111,7 +111,7 @@ ELSE:
     Task(subagent_type="general-purpose", model="haiku", prompt=...)
 ```
 
-4. Read output from `logs/test-classification-{timestamp}.yaml`
+4. Read output from `logs/test-classification-{YYYYMMDD-HHMMSS}.yaml`
 5. Verify output contains `files` array with classification data
 
 ### Step 3: Detection Stage (Sonnet)
@@ -136,7 +136,7 @@ ELSE:
     Task(subagent_type="general-purpose", model="sonnet", prompt=...)
 ```
 
-4. Read output from `logs/mock-detection-{timestamp}.yaml`
+4. Read output from `logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml`
 5. Verify output contains `violations` array and `file_summaries`
 
 ### Step 4: Synthesis Stage (Sonnet)
@@ -151,7 +151,7 @@ ELSE:
      prompt="[synthesis 4-part prompt]"
    )
    ```
-4. Read output from `logs/test-audit-{timestamp}.yaml`
+4. Read output from `logs/test-audit-{YYYYMMDD-HHMMSS}.yaml`
 5. Verify output contains `directive.REWRITE_REQUIRED` field
 
 ### Step 5: Present Summary
@@ -322,8 +322,8 @@ metadata:
   skill: test-audit
   timestamp: "{ISO-8601}"
   sources:
-    classification: logs/test-classification-{timestamp}.yaml
-    detection: logs/mock-detection-{timestamp}.yaml
+    classification: logs/test-classification-{YYYYMMDD-HHMMSS}.yaml
+    detection: logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml
   model: sonnet
 
 audit:

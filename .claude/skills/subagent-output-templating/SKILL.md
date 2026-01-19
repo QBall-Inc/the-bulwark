@@ -355,9 +355,24 @@ diagnostics:
 ### Output Location Checklist
 
 ```
-[ ] Main log: logs/{agent}-{timestamp}.yaml
-[ ] Diagnostics: logs/diagnostics/{agent}-{timestamp}.yaml
+[ ] Main log: logs/{agent}-{YYYYMMDD-HHMMSS}.yaml
+[ ] Diagnostics: logs/diagnostics/{agent}-{YYYYMMDD-HHMMSS}.yaml
 ```
+
+---
+
+## Timestamp Formats
+
+| Context | Placeholder | Format | Example |
+|---------|-------------|--------|---------|
+| **File paths** | `{YYYYMMDD-HHMMSS}` | Compact, filesystem-safe | `20260119-143022` |
+| **YAML fields** | `{ISO-8601}` | Standard ISO format | `2026-01-19T14:30:22Z` |
+
+**Why two formats?**
+- File names: No colons (filesystem-safe on Windows), compact, lexically sortable
+- YAML fields: Standard ISO-8601 for parsing and interoperability
+
+**Important**: Always use `{YYYYMMDD-HHMMSS}` in file paths, never `{timestamp}` or `{ts}`.
 
 ---
 

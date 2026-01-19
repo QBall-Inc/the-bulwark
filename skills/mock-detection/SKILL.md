@@ -233,7 +233,7 @@ Does the mock defeat the test's purpose?
 metadata:
   skill: mock-detection
   timestamp: "{ISO-8601}"
-  classification_source: logs/test-classification-{timestamp}.yaml
+  classification_source: logs/test-classification-{YYYYMMDD-HHMMSS}.yaml
   model: sonnet
   files_analyzed: 5
 
@@ -411,7 +411,7 @@ The orchestrator (P0.8) constructs the full prompt by:
 1. Loading this skill content
 2. Including classification YAML path in CONTEXT
 3. Spawning: `Task(subagent_type="general-purpose", model="sonnet", prompt=...)`
-4. Reading output from `logs/mock-detection-{timestamp}.yaml`
+4. Reading output from `logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml`
 
 ### Upstream Input
 
