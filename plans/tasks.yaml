@@ -38,6 +38,7 @@ created: 2026-01-04
 updated: 2026-01-19
 current_phase: P1
 current_task: P1.3
+current_task_status: "Brainstorming complete, ready for implementation"
 
 phases:
   - id: P0
@@ -315,13 +316,15 @@ phases:
 
       - id: P1.3
         name: "Create bulwark-fix-validator agent"
-        status: not_started
+        status: in_progress
+        progress_notes: "Session 16: Agent + fixtures + /fix-bug skill complete, 3/5 manual tests passed, 2 pending (P1.3-4, P1.3-5)"
         dependencies: [P0.4, P1.2]
         implementation_plan: "plans/task-briefs/P1.3-bulwark-fix-validator.md"
         deliverables:
           - "agents/bulwark-fix-validator.md"
           - "tests/fixtures/fix-validator/"
           - "tests/fixtures/fix-validator-expected/"
+          - "skills/fix-bug/SKILL.md"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: model: sonnet"
@@ -335,11 +338,13 @@ phases:
           - "Escalates to manual testing when required"
           - "Diagnostic output to logs/diagnostics/"
           - "No code modification constraint enforced"
+          - "/fix-bug skill triggers Fix Validation pipeline deterministically"
         verification:
           - "Test P1.3-1: Basic fix validation"
           - "Test P1.3-2: Validation with test failures"
           - "Test P1.3-3: Pipeline integration"
           - "Test P1.3-4: No code modification constraint"
+          - "Test P1.3-5: /fix-bug skill invocation"
           - "Manual tests in tests/manual-test-protocol.md"
         notes:
           - "Pipeline stage: FixValidator (Stage 4) in Fix Validation pipeline"
@@ -347,6 +352,7 @@ phases:
           - "INSIGHT (Session 14): Improvised validator generated JS scripts for test execution"
           - "INSIGHT (Session 14): Wrote readable validation-results.txt in addition to YAML"
           - "LEARNING: user-invocable field applies to skills, not agents"
+          - "LEARNING (Session 16): Conversational prompts may skip pipeline stages; /fix-bug skill ensures deterministic invocation"
         estimated_sessions: 1
 
   - id: P2

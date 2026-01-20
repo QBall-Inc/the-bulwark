@@ -1,0 +1,49 @@
+# Expected pipeline results for simple-fix fixture
+# Used by tester to validate full pipeline - NOT passed to agents
+
+fixture: simple-fix
+description: "Auth service null profile - login fails for new users"
+
+bug_details:
+  location: "src/auth.ts:73-74"
+  symptom: "Cannot read property 'displayName' of undefined"
+  root_cause: "generateWelcome accesses user.profile.displayName without null check"
+  why_tests_pass: "Login tests always set up profile in beforeEach"
+
+expected_issue_analyzer:
+  root_cause_identified: true
+  complexity: low
+  risk_scope: isolated
+  debug_report_created: true
+
+expected_fix:
+  approach: "Optional chaining (?.) and fallback to email"
+  location: "src/auth.ts, generateWelcome method"
+  pattern: "user.profile?.displayName || user.email"
+  minimal_change: true
+
+expected_test_writer:
+  invoked: true
+  reason: "Existing tests don't cover login without profile"
+  test_added:
+    name: "should login new user without profile and use email in welcome"
+    location: "tests/auth.test.ts"
+    verifies: "Login succeeds with email fallback when profile undefined"
+
+expected_fix_validator:
+  confidence_level: high
+  tests_executed:
+    p1: passed
+    p2: skipped
+    p3: skipped
+  call_site_analysis: skipped  # Low complexity
+  human_readable_report: false  # Low complexity
+  recommendation: proceed_to_review
+
+notes_for_tester:
+  - "Pipeline should complete in single run"
+  - "IssueAnalyzer should identify bug in PRODUCTION code, not tests"
+  - "FixWriter should use optional chaining pattern"
+  - "TestWriter MUST be invoked (tests don't cover null profile scenario)"
+  - "FixValidator should achieve HIGH confidence"
+  - "No agents should modify files outside designated areas"

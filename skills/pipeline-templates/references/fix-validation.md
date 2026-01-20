@@ -20,7 +20,9 @@ Fix bugs or issues and validate the fix through review and testing.
 
 IssueAnalyzer (root cause + debug report)     // Sonnet - bulwark-issue-analyzer
 |> FixWriter (implement fix)                  // Opus - orchestrator
-|> TestWriter (add/update tests)              // Opus - orchestrator
+|> (if !tests_cover_scenario                  // Conditional: only if tests don't already exist
+    then TestWriter |> TestAudit              // Opus writes, then audit for T1-T4
+    else Skip)
 |> FixValidator (validate against debug report) // Sonnet - bulwark-fix-validator
 |> CodeReviewer (review fix)                  // Sonnet - review
 |> (if !approved
@@ -28,6 +30,8 @@ IssueAnalyzer (root cause + debug report)     // Sonnet - bulwark-issue-analyzer
     else Done)
 |> LOOP(max=3)                                // Max 3 iterations
 ```
+
+**TestWriter Condition**: The orchestrator evaluates whether existing tests cover the bug scenario using the debug report's `validation_plan.tests_to_execute` and `recommendation.new_tests_needed` fields.
 
 ### Key Artifacts
 
@@ -175,6 +179,48 @@ tests:
       type: integration
   updated_tests: []
 ```
+
+### Stage 3b: TestAudit (Conditional)
+
+**Trigger**: Only runs if TestWriter created or modified tests in Stage 3.
+
+**Model**: Haiku (classification) → Sonnet (detection)
+
+**Skills**: `mock-detection` (lighter weight than full test-audit)
+
+**GOAL**: Verify generated tests don't have T1-T4 violations before proceeding to validation.
+
+**CONSTRAINTS**:
+- Only audit files touched by TestWriter
+- Block pipeline if T1 violation found (mocking system under test)
+- Warn on T2-T4 violations but allow proceed
+- Do NOT audit existing tests (only new/modified)
+
+**CONTEXT**:
+- List of test files created/modified by TestWriter
+- Debug report for understanding what's being tested
+
+**OUTPUT**: Audit result
+```yaml
+test_audit:
+  files_audited:
+    - path: tests/auth/login.test.ts
+      status: passed | failed
+      violations: []
+
+  t1_violations: 0  # Critical - blocks pipeline
+  t2_violations: 0  # High - warning only
+  t3_violations: 0  # Medium - warning only
+  t4_violations: 0  # Low - warning only
+
+  proceed: true | false
+  notes: "All generated tests follow T1-T4 rules"
+```
+
+**Failure Handling**:
+- If T1 violation: Return to TestWriter with feedback, request rewrite
+- If T2-T4 violations: Log warning, proceed to FixValidator
+- Max 2 audit iterations before escalating to user
 
 ### Stage 4: FixValidator
 

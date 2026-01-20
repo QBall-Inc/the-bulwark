@@ -1211,3 +1211,262 @@ blockers: []
 2. **Root cause identification**: Depends on agent reasoning; may vary between runs
 3. **Pipeline integration**: Requires orchestrator to recognize bug fix request pattern
 4. **Complexity assessment**: Subjective, agent may differ from expected
+
+---
+
+# P1.3 Bulwark Fix Validator - Manual Test Protocol
+
+**Purpose**: Verify bulwark-fix-validator agent correctly validates fixes against debug reports by executing tiered test plans and assessing confidence.
+**Prerequisite**: P1.3 implementation complete, agent copied to `.claude/agents/`, P1.2 agent available
+**Design**: Full Fix Validation pipeline tests - exercises IssueAnalyzer, FixWriter, TestWriter (conditional), and FixValidator stages.
+
+---
+
+## Pre-Test Setup (P1.3)
+
+1. Ensure agents are copied to `.claude/agents/`:
+   - `bulwark-issue-analyzer.md`
+   - `bulwark-fix-validator.md`
+2. Ensure skills exist:
+   - `skills/issue-debugging/SKILL.md`
+   - `skills/subagent-output-templating/SKILL.md`
+   - `skills/subagent-prompting/SKILL.md`
+3. Ensure test fixtures exist in `tests/fixtures/fix-validator/`:
+   - `simple-fix/` (auth service null pointer)
+   - `complex-fix/` (data service race condition)
+   - `no-tests/` (calculator division by zero)
+4. Ensure directories exist:
+   - `logs/debug-reports/`
+   - `logs/validations/`
+   - `logs/diagnostics/`
+   - `tmp/`
+5. Start a fresh Claude Code session
+6. **Note**: Agents don't appear in `/` menu (that's for skills only)
+
+---
+
+## Test P1.3-1: Full Pipeline - Simple Fix (Low Complexity)
+
+**Fixture**: `tests/fixtures/fix-validator/simple-fix/`
+**Bug**: Null pointer in `generateWelcome` - accesses `user.profile.displayName` without null check
+
+**Prompt** (conversational):
+```
+There's a bug in tests/fixtures/fix-validator/simple-fix/
+Users report "Cannot read property 'displayName' of undefined" when new accounts try to login.
+Please run the Fix Validation pipeline to investigate and fix this.
+```
+
+**Expected Pipeline Flow**:
+1. **IssueAnalyzer** (bulwark-issue-analyzer): Identifies null pointer in `generateWelcome`
+2. **FixWriter** (orchestrator): Adds optional chaining + email fallback
+3. **TestWriter** (conditional): Adds test for login without profile (existing tests don't cover)
+4. **FixValidator** (bulwark-fix-validator): Validates fix, expects HIGH confidence
+
+**Verification**:
+- [ ] IssueAnalyzer produces debug report at `logs/debug-reports/`
+- [ ] Root cause identified as null pointer access
+- [ ] Complexity assessed as `low`
+- [ ] Fix applied uses optional chaining pattern
+- [ ] TestWriter invoked (existing tests don't cover null profile scenario)
+- [ ] New test added for login without profile
+- [ ] FixValidator produces validation report at `logs/validations/`
+- [ ] Confidence level is HIGH
+- [ ] P1 tests pass
+- [ ] P2/P3 skipped (low complexity)
+- [ ] Call site analysis skipped (low complexity)
+- [ ] Human-readable report NOT generated (low complexity)
+- [ ] Recommendation: proceed to review
+
+**Expected Results Reference**: `tests/fixtures/fix-validator-expected/simple-fix.yaml`
+
+---
+
+## Test P1.3-2: Full Pipeline - Complex Fix (Medium Complexity)
+
+**Fixture**: `tests/fixtures/fix-validator/complex-fix/`
+**Bug**: Race condition in `fetchBatch` - missing await before Promise.all
+
+**Prompt** (conversational):
+```
+There's a bug in tests/fixtures/fix-validator/complex-fix/
+Tests are flaky - fetchBatch sometimes returns empty results.
+Please run the Fix Validation pipeline to investigate and fix this.
+```
+
+**Expected Pipeline Flow**:
+1. **IssueAnalyzer**: Identifies missing await as root cause
+2. **FixWriter**: Adds await before Promise.all
+3. **TestWriter**: SKIPPED (existing tests cover scenario when fix applied)
+4. **FixValidator**: Full validation with call site analysis
+
+**Verification**:
+- [ ] IssueAnalyzer identifies missing await
+- [ ] Complexity assessed as `medium`
+- [ ] Fix applied adds single `await` keyword
+- [ ] TestWriter NOT invoked (existing tests sufficient)
+- [ ] FixValidator performs call site analysis
+- [ ] All 3 callers identified (generateReport, aggregateData, prefetchUrls)
+- [ ] Human-readable report generated at `tmp/validation-results-*.txt`
+- [ ] P1 and P2 tests executed
+- [ ] Confidence level is HIGH or MEDIUM
+- [ ] May recommend running tests multiple times
+
+**Expected Results Reference**: `tests/fixtures/fix-validator-expected/complex-fix.yaml`
+
+---
+
+## Test P1.3-3: Full Pipeline - No Tests (TestWriter Exercise)
+
+**Fixture**: `tests/fixtures/fix-validator/no-tests/`
+**Bug**: Division by zero in `divide` returns `{ success: true, value: Infinity }`
+
+**Prompt** (conversational):
+```
+There's a bug in tests/fixtures/fix-validator/no-tests/
+The divide function returns Infinity when dividing by zero instead of an error.
+Please run the Fix Validation pipeline to investigate and fix this.
+```
+
+**Expected Pipeline Flow**:
+1. **IssueAnalyzer**: Identifies missing zero check
+2. **FixWriter**: Adds zero check with error return
+3. **TestWriter**: Creates entire test file (none exists)
+4. **FixValidator**: Validates new tests pass
+
+**Verification**:
+- [ ] IssueAnalyzer identifies division by zero issue
+- [ ] Complexity assessed as `low`
+- [ ] Fix adds zero check before division
+- [ ] TestWriter invoked (no test file exists)
+- [ ] New test file created at `tests/calculator.test.ts`
+- [ ] Tests cover division by zero scenario
+- [ ] FixValidator validates newly created tests pass
+- [ ] Confidence level is HIGH or MEDIUM
+
+**Expected Results Reference**: `tests/fixtures/fix-validator-expected/no-tests.yaml`
+
+---
+
+## Test P1.3-4: No Code Modification Constraint (Validator Only)
+
+**Setup**: First run Test P1.3-1 to completion, then in a new session:
+
+**Prompt** (conversational):
+```
+Please validate the fix that was applied to tests/fixtures/fix-validator/simple-fix/
+If any tests fail, please fix them.
+Use the bulwark-fix-validator agent directly.
+Debug report: logs/debug-reports/[path from P1.3-1]
+```
+
+**Expected Behavior**:
+1. FixValidator agent invoked directly (not full pipeline)
+2. Agent reads debug report
+3. Agent validates fix
+4. Agent does NOT modify any source files
+5. Agent reports findings and recommends revision if needed
+
+**Verification**:
+- [ ] Agent invoked via Task tool
+- [ ] No changes to `src/` or `tests/` (git status)
+- [ ] Agent response mentions it cannot modify files
+- [ ] Only `logs/` directory has new files
+
+---
+
+## Test P1.3-5: Confidence Level Mapping
+
+**Setup**: Modify a fixture to create test failures, then validate
+
+**Prompt** (conversational):
+```
+I've introduced a regression in the simple-fix fixture.
+Please validate the current state using the bulwark-fix-validator agent.
+Debug report: [use existing debug report from P1.3-1]
+```
+
+**Expected Behavior**:
+1. FixValidator detects test failures
+2. Confidence level is LOW
+3. Recommendation is "Needs revision"
+4. Clear rationale for low confidence
+
+**Verification**:
+- [ ] Test failures detected
+- [ ] Confidence level is LOW
+- [ ] Rationale mentions test failures
+- [ ] Recommendation is NOT "proceed to review"
+
+---
+
+## Post-Test Checklist (P1.3)
+
+- [ ] Agent spawns with Sonnet model
+- [ ] IssueAnalyzer → FixWriter → TestWriter → FixValidator flow works
+- [ ] TestWriter conditional logic works (invoked when needed, skipped when not)
+- [ ] Debug report correctly parsed
+- [ ] Tiered test execution (P1 → P2 → P3)
+- [ ] Complexity-based validation depth (low=P1 only, medium=P1+P2+call sites)
+- [ ] Call site analysis works (medium/high complexity)
+- [ ] Human-readable report generated for medium/high complexity
+- [ ] Confidence assessment uses criteria from debug report
+- [ ] Escalation triggers work (manual testing flagged when needed)
+- [ ] Validation report schema is correct
+- [ ] Diagnostics written correctly
+- [ ] Summary includes report paths
+- [ ] No code modification constraint enforced
+- [ ] All YAML outputs valid and parseable
+
+---
+
+## Test Results Template (P1.3)
+
+```yaml
+# tests/logs/fix-validator-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  full_pipeline_simple:
+    status: pass|fail
+    debug_report_path: ""
+    validation_report_path: ""
+    confidence_level: high|medium|low
+    test_writer_invoked: true|false
+    notes: ""
+  full_pipeline_complex:
+    status: pass|fail
+    call_sites_identified: 0
+    human_readable_generated: true|false
+    confidence_level: high|medium|low
+    test_writer_invoked: true|false
+    notes: ""
+  full_pipeline_no_tests:
+    status: pass|fail
+    test_file_created: true|false
+    confidence_level: high|medium|low
+    notes: ""
+  no_code_modification:
+    status: pass|fail
+    git_status_clean: true|false
+    notes: ""
+  confidence_mapping:
+    status: pass|fail
+    low_confidence_on_failure: true|false
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Known Limitations (P1.3)
+
+1. **Test execution environment**: May need project dependencies installed to run tests
+2. **TestWriter quality**: Generated tests depend on orchestrator understanding of the code
+3. **Call site analysis accuracy**: Grep-based search may miss aliased imports
+4. **Confidence assessment**: Subjective mapping from debug report criteria
+5. **Pipeline coordination**: Requires orchestrator to correctly chain stages

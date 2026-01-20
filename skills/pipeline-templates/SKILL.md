@@ -178,7 +178,9 @@ SecurityReviewer (section: Security)
 // Fix Validation (custom sub-agents + orchestrator)
 IssueAnalyzer (bulwark-issue-analyzer, produces debug_report)
 |> FixWriter (orchestrator implements fix)
-|> TestWriter (orchestrator writes tests)
+|> (if !tests_cover_scenario                              // Only if tests don't exist
+    then TestWriter |> TestAudit (mock-detection only)    // Audit generated tests for T1-T4
+    else Skip)
 |> FixValidator (bulwark-fix-validator, validates against debug_report)
 |> CodeReviewer (reviews all, approves/rejects)
 |> (if !approved then IssueAnalyzer else Done)

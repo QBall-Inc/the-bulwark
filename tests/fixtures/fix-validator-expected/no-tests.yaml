@@ -1,0 +1,54 @@
+# Expected pipeline results for no-tests fixture
+# Used by tester to validate full pipeline - NOT passed to agents
+
+fixture: no-tests
+description: "Calculator division by zero - no test coverage"
+
+bug_details:
+  location: "src/calculator.ts:30-33"
+  symptom: "divide(10, 0) returns { success: true, value: Infinity }"
+  root_cause: "No zero check in divide method"
+  why_no_tests: "No test file exists for calculator module"
+
+expected_issue_analyzer:
+  root_cause_identified: true
+  complexity: low
+  risk_scope: isolated
+  debug_report_created: true
+
+expected_fix:
+  approach: "Add zero check before division"
+  location: "src/calculator.ts, divide method"
+  pattern: |
+    if (b === 0) {
+      return { success: false, error: 'Division by zero' };
+    }
+  minimal_change: true
+
+expected_test_writer:
+  invoked: true
+  reason: "No test file exists"
+  test_file_created: "tests/calculator.test.ts"
+  tests_added:
+    - "should divide two numbers"
+    - "should return error for division by zero"
+    - "should handle basic arithmetic operations"
+  notes: "TestWriter must create entire test file"
+
+expected_fix_validator:
+  confidence_level: high  # or medium acceptable
+  tests_executed:
+    p1: passed
+    p2: skipped
+    p3: skipped
+  call_site_analysis: skipped  # Low complexity
+  human_readable_report: false  # Low complexity
+  recommendation: proceed_to_review
+
+notes_for_tester:
+  - "IssueAnalyzer should identify division by zero issue"
+  - "FixWriter should add zero check with error return"
+  - "TestWriter MUST be invoked - no test file exists"
+  - "TestWriter should create comprehensive test file"
+  - "FixValidator validates newly created tests pass"
+  - "This fixture exercises TestWriter's file creation capability"
