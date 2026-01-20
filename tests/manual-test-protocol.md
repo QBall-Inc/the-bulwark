@@ -1264,19 +1264,19 @@ Please run the Fix Validation pipeline to investigate and fix this.
 4. **FixValidator** (bulwark-fix-validator): Validates fix, expects HIGH confidence
 
 **Verification**:
-- [ ] IssueAnalyzer produces debug report at `logs/debug-reports/`
-- [ ] Root cause identified as null pointer access
-- [ ] Complexity assessed as `low`
-- [ ] Fix applied uses optional chaining pattern
-- [ ] TestWriter invoked (existing tests don't cover null profile scenario)
-- [ ] New test added for login without profile
-- [ ] FixValidator produces validation report at `logs/validations/`
-- [ ] Confidence level is HIGH
-- [ ] P1 tests pass
-- [ ] P2/P3 skipped (low complexity)
+- [x] IssueAnalyzer produces debug report at `logs/debug-reports/`
+- [x] Root cause identified as null pointer access
+- [x] Complexity assessed as `low`
+- [x] Fix applied uses optional chaining pattern
+- [x] TestWriter invoked (existing tests don't cover null profile scenario)
+- [x] New test added for login without profile
+- [x] FixValidator produces validation report at `logs/validations/`
+- [x] Confidence level is HIGH
+- [x] P1 tests pass
+- [x] P2/P3 skipped (low complexity)
 - [ ] Call site analysis skipped (low complexity)
-- [ ] Human-readable report NOT generated (low complexity)
-- [ ] Recommendation: proceed to review
+- [x] Human-readable report NOT generated (low complexity)
+- [x] Recommendation: proceed to review
 
 **Expected Results Reference**: `tests/fixtures/fix-validator-expected/simple-fix.yaml`
 
@@ -1301,16 +1301,16 @@ Please run the Fix Validation pipeline to investigate and fix this.
 4. **FixValidator**: Full validation with call site analysis
 
 **Verification**:
-- [ ] IssueAnalyzer identifies missing await
-- [ ] Complexity assessed as `medium`
-- [ ] Fix applied adds single `await` keyword
-- [ ] TestWriter NOT invoked (existing tests sufficient)
-- [ ] FixValidator performs call site analysis
-- [ ] All 3 callers identified (generateReport, aggregateData, prefetchUrls)
-- [ ] Human-readable report generated at `tmp/validation-results-*.txt`
-- [ ] P1 and P2 tests executed
-- [ ] Confidence level is HIGH or MEDIUM
-- [ ] May recommend running tests multiple times
+- [x] IssueAnalyzer identifies missing await
+- [x] Complexity assessed as `medium`
+- [x] Fix applied adds single `await` keyword
+- [x] TestWriter NOT invoked (existing tests sufficient)
+- [x] FixValidator performs call site analysis
+- [x] All 3 callers identified (generateReport, aggregateData, prefetchUrls)
+- [x] Human-readable report generated at `tmp/validation-results-*.txt`
+- [x] P1 and P2 tests executed
+- [x] Confidence level is HIGH or MEDIUM
+- [x] May recommend running tests multiple times
 
 **Expected Results Reference**: `tests/fixtures/fix-validator-expected/complex-fix.yaml`
 
@@ -1335,14 +1335,14 @@ Please run the Fix Validation pipeline to investigate and fix this.
 4. **FixValidator**: Validates new tests pass
 
 **Verification**:
-- [ ] IssueAnalyzer identifies division by zero issue
-- [ ] Complexity assessed as `low`
-- [ ] Fix adds zero check before division
-- [ ] TestWriter invoked (no test file exists)
-- [ ] New test file created at `tests/calculator.test.ts`
-- [ ] Tests cover division by zero scenario
-- [ ] FixValidator validates newly created tests pass
-- [ ] Confidence level is HIGH or MEDIUM
+- [x] IssueAnalyzer identifies division by zero issue
+- [x] Complexity assessed as `low`
+- [x] Fix adds zero check before division
+- [x] TestWriter invoked (no test file exists)
+- [x] New test file created at `tests/calculator.test.ts`
+- [x] Tests cover division by zero scenario
+- [x] FixValidator validates newly created tests pass
+- [x] Confidence level is HIGH or MEDIUM
 
 **Expected Results Reference**: `tests/fixtures/fix-validator-expected/no-tests.yaml`
 

@@ -35,10 +35,10 @@
 project: the-bulwark
 version: 4.2.0
 created: 2026-01-04
-updated: 2026-01-19
-current_phase: P1
-current_task: P1.3
-current_task_status: "Brainstorming complete, ready for implementation"
+updated: 2026-01-20
+current_phase: P2
+current_task: P2.1
+current_task_status: "Ready for brainstorming - may consolidate P2.1-P2.3 into single task brief"
 
 phases:
   - id: P0
@@ -257,7 +257,7 @@ phases:
   - id: P1
     name: "Pipeline Stage Agents"
     description: "Custom sub-agents for Fix Validation pipeline stages - IssueAnalyzer and FixValidator"
-    status: not_started
+    status: completed
     tasks:
       - id: P1.1
         name: "Create bulwark-test-auditor agent"
@@ -316,8 +316,8 @@ phases:
 
       - id: P1.3
         name: "Create bulwark-fix-validator agent"
-        status: in_progress
-        progress_notes: "Session 16: Agent + fixtures + /fix-bug skill complete, 3/5 manual tests passed, 2 pending (P1.3-4, P1.3-5)"
+        status: completed
+        completion_notes: "Session 17: All 5 manual tests passed. Added test execution checklist for enforcement."
         dependencies: [P0.4, P1.2]
         implementation_plan: "plans/task-briefs/P1.3-bulwark-fix-validator.md"
         deliverables:
@@ -353,6 +353,8 @@ phases:
           - "INSIGHT (Session 14): Wrote readable validation-results.txt in addition to YAML"
           - "LEARNING: user-invocable field applies to skills, not agents"
           - "LEARNING (Session 16): Conversational prompts may skip pipeline stages; /fix-bug skill ensures deterministic invocation"
+          - "LEARNING (Session 17): LLMs skip test execution without checklist enforcement; added mandatory execution_attempts block to validation report"
+          - "LEARNING (Session 17): Test fixtures without package.json cause npm error 254; agent correctly falls back to generated scripts"
         estimated_sessions: 1
 
   - id: P2
