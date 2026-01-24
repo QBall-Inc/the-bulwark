@@ -1368,10 +1368,10 @@ Debug report: logs/debug-reports/[path from P1.3-1]
 5. Agent reports findings and recommends revision if needed
 
 **Verification**:
-- [ ] Agent invoked via Task tool
-- [ ] No changes to `src/` or `tests/` (git status)
-- [ ] Agent response mentions it cannot modify files
-- [ ] Only `logs/` directory has new files
+- [x] Agent invoked via Task tool
+- [x] No changes to `src/` or `tests/` (git status)
+- [x] Agent response mentions it cannot modify files
+- [x] Only `logs/` directory has new files
 
 ---
 
@@ -1393,30 +1393,30 @@ Debug report: [use existing debug report from P1.3-1]
 4. Clear rationale for low confidence
 
 **Verification**:
-- [ ] Test failures detected
-- [ ] Confidence level is LOW
-- [ ] Rationale mentions test failures
-- [ ] Recommendation is NOT "proceed to review"
+- [x] Test failures detected
+- [x] Confidence level is LOW
+- [x] Rationale mentions test failures
+- [x] Recommendation is NOT "proceed to review"
 
 ---
 
 ## Post-Test Checklist (P1.3)
 
-- [ ] Agent spawns with Sonnet model
-- [ ] IssueAnalyzer → FixWriter → TestWriter → FixValidator flow works
-- [ ] TestWriter conditional logic works (invoked when needed, skipped when not)
-- [ ] Debug report correctly parsed
-- [ ] Tiered test execution (P1 → P2 → P3)
-- [ ] Complexity-based validation depth (low=P1 only, medium=P1+P2+call sites)
-- [ ] Call site analysis works (medium/high complexity)
-- [ ] Human-readable report generated for medium/high complexity
-- [ ] Confidence assessment uses criteria from debug report
-- [ ] Escalation triggers work (manual testing flagged when needed)
-- [ ] Validation report schema is correct
-- [ ] Diagnostics written correctly
-- [ ] Summary includes report paths
-- [ ] No code modification constraint enforced
-- [ ] All YAML outputs valid and parseable
+- [x] Agent spawns with Sonnet model
+- [x] IssueAnalyzer → FixWriter → TestWriter → FixValidator flow works
+- [x] TestWriter conditional logic works (invoked when needed, skipped when not)
+- [x] Debug report correctly parsed
+- [x] Tiered test execution (P1 → P2 → P3)
+- [x] Complexity-based validation depth (low=P1 only, medium=P1+P2+call sites)
+- [x] Call site analysis works (medium/high complexity)
+- [x] Human-readable report generated for medium/high complexity
+- [x] Confidence assessment uses criteria from debug report
+- [x] Escalation triggers work (manual testing flagged when needed)
+- [x] Validation report schema is correct
+- [x] Diagnostics written correctly
+- [x] Summary includes report paths
+- [x] No code modification constraint enforced
+- [x] All YAML outputs valid and parseable
 
 ---
 
