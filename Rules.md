@@ -256,7 +256,7 @@ Every session begins with an initial user prompt, also stored at `starter-prompt
 
 ### SR4: Session Handoff
 
-Before ending: save pending ToDo items, create handoff in `sessions/` using the session handoff template at `templates/session-handoff.md`, update `tasks.yaml`, document blockers and next steps.
+Before ending: ensure `/tasks` reflect current state, create handoff in `sessions/` using the session-handoff skill, update `tasks.yaml`, document blockers and next steps.
 
 ---
 

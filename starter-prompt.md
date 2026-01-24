@@ -21,7 +21,7 @@ Execute these steps in order:
 
 1. **Read** `CLAUDE.md` - Project guide, architecture, binding contract
 2. **Read** `Rules.md` - Immutable rules (**MUST follow**)
-3. **Check** `plans/tasks.yaml` - Current phase and task status
+3. **Check** `plans/tasks.yaml` - Current phase and task status (source of truth)
 4. **Check** `sessions/` - Latest session handoff document
 5. **Load** task implementation plan from `plans/task-briefs/` (if exists)
 6. **If no implementation plan exists** - Create one before implementation
@@ -54,6 +54,32 @@ Do NOT start work until user confirms.
 At each checkpoint, prompt user: "Please run `/context` and share token consumption."
 
 See Rules.md for token complexity estimation rubric.
+
+---
+
+## Task Tracking
+
+### Planning vs. Session Tracking
+
+| Purpose | Tool | Scope |
+|---------|------|-------|
+| **Planning** | `plans/tasks.yaml` | Cross-session, version-controlled, source of truth |
+| **Session work** | `/tasks` | In-session progress, background task coordination |
+
+### Using /tasks for Execution Tracking
+
+Claude Code's built-in task system complements `tasks.yaml` for tracking execution:
+
+- **TaskCreate** - Break down current task into sub-tasks
+- **TaskUpdate** - Mark progress (pending → in_progress → completed)
+- **TaskList** - View current tasks
+
+**Persistence:** Set `CLAUDE_CODE_TASK_LIST_ID=the-bulwark` to persist tasks across sessions. This allows multi-session work to maintain sub-task breakdown.
+
+**Relationship with tasks.yaml:**
+- `tasks.yaml` defines WHAT to do (phases, tasks, acceptance criteria)
+- `/tasks` tracks HOW it's progressing (sub-tasks, completion status)
+- At session close: update `tasks.yaml` status; `/tasks` carries forward if work continues
 
 ---
 
@@ -105,6 +131,7 @@ Ready to end session.
 | Checkpoint | Action |
 |------------|--------|
 | Session start | CLAUDE.md → Rules.md → tasks.yaml → handoff → task-brief |
+| During work | Use `/tasks` for sub-task tracking |
 | 50% tokens | Status check, confirm on track |
 | 65% tokens | Wrap-up, no new major work |
 | 75% tokens | **STOP**, await user confirmation |
