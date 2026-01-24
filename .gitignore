@@ -38,3 +38,6 @@ tmp/
 
 # Hook control flags (developer-specific)
 .claude/enable-pipeline-hooks
+
+# direnv (user-specific environment)
+.envrc

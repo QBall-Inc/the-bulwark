@@ -35,7 +35,7 @@
 project: the-bulwark
 version: 4.2.0
 created: 2026-01-04
-updated: 2026-01-20
+updated: 2026-01-24
 current_phase: P2
 current_task: P2.1
 current_task_status: "Ready for brainstorming - may consolidate P2.1-P2.3 into single task brief"
@@ -777,15 +777,15 @@ phases:
 
       - id: P5.9
         name: "Create customizable status line"
-        status: not_started
-        dependencies: [P5.6]
+        status: completed
+        completion_notes: "Session 18: Multi-line confirmed, RGB colors, /bulwark-statusline skill validated"
+        dependencies: []
         implementation_plan: "plans/task-briefs/P5.9-statusline.md"
         deliverables:
           - "scripts/statusline/statusline.sh"
-          - "scripts/statusline/install.sh"
           - "lib/templates/statusline-default.yaml"
-          - "skills/statusline-init/SKILL.md"
-          - "skills/statusline/SKILL.md"
+          - "skills/bulwark-statusline/SKILL.md"
+          - "agents/statusline-setup.md"
         acceptance_criteria:
           - "Multi-line status display (model, gauge, file, git)"
           - "Color-coded gauge bar (<60% green, 60-70% yellow, >70% red)"
