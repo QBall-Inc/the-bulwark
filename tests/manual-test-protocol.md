@@ -1470,3 +1470,224 @@ blockers: []
 3. **Call site analysis accuracy**: Grep-based search may miss aliased imports
 4. **Confidence assessment**: Subjective mapping from debug report criteria
 5. **Pipeline coordination**: Requires orchestrator to correctly chain stages
+
+---
+
+# P2.1-3 Verification Skills - Manual Test Protocol
+
+**Purpose**: Verify bulwark-verify (P2.3) correctly generates executable scripts using assertion-patterns (P2.1) and component-patterns (P2.2).
+**Prerequisite**: P2.1-3 implementation complete, skills copied to `.claude/skills/`
+**Design**: Main Context Orchestration - Orchestrator spawns Sonnet sub-agent using skill prompt templates.
+
+---
+
+## Pre-Test Setup (P2.1-3)
+
+1. Ensure skills are copied to `.claude/skills/`:
+   - `assertion-patterns/SKILL.md`
+   - `component-patterns/SKILL.md`
+   - `bulwark-verify/SKILL.md`
+2. Ensure test fixtures exist in `tests/fixtures/bulwark-verify/`
+3. Ensure `tmp/verification/` directory exists
+4. Start a fresh Claude Code session
+5. Verify `/skills` shows `bulwark-verify` (user-invocable: true)
+6. Verify `assertion-patterns` and `component-patterns` are NOT in menu
+
+---
+
+## Test P2-1: Slash Command - Node CLI
+
+**Prompt**:
+```
+/bulwark-verify tests/fixtures/bulwark-verify/node-cli/src/cli.js
+```
+
+**Expected Behavior**:
+1. Language detected as Node (package.json present)
+2. Component type detected as CLI
+3. Sonnet sub-agent spawns for script generation
+4. Script written to `tmp/verification/cli-verify.test.js`
+
+**Verification**:
+- [ ] Script exists at expected location
+- [ ] Script is valid JavaScript
+- [ ] Script tests CLI behavior (spawn, capture, verify)
+- [ ] Log written to `logs/bulwark-verify-*.yaml`
+
+---
+
+## Test P2-2: Slash Command - Python Parser
+
+**Prompt**:
+```
+/bulwark-verify tests/fixtures/bulwark-verify/python-parser/src/parser.py
+```
+
+**Expected Behavior**:
+1. Language detected as Python (pyproject.toml present)
+2. Component type detected as file parser
+3. Script written to `tmp/verification/parser_test.py`
+
+**Verification**:
+- [ ] Script exists at expected location
+- [ ] Script is valid Python
+- [ ] Script tests parser with real file input
+
+---
+
+## Test P2-3: Slash Command - HTTP Server
+
+**Prompt**:
+```
+/bulwark-verify tests/fixtures/bulwark-verify/node-http/src/server.js
+```
+
+**Expected Behavior**:
+1. Language detected as Node
+2. Component type detected as HTTP Server
+3. Script written to `tmp/verification/server-verify.test.js`
+
+**Verification**:
+- [ ] Script exists at expected location
+- [ ] Script starts server, makes requests, verifies responses
+- [ ] Script includes cleanup (server shutdown)
+
+---
+
+## Test P2-4: Script Execution
+
+**Prompt**:
+```
+/bulwark-verify tests/fixtures/bulwark-verify/node-cli/src/cli.js --execute
+```
+
+**Expected Behavior**:
+1. Script generated
+2. Script executed via appropriate runner
+3. PASS/FAIL reported
+
+**Verification**:
+- [ ] Script executed (check logs)
+- [ ] Clear PASS/FAIL output shown
+- [ ] Execution time recorded in log
+
+---
+
+## Test P2-5: Generic Component (Bash)
+
+**Prompt**:
+```
+/bulwark-verify tests/fixtures/bulwark-verify/generic-spawner/spawner.sh
+```
+
+**Expected Behavior**:
+1. No manifest files → Generic language detected
+2. Component type detected as Process Spawner
+3. Script written as bash (`.sh`)
+
+**Verification**:
+- [ ] Language detected as Generic
+- [ ] Script is bash
+- [ ] Script tests process spawning behavior
+
+---
+
+## Test P2-6: test-audit Integration
+
+**Prompt**:
+```
+/test-audit tests/fixtures/test-audit/t1-violation/
+After running, check if P2 skills were loaded in Step 7.
+```
+
+**Expected Behavior**:
+1. Test audit runs full pipeline
+2. Step 7 loads assertion-patterns and component-patterns
+3. Intermediate verification script may be generated
+
+**Verification**:
+- [ ] test-audit completes successfully
+- [ ] Check if P2.1/P2.2 referenced in rewrite
+- [ ] Rewritten test uses structured patterns
+
+---
+
+## Test P2-7: Menu Visibility
+
+**Action**: Type `/` in Claude Code to open skill menu
+
+**Expected Behavior**:
+- `bulwark-verify` SHOULD appear in the menu
+- `assertion-patterns` should NOT appear
+- `component-patterns` should NOT appear
+
+**Verification**:
+- [ ] `bulwark-verify` in menu (user-invocable: true)
+- [ ] `assertion-patterns` NOT in menu
+- [ ] `component-patterns` NOT in menu
+
+---
+
+## Post-Test Checklist (P2.1-3)
+
+- [ ] bulwark-verify appears in `/` menu
+- [ ] assertion-patterns and component-patterns NOT in menu
+- [ ] Language detection works (Node, Python, Generic)
+- [ ] Component type detection works (CLI, HTTP, file parser, process)
+- [ ] Generated scripts are executable
+- [ ] Scripts report PASS/FAIL
+- [ ] test-audit Step 7 uses P2 skills
+- [ ] All YAML outputs valid and parseable
+
+---
+
+## Test Results Template (P2.1-3)
+
+```yaml
+# tests/logs/bulwark-verify-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  node_cli_script:
+    status: pass|fail
+    script_path: ""
+    notes: ""
+  python_parser_script:
+    status: pass|fail
+    script_path: ""
+    notes: ""
+  http_server_script:
+    status: pass|fail
+    script_path: ""
+    notes: ""
+  script_execution:
+    status: pass|fail
+    pass_fail_reported: true|false
+    notes: ""
+  generic_component:
+    status: pass|fail
+    language_detected: ""
+    notes: ""
+  test_audit_integration:
+    status: pass|fail
+    p2_skills_loaded: true|false
+    notes: ""
+  menu_visibility:
+    status: pass|fail
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Known Limitations (P2.1-3)
+
+1. **Component type detection**: Relies on import/pattern analysis; may misclassify mixed components
+2. **Language detection**: Only checks for manifest files; may not detect language for single files
+3. **Script generation quality**: Depends on Sonnet sub-agent interpretation of patterns
+4. **Execution environment**: Generated scripts may need dependencies to run successfully
+5. **test-audit integration**: Verification script is intermediate artifact; not always generated

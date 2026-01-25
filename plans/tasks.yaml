@@ -37,8 +37,8 @@ version: 4.2.0
 created: 2026-01-04
 updated: 2026-01-24
 current_phase: P2
-current_task: P2.1
-current_task_status: "Task brief created - ready for implementation"
+current_task: P2.3
+current_task_status: "Skills implemented, pending split/sync/manual-test"
 
 phases:
   - id: P0
@@ -410,12 +410,12 @@ phases:
           - "Used by test-audit Stage 7 for structured rewrites"
 
       - id: P2.3
-        name: "Create verification-script composite skill"
+        name: "Create bulwark-verify skill"
         status: not_started
         dependencies: [P2.1, P2.2]
         implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
         deliverables:
-          - "skills/verification-script/SKILL.md"
+          - "skills/bulwark-verify/SKILL.md"
           - "tests/fixtures/verification-script/"
           - "skills/test-audit/SKILL.md (updated)"
         acceptance_criteria:
@@ -428,7 +428,7 @@ phases:
           - "Frontmatter: skills array includes P2.1 and P2.2"
           - "test-audit Step 7 updated to use P2 patterns"
         verification:
-          - "/verification-script generates executable scripts"
+          - "/bulwark-verify generates executable scripts"
           - "Language detection works correctly"
           - "test-audit Step 7 uses P2 skills"
           - "Passes anthropic-validator"
@@ -440,6 +440,7 @@ phases:
           - "Includes test-audit integration update"
           - "Future: Hook pipeline enhancement (after P3.x)"
           - "Future: Justfile integration (after P3.1)"
+          - "Renamed from verification-script to bulwark-verify (Session 20)"
 
   - id: P3
     name: "Enforcement Infrastructure"
@@ -667,19 +668,21 @@ phases:
 
       - id: P5.2
         name: "Create verify command"
-        status: not_started
+        status: skipped
+        skip_reason: "Redundant - Skills and commands merged in Claude Code 2.1.x. /bulwark-verify skill (P2.3) serves as both skill and command."
         dependencies: [P2.3]
-        implementation_plan: "plans/task-briefs/P5.2-verify-command.md"
-        deliverables:
-          - "commands/verify.md"
-        acceptance_criteria:
-          - "Invokes verification-script skill"
-          - "Runs generated scripts"
-          - "Reports pass/fail"
-        verification:
-          - "Run /bulwark:verify"
-          - "Verify scripts execute"
-        estimated_sessions: 1
+        implementation_plan: "N/A - skipped"
+        deliverables: []
+        acceptance_criteria: []
+        verification: []
+        decision_notes:
+          - "Session 20 (2026-01-24): Reviewed necessity after skills/commands merge"
+          - "ARCHITECTURAL CHANGE: Claude Code 2.1.x merged skills and commands"
+          - "Skills with user-invocable: true can be invoked via /skill-name [args]"
+          - "P2.3 bulwark-verify is user-invocable and accepts arguments"
+          - "Separate command wrapper provides no additional value"
+          - "SOLUTION: /bulwark-verify [path] works directly as skill invocation"
+        estimated_sessions: 0
 
       - id: P5.3
         name: "Create continuous-feedback skill"
@@ -899,18 +902,20 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 31  # Was 32, P1.1 skipped
-  total_estimated_sessions: 32  # Was 33, P1.1 skipped
+  total_tasks: 30  # Was 32, P1.1 and P5.2 skipped
+  total_estimated_sessions: 31  # Was 33, P1.1 and P5.2 skipped
   skipped_tasks:
     - id: P1.1
       reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
+    - id: P5.2
+      reason: "Redundant - Skills/commands merged in Claude Code 2.1.x, /bulwark-verify serves as both"
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
     P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED
     P2: 3 tasks (Verification Scripts)
     P3: 5 tasks (Enforcement Infrastructure with once: true)
     P4: 4 tasks (Review Skills & Standalone Agents)
-    P5: 12 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening)
+    P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED
   architecture_notes:
     pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"

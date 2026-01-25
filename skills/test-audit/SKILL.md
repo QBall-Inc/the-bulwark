@@ -5,6 +5,8 @@ user-invocable: true
 skills:
   - test-classification
   - mock-detection
+  - assertion-patterns
+  - component-patterns
 ---
 
 # Test Audit
@@ -212,14 +214,20 @@ ELSE (P2 only):
 IF REWRITE_REQUIRED == true:
     FOR each file in files_to_rewrite (ordered by priority, then effectiveness):
         1. Read the file
-        2. Apply rewrite_direction from audit report
-        3. Follow T1-T4 rules strictly:
-           - T1 fix: Replace mock with real implementation
-           - T2 fix: Add result assertion after call assertion
-           - T3 fix: Use test server or MSW instead of mock
-           - T3+ fix: Chain real function outputs
-        4. Write updated file
-        5. Run tests for that file to verify fix
+        2. Load `assertion-patterns` skill (P2.1) for T1-T4 transformation patterns
+        3. Identify component type from code analysis
+        4. Load `component-patterns` skill (P2.2) for verification templates
+        5. Select applicable patterns for the violation type:
+           - T1 fix: Apply "Function call" or "Process spawn" patterns from P2.1
+           - T2 fix: Apply "Add result assertion" pattern from P2.1
+           - T3 fix: Apply "HTTP Server" or appropriate boundary pattern from P2.2
+           - T3+ fix: Apply chain patterns from P2.1
+        6. Generate verification script as intermediate artifact:
+           - Location: tmp/verification/{test-name}-verify.{ext}
+           - Purpose: Validate rewrite works before modifying test
+        7. Rewrite test file using structured patterns
+        8. Run verification script to confirm fix
+        9. Run original test to verify it now passes
 ELSE:
     Display recommendations without auto-rewrite
 ```
