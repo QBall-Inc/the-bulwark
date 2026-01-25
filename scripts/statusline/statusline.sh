@@ -121,7 +121,7 @@ if [ -n "$CWD" ] && [ -d "$CWD" ]; then
     # Combine: modified tracked files + untracked files, sort by mtime
     LAST_FILE=$( (git diff --name-only HEAD 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null) | \
         xargs -I{} sh -c '[ -f "{}" ] && stat --format="%Y %n" "{}"' 2>/dev/null | \
-        sort -rn | head -1 | cut -d' ' -f2-)
+        sort -rn | head -1 | cut -d' ' -f2- || true)
 fi
 
 # === Output Lines ===

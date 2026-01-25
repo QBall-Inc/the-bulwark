@@ -38,7 +38,7 @@ created: 2026-01-04
 updated: 2026-01-24
 current_phase: P2
 current_task: P2.3
-current_task_status: "Skills implemented, pending split/sync/manual-test"
+current_task_status: "Manual testing complete. Pending 6 post-test fixes (see persistent task list)"
 
 phases:
   - id: P0

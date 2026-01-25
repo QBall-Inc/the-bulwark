@@ -1509,10 +1509,10 @@ blockers: []
 4. Script written to `tmp/verification/cli-verify.test.js`
 
 **Verification**:
-- [ ] Script exists at expected location
-- [ ] Script is valid JavaScript
-- [ ] Script tests CLI behavior (spawn, capture, verify)
-- [ ] Log written to `logs/bulwark-verify-*.yaml`
+- [x] Script exists at expected location
+- [x] Script is valid JavaScript
+- [x] Script tests CLI behavior (spawn, capture, verify)
+- [x] Log written to `logs/bulwark-verify-*.yaml`
 
 ---
 
@@ -1529,9 +1529,9 @@ blockers: []
 3. Script written to `tmp/verification/parser_test.py`
 
 **Verification**:
-- [ ] Script exists at expected location
-- [ ] Script is valid Python
-- [ ] Script tests parser with real file input
+- [x] Script exists at expected location
+- [x] Script is valid Python
+- [x] Script tests parser with real file input
 
 ---
 
@@ -1548,9 +1548,9 @@ blockers: []
 3. Script written to `tmp/verification/server-verify.test.js`
 
 **Verification**:
-- [ ] Script exists at expected location
-- [ ] Script starts server, makes requests, verifies responses
-- [ ] Script includes cleanup (server shutdown)
+- [x] Script exists at expected location
+- [x] Script starts server, makes requests, verifies responses
+- [x] Script includes cleanup (server shutdown)
 
 ---
 
@@ -1567,9 +1567,9 @@ blockers: []
 3. PASS/FAIL reported
 
 **Verification**:
-- [ ] Script executed (check logs)
-- [ ] Clear PASS/FAIL output shown
-- [ ] Execution time recorded in log
+- [x] Script executed (check logs)
+- [x] Clear PASS/FAIL output shown
+- [x] Execution time recorded in log
 
 ---
 
@@ -1586,9 +1586,9 @@ blockers: []
 3. Script written as bash (`.sh`)
 
 **Verification**:
-- [ ] Language detected as Generic
-- [ ] Script is bash
-- [ ] Script tests process spawning behavior
+- [x] Language detected as Generic
+- [x] Script is bash
+- [x] Script tests process spawning behavior
 
 ---
 
@@ -1606,9 +1606,9 @@ After running, check if P2 skills were loaded in Step 7.
 3. Intermediate verification script may be generated
 
 **Verification**:
-- [ ] test-audit completes successfully
-- [ ] Check if P2.1/P2.2 referenced in rewrite
-- [ ] Rewritten test uses structured patterns
+- [x] test-audit completes successfully
+- [x] Check if P2.1/P2.2 referenced in rewrite
+- [x] Rewritten test uses structured patterns
 
 ---
 
@@ -1622,22 +1622,22 @@ After running, check if P2 skills were loaded in Step 7.
 - `component-patterns` should NOT appear
 
 **Verification**:
-- [ ] `bulwark-verify` in menu (user-invocable: true)
-- [ ] `assertion-patterns` NOT in menu
-- [ ] `component-patterns` NOT in menu
+- [x] `bulwark-verify` in menu (user-invocable: true)
+- [x] `assertion-patterns` NOT in menu
+- [x] `component-patterns` NOT in menu
 
 ---
 
 ## Post-Test Checklist (P2.1-3)
 
-- [ ] bulwark-verify appears in `/` menu
-- [ ] assertion-patterns and component-patterns NOT in menu
-- [ ] Language detection works (Node, Python, Generic)
-- [ ] Component type detection works (CLI, HTTP, file parser, process)
-- [ ] Generated scripts are executable
-- [ ] Scripts report PASS/FAIL
-- [ ] test-audit Step 7 uses P2 skills
-- [ ] All YAML outputs valid and parseable
+- [x] bulwark-verify appears in `/` menu
+- [x] assertion-patterns and component-patterns NOT in menu
+- [x] Language detection works (Node, Python, Generic)
+- [x] Component type detection works (CLI, HTTP, file parser, process)
+- [x] Generated scripts are executable
+- [x] Scripts report PASS/FAIL
+- [x] test-audit Step 7 uses P2 skills
+- [x] All YAML outputs valid and parseable
 
 ---
 
