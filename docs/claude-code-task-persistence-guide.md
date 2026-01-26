@@ -112,17 +112,20 @@ exec claude "$@"
 ```bash
 # 1. Save script to PATH
 mkdir -p ~/.local/bin
-# (save script as ~/.local/bin/claude-project)
 
-# 2. Make executable
+# 2. Copy the script to this folder
+cp /<original path>/claude-project ~/.local/bin/
+
+# 3. Make executable
 chmod +x ~/.local/bin/claude-project
 
-# 3. Fix Windows line endings (CRITICAL for WSL users)
-# Files created on Windows have CRLF endings that break bash scripts
+# 4. Fix Windows line endings (CRITICAL for WSL users as files created on Windows have CRLF endings that break bash scripts)
 sed -i 's/\r$//' ~/.local/bin/claude-project
 
-# 4. Ensure PATH includes ~/.local/bin
+# 5. Ensure PATH includes ~/.local/bin
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+
+# 6. Reload your shell
 source ~/.bashrc
 ```
 
