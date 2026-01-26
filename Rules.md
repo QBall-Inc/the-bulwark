@@ -226,6 +226,32 @@ Task → Research → Plan → Review → Implementation → Verification
 
 ---
 
+## Skill Compliance Rules (SC)
+
+### SC1: Skill Instructions Are Binding
+
+When a skill is loaded, ALL instructions within it are **BINDING**, not advisory:
+- Steps marked "MANDATORY" or "REQUIRED" must be executed
+- Steps must be executed **IN ORDER** unless explicitly stated otherwise
+- Do NOT substitute judgment for skill instructions
+- Do NOT skip steps because they seem unnecessary
+
+### SC2: Sub-Agent Spawning Is Mandatory
+
+When a skill specifies sub-agent spawning (e.g., `Task(subagent_type=...)`:
+- You **MUST** spawn the sub-agent as instructed
+- You **MUST NOT** perform the sub-agent's work yourself
+- The sub-agent model selection is intentional (Haiku for simple, Sonnet for standard)
+
+### SC3: Skill Execution Verification
+
+After executing a skill:
+- Verify all mandatory steps were completed
+- Verify all required outputs were generated
+- If any step was skipped, document why and re-attempt
+
+---
+
 ## Session Rules (SR)
 
 ### SR1: Follow Starter Prompt

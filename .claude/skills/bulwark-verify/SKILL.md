@@ -42,9 +42,13 @@ executable scripts for any component type.
 
 ---
 
-## Orchestration Instructions
+## MANDATORY EXECUTION STEPS
 
-When this skill is loaded, follow these steps exactly:
+> **WARNING**: These steps are BINDING instructions, not suggestions. You MUST execute
+> each step in order. Do NOT substitute your judgment for these instructions.
+> Do NOT skip sub-agent spawning. Do NOT modify the execution flow.
+
+When this skill is loaded, execute these steps **exactly as written**:
 
 ### Step 1: Resolve Target
 
@@ -89,20 +93,38 @@ Check for project manifest files in order (search from target file's directory u
    - From `assertion-patterns`: Identify T1-T4 transformation patterns relevant to the component
    - From `component-patterns`: Select the matching component type template
 
-### Step 4: Generate Script (Sonnet Sub-Agent)
+### Step 4: Generate Script [SPAWN-REQUIRED]
 
-Spawn sub-agent for script generation using the 4-part prompt template below:
+**You MUST spawn a Sonnet sub-agent for script generation.** Do NOT generate the script yourself.
 
 ```
 Task(
     description="Generate verification script for {component_name}",
     subagent_type="general-purpose",
     model="sonnet",
-    prompt=<constructed_4part_prompt>
+    prompt=<constructed_4part_prompt_from_template_below>
 )
 ```
 
-### Step 5: Report Results
+The sub-agent writes the script to `tmp/verification/{component_name}-verify.{ext}`.
+
+### Step 5: Validate Generated Script [REQUIRED]
+
+After the sub-agent returns, validate the generated script syntax:
+
+| Language | Validation Command | Success |
+|----------|-------------------|---------|
+| Node | `node --check {script_path}` | Exit 0 |
+| Python | `python -m py_compile {script_path}` | Exit 0 |
+| Bash | `bash -n {script_path}` | Exit 0 |
+
+If validation fails:
+1. Read the error message
+2. Fix the syntax issue in the generated script
+3. Re-validate until successful
+4. Only then proceed to Step 6
+
+### Step 6: Report Results
 
 Present summary to user:
 
@@ -199,6 +221,27 @@ Write to: `logs/bulwark-verify-{YYYYMMDD-HHMMSS}.yaml`
 ```
 tmp/verification/{component-name}-verify.{ext}
 ```
+
+### README Files (Per-Component)
+
+If generating a README for the verification script, name it per-component to avoid overwrites:
+```
+tmp/verification/{component-name}-README.md
+```
+
+**NOT:** `tmp/verification/README.md` (would be overwritten by subsequent runs)
+
+### Cleanup Behavior
+
+Generated scripts **persist in `tmp/verification/`** for inspection and debugging:
+- Scripts are NOT automatically deleted after execution
+- `tmp/` is in `.gitignore` - scripts won't be committed
+- Manual cleanup: `rm -rf tmp/verification/*`
+
+This allows:
+- Post-run inspection of generated scripts
+- Iterative refinement of verification approach
+- Debugging when tests fail
 
 ### Log Schema
 ```yaml

@@ -33,12 +33,12 @@
 # Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
 
 project: the-bulwark
-version: 4.2.0
+version: 4.3.0
 created: 2026-01-04
-updated: 2026-01-24
-current_phase: P2
-current_task: P2.3
-current_task_status: "Manual testing complete. Pending 6 post-test fixes (see persistent task list)"
+updated: 2026-01-25
+current_phase: P3
+current_task: P3.1
+current_task_status: "Ready to start"
 
 phases:
   - id: P0
@@ -360,13 +360,14 @@ phases:
   - id: P2
     name: "Verification Scripts"
     description: "Skills for creating verification scripts"
-    status: not_started
+    status: completed
+    completion_notes: "Session 20-22: All skills implemented, manual tested (7/7 pass), post-test fixes applied"
     tasks:
       # P2.1-3 consolidated into single task brief (like P0.6-8)
       # See: plans/task-briefs/P2.1-3-verification-skills.md
       - id: P2.1
         name: "Create assertion-patterns skill"
-        status: not_started
+        status: completed
         dependencies: []
         implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
         deliverables:
@@ -387,7 +388,7 @@ phases:
 
       - id: P2.2
         name: "Create component-patterns skill"
-        status: not_started
+        status: completed
         dependencies: []
         implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
         deliverables:
@@ -411,7 +412,7 @@ phases:
 
       - id: P2.3
         name: "Create bulwark-verify skill"
-        status: not_started
+        status: completed
         dependencies: [P2.1, P2.2]
         implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
         deliverables:
@@ -900,10 +901,39 @@ phases:
           - "Addresses manual stub pattern detection gap"
         estimated_sessions: 1
 
+  - id: P6
+    name: "Optional Enhancements"
+    description: "Post-completion enhancements that improve consistency but are not required for core functionality"
+    status: not_started
+    tasks:
+      - id: P6.1
+        name: "Add subagent-prompting dependency to orchestration skills"
+        status: not_started
+        dependencies: [P5.6]  # After plugin manifest finalized
+        implementation_plan: "plans/task-briefs/P6.1-subagent-prompting-dependency.md"
+        deliverables:
+          - "skills/bulwark-verify/SKILL.md (updated)"
+          - "skills/anthropic-validator/SKILL.md (updated)"
+          - "skills/test-audit/SKILL.md (updated)"
+        acceptance_criteria:
+          - "All skills that spawn sub-agents include subagent-prompting in skills array"
+          - "4-part prompt template available regardless of invocation path"
+          - "Model selection rubric accessible without suggest-pipeline.sh chain"
+        verification:
+          - "Invoke /bulwark-verify directly, confirm subagent-prompting loaded"
+          - "Invoke /anthropic-validator directly, confirm subagent-prompting loaded"
+          - "Invoke /test-audit directly, confirm subagent-prompting loaded"
+        notes:
+          - "Session 22 (2026-01-25): Identified gap in skill dependency chain"
+          - "Current workaround: suggest-pipeline.sh injects instructions, but only fires on Write|Edit"
+          - "Direct skill invocation (e.g., /bulwark-verify src/cli.ts) bypasses this chain"
+          - "Fix ensures consistent access to 4-part prompt template and model selection rubric"
+        estimated_sessions: 1
+
 # Summary
 summary:
-  total_tasks: 30  # Was 32, P1.1 and P5.2 skipped
-  total_estimated_sessions: 31  # Was 33, P1.1 and P5.2 skipped
+  total_tasks: 31  # Was 32, P1.1 and P5.2 skipped, P6.1 added
+  total_estimated_sessions: 32  # Was 33, P1.1 and P5.2 skipped, P6.1 added
   skipped_tasks:
     - id: P1.1
       reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
@@ -911,11 +941,12 @@ summary:
       reason: "Redundant - Skills/commands merged in Claude Code 2.1.x, /bulwark-verify serves as both"
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
-    P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED
-    P2: 3 tasks (Verification Scripts)
+    P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
+    P2: 3 tasks (Verification Scripts) - COMPLETED
     P3: 5 tasks (Enforcement Infrastructure with once: true)
     P4: 4 tasks (Review Skills & Standalone Agents)
-    P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED
+    P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
+    P6: 1 task (Optional Enhancements) - Post-completion polish
   architecture_notes:
     pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
