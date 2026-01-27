@@ -16,17 +16,10 @@
 # - Documentation: <= 10 lines
 # - Scripts: < 3 lines
 #
-# ENABLE/DISABLE:
-# - To enable:  touch ${CLAUDE_PROJECT_DIR}/.claude/enable-pipeline-hooks
-# - To disable: rm ${CLAUDE_PROJECT_DIR}/.claude/enable-pipeline-hooks
-# - Hook is DISABLED by default
-
-# Check if hook is enabled via flag file
-FLAG_FILE="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/enable-pipeline-hooks"
-if [ ! -f "$FLAG_FILE" ]; then
-  # Hook disabled - exit silently
-  exit 0
-fi
+# PRODUCTION MODE:
+# - Hook is always enabled (no flag file check)
+# - Configured via /bulwark-scaffold (--no-hooks to opt out)
+# - Called by enforce-quality.sh after quality checks pass
 
 # Ensure logs directory exists
 LOGS_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}/logs"
