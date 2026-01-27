@@ -1,7 +1,51 @@
 {
-  "description": "The Bulwark quality enforcement hooks",
+  "description": "The Bulwark quality enforcement hooks - Defense-in-Depth OUTER RING",
   "hooks": {
-    "PostToolUse": [],
-    "SessionStart": []
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/enforce-quality.sh",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/track-pipeline-start.sh",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/track-pipeline-stop.sh",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/inject-protocol.sh",
+            "timeout": 5000,
+            "once": true
+          }
+        ]
+      }
+    ]
   }
 }

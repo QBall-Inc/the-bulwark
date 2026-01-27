@@ -1,0 +1,20 @@
+{
+  "description": "Expected hook events in hooks/hooks.json",
+  "expected_events": ["PostToolUse", "SubagentStart", "SubagentStop", "SessionStart"],
+  "expected_scripts": [
+    "scripts/hooks/enforce-quality.sh",
+    "scripts/hooks/track-pipeline-start.sh",
+    "scripts/hooks/track-pipeline-stop.sh",
+    "scripts/hooks/inject-protocol.sh"
+  ],
+  "sessionstart_requirements": {
+    "once": true,
+    "timeout_min_ms": 1000,
+    "timeout_max_ms": 10000
+  },
+  "posttooluse_requirements": {
+    "matcher": "Write|Edit",
+    "timeout_min_ms": 30000,
+    "timeout_max_ms": 120000
+  }
+}

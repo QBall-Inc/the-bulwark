@@ -31,9 +31,19 @@ NC='\033[0m' # No Color
 # Get directories
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+LOGS_DIR="${PROJECT_DIR}/logs"
+HOOKS_LOG="${LOGS_DIR}/hooks.log"
+
+# Ensure logs directory exists
+mkdir -p "$LOGS_DIR"
 
 # Capture stdin JSON at start (needed for both phases)
 INPUT=$(cat)
+
+# Log hook invocation
+TIMESTAMP=$(date -Iseconds)
+FILE_PATH_FOR_LOG=$(echo "$INPUT" | jq -r '.tool_input.file_path // "unknown"')
+echo "[${TIMESTAMP}] PostToolUse: enforce-quality.sh triggered for ${FILE_PATH_FOR_LOG}" >> "$HOOKS_LOG"
 
 # Extract file path from input
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')

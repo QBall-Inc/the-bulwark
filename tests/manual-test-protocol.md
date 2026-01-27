@@ -1691,3 +1691,619 @@ blockers: []
 3. **Script generation quality**: Depends on Sonnet sub-agent interpretation of patterns
 4. **Execution environment**: Generated scripts may need dependencies to run successfully
 5. **test-audit integration**: Verification script is intermediate artifact; not always generated
+
+---
+
+# P3.1-3 Enforcement Core - Manual Test Protocol
+
+**Purpose**: Verify Justfile templates, scaffold skill, and enforce-quality.sh work correctly.
+**Prerequisite**: P3.1-3 implementation complete
+**Design**: CORE layer of Defense-in-Depth
+
+**Testing Approach**: All tests are prompt-based. You give Claude prompts, Claude writes code/files, and hooks fire automatically. You observe the hook behavior in Claude's responses.
+
+---
+
+## Pre-Test Setup (P3.1-3)
+
+1. Ensure hooks are synced: Run `just sync-hooks` in the-bulwark project
+2. Ensure test fixtures exist in `tests/fixtures/` (express-api, flask-service, actix-server, shellscript-utils)
+3. Start a **fresh Claude Code session** in the-bulwark project
+4. Verify governance protocol appears in Claude's context (SessionStart hook working)
+
+---
+
+## Test P3.1-1: Justfile Template Syntax Validation
+
+**Prompt**:
+```
+Please validate all Justfile templates in lib/templates/ by running just --list on each one.
+Report which templates are valid and what recipes each contains.
+```
+
+**Expected Behavior**:
+1. Claude runs validation commands
+2. Claude reports on each template
+
+**Verification**:
+- [ ] justfile-node.just valid syntax
+- [ ] justfile-python.just valid syntax
+- [ ] justfile-rust.just valid syntax
+- [ ] justfile-generic.just valid syntax
+- [ ] All templates have: typecheck, lint, build, test, ci, check, fix, default recipes
+
+---
+
+## Test P3.1-2: Node Project Scaffold
+
+**Prompt**:
+```
+Run /bulwark-scaffold in tests/fixtures/express-api/ to set up Bulwark infrastructure.
+```
+
+**Expected Behavior**:
+1. Claude loads bulwark-scaffold skill
+2. Claude detects Node from package.json
+3. Claude creates Justfile, logs/, updates .gitignore
+4. **PostToolUse hook fires** when Claude writes the Justfile
+5. Hook output visible (may show quality check or pipeline suggestion)
+
+**Verification**:
+- [ ] Language detected as Node (package.json found)
+- [ ] Justfile created with Node recipes (tsc, eslint, npm)
+- [ ] logs/ directory structure created
+- [ ] .gitignore updated with Bulwark patterns
+- [ ] Hook fired on Justfile write (check Claude's response for hook output)
+
+---
+
+## Test P3.1-3: Python Project Scaffold
+
+**Prompt**:
+```
+Run /bulwark-scaffold in tests/fixtures/flask-service/ to set up Bulwark infrastructure.
+```
+
+**Verification**:
+- [ ] Language detected as Python (pyproject.toml)
+- [ ] Justfile uses mypy, ruff, pytest
+- [ ] logs/ structure created
+- [ ] Hook fired on Justfile write
+
+---
+
+## Test P3.1-4: Rust Project Scaffold
+
+**Prompt**:
+```
+Run /bulwark-scaffold in tests/fixtures/actix-server/ to set up Bulwark infrastructure.
+```
+
+**Verification**:
+- [ ] Language detected as Rust (Cargo.toml)
+- [ ] Justfile uses cargo check, clippy, cargo test
+- [ ] logs/ structure created
+
+---
+
+## Test P3.1-5: Generic Project Scaffold
+
+**Prompt**:
+```
+Run /bulwark-scaffold in tests/fixtures/shellscript-utils/ to set up Bulwark infrastructure.
+```
+
+**Verification**:
+- [ ] Language detected as Generic (no manifest found)
+- [ ] Justfile has placeholder recipes with guidance
+- [ ] logs/ structure created
+
+---
+
+## Test P3.1-6: Conflict Handling
+
+**Prompt** (first create conflict):
+```
+Create a custom Justfile in tests/fixtures/express-api/ with a single recipe "custom" that echoes "hello".
+Then run /bulwark-scaffold and observe what happens.
+```
+
+**Expected Behavior**:
+1. Claude creates the custom Justfile
+2. Claude runs scaffold
+3. Scaffold warns about existing Justfile
+4. Scaffold does NOT overwrite
+
+**Verification**:
+- [ ] Warning message shown about existing Justfile
+- [ ] Justfile still contains custom recipe
+- [ ] logs/ and .gitignore still processed
+
+---
+
+## Test P3.1-7: Force Overwrite
+
+**Prompt**:
+```
+Run /bulwark-scaffold --force in tests/fixtures/express-api/ to overwrite the existing Justfile.
+```
+
+**Verification**:
+- [ ] Backup created: Justfile.backup-{timestamp}
+- [ ] Justfile now contains Node template content
+- [ ] Backup contains original custom content
+
+---
+
+## Test P3.2-1: Hook Trigger - Code File with Passing Quality
+
+**Prompt**:
+```
+Add a new helper function called "multiply" to tests/fixtures/express-api/src/index.js
+that takes two numbers and returns their product. Include JSDoc comments.
+Make it at least 8 lines.
+```
+
+**Expected Behavior**:
+1. Claude writes the function using Edit/Write
+2. **PostToolUse hook fires**
+3. enforce-quality.sh runs (typecheck, lint, build)
+4. If quality passes, suggest-pipeline.sh chains
+5. Claude may show pipeline suggestion in response
+
+**Verification**:
+- [ ] Code written successfully
+- [ ] Hook fired (visible in Claude's response or check logs/hooks.log)
+- [ ] Quality checks ran (typecheck, lint, build)
+- [ ] Pipeline suggestion appeared (for >5 lines of code)
+
+---
+
+## Test P3.2-2: Hook Trigger - Code File with Failing Quality
+
+**Prompt**:
+```
+Add a new function to tests/fixtures/express-api/src/index.js that has a deliberate
+type error - for example, assign a string to a variable that should be a number.
+```
+
+**Expected Behavior**:
+1. Claude writes code with type error
+2. **PostToolUse hook fires**
+3. enforce-quality.sh runs and FAILS on typecheck
+4. Hook returns exit code 2 (blocking)
+5. Claude sees the error and attempts to fix
+
+**Verification**:
+- [ ] Hook fired and blocked the operation
+- [ ] Error message shown (typecheck failed)
+- [ ] Claude attempted to fix the error
+- [ ] suggest-pipeline.sh did NOT run (quality gate failed)
+
+---
+
+## Test P3.2-3: Hook Trigger - Documentation File
+
+**Prompt**:
+```
+Add a comprehensive "Architecture" section to tests/fixtures/express-api/README.md
+with at least 15 lines describing the project structure.
+```
+
+**Expected Behavior**:
+1. Claude writes documentation
+2. **PostToolUse hook fires**
+3. Quality checks SKIPPED (not a code file)
+4. suggest-pipeline.sh runs directly
+5. Suggestion is "light review or skip" (documentation)
+
+**Verification**:
+- [ ] Documentation written
+- [ ] Hook fired but quality checks skipped
+- [ ] Pipeline suggestion is appropriate for docs
+- [ ] No blocking error
+
+---
+
+## Post-Test Checklist (P3.1-3)
+
+- [ ] All 4 Justfile templates valid syntax
+- [ ] Scaffold detects languages correctly (Node, Python, Rust, Generic)
+- [ ] Scaffold handles conflicts (warns without --force, backs up with --force)
+- [ ] Scaffold creates logs/ structure
+- [ ] **Hooks fire on Write/Edit operations**
+- [ ] **Quality checks run for code files**
+- [ ] **Quality checks skip for non-code files**
+- [ ] **Pipeline suggestion chains after quality passes**
+- [ ] **Quality failures block with exit 2**
+
+---
+
+## Test Results Template (P3.1-3)
+
+```yaml
+# tests/logs/enforcement-core-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  template_validation:
+    status: pass|fail
+    templates_validated: 4
+    notes: ""
+  node_scaffold:
+    status: pass|fail
+    hook_fired: true|false
+    notes: ""
+  python_scaffold:
+    status: pass|fail
+    notes: ""
+  rust_scaffold:
+    status: pass|fail
+    notes: ""
+  generic_scaffold:
+    status: pass|fail
+    notes: ""
+  conflict_handling:
+    status: pass|fail
+    warning_shown: true|false
+    notes: ""
+  force_overwrite:
+    status: pass|fail
+    backup_created: true|false
+    notes: ""
+  hook_quality_pass:
+    status: pass|fail
+    hook_fired: true|false
+    pipeline_suggested: true|false
+    notes: ""
+  hook_quality_fail:
+    status: pass|fail
+    blocked: true|false
+    error_shown: true|false
+    notes: ""
+  hook_documentation:
+    status: pass|fail
+    quality_skipped: true|false
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Test P3.2-OLD-1: enforce-quality.sh Success
+
+**Note**: This test is now covered by Test P3.2-1 above. The hook is tested by prompting Claude to write code, not by running the script manually.
+
+---
+
+## Test P3.2-OLD-2: enforce-quality.sh Failure
+
+**Note**: This test is now covered by Test P3.2-2 above.
+
+---
+./scripts/hooks/enforce-quality.sh
+echo "Exit code: $?"
+```
+
+**Verification**:
+- [ ] Typecheck runs and passes
+- [ ] Lint runs and passes
+- [ ] Build runs and passes
+- [ ] Exit code is 0
+- [ ] "All quality checks passed" or similar message shown
+
+---
+
+## Test P3.2-2: enforce-quality.sh Failure
+
+**Setup**: Introduce type error or lint violation in test project
+
+**Action**: Run enforce-quality.sh manually
+
+**Verification**:
+- [ ] Typecheck or lint fails
+- [ ] Exit code is 2 (blocking)
+- [ ] Error message identifies which check failed
+
+---
+
+## Post-Test Checklist (P3.1-3)
+
+- [ ] All 4 Justfile templates valid syntax
+- [ ] All templates have: typecheck, lint, build, test, ci, check, fix, default recipes
+- [ ] Scaffold detects languages correctly (Node, Python, Rust, Generic)
+- [ ] Scaffold handles conflicts with --force
+- [ ] Scaffold creates logs/ structure
+- [ ] Scaffold updates .gitignore idempotently
+- [ ] enforce-quality.sh runs: typecheck → lint → build
+- [ ] enforce-quality.sh exit 0 on success
+- [ ] enforce-quality.sh exit 2 on failure
+- [ ] Hook chaining: enforce-quality.sh chains to suggest-pipeline.sh
+
+---
+
+## Test Results Template (P3.1-3)
+
+```yaml
+# tests/logs/enforcement-core-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  template_syntax:
+    status: pass|fail
+    templates_validated: 4
+    notes: ""
+  node_scaffold:
+    status: pass|fail
+    language_detected: node
+    notes: ""
+  python_scaffold:
+    status: pass|fail
+    language_detected: python
+    notes: ""
+  rust_scaffold:
+    status: pass|fail
+    language_detected: rust
+    notes: ""
+  generic_scaffold:
+    status: pass|fail
+    language_detected: generic
+    notes: ""
+  conflict_handling:
+    status: pass|fail
+    warning_shown: true|false
+    notes: ""
+  force_overwrite:
+    status: pass|fail
+    backup_created: true|false
+    notes: ""
+  enforce_quality_success:
+    status: pass|fail
+    exit_code: 0
+    notes: ""
+  enforce_quality_failure:
+    status: pass|fail
+    exit_code: 2
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+# P3.4-5 Enforcement Hooks - Manual Test Protocol
+
+**Purpose**: Verify hooks.json configuration, hook migration, SessionStart once:true behavior, and chained hook execution.
+**Prerequisite**: P3.1-3 implementation complete (Justfile templates, scaffold, enforce-quality.sh)
+**Design**: OUTER RING of Defense-in-Depth
+
+---
+
+## Pre-Test Setup (P3.4-5)
+
+1. Ensure hooks.json exists at `hooks/hooks.json`
+2. Ensure inject-protocol.sh exists at `scripts/hooks/inject-protocol.sh`
+3. Ensure governance-protocol skill exists at `skills/governance-protocol/SKILL.md`
+4. Ensure all hook scripts are executable
+5. Run `just sync-hooks` to sync to `.claude/settings.json`
+6. Clear logs/hooks.log if it exists
+7. Start a fresh Claude Code session
+
+---
+
+## Test P3.4-1: Code File - Quality Pass + Pipeline Suggestion
+
+**Setup**: Project with Justfile and passing code
+**Fixture**: `tests/fixtures/express-api/`
+
+**Action**: Add a new function (>5 lines) to a .ts/.js file
+
+**Verification**:
+- [ ] enforce-quality.sh runs (visible in debug mode or logs)
+- [ ] Quality checks pass (typecheck, lint, build)
+- [ ] suggest-pipeline.sh called internally (check logs/hooks.log)
+- [ ] Pipeline suggestion appears (additionalContext injected)
+- [ ] Edit operation succeeds
+
+---
+
+## Test P3.4-2: Code File - Quality Fail (Blocking)
+
+**Setup**: Project with Justfile, introduce type error
+
+**Action**: Edit a .ts file to introduce type error
+
+**Verification**:
+- [ ] enforce-quality.sh runs
+- [ ] Typecheck fails, exit code is 2 (blocking)
+- [ ] Error message appears in Claude's response
+- [ ] suggest-pipeline.sh NOT called (quality gate failed)
+- [ ] Claude attempts to fix the error
+
+---
+
+## Test P3.4-3: Non-Code File - Skip Quality, Run Pipeline
+
+**Setup**: Project with Justfile
+
+**Action**: Update README.md with >10 lines of documentation
+
+**Verification**:
+- [ ] enforce-quality.sh runs
+- [ ] Quality checks SKIPPED (non-code file)
+- [ ] suggest-pipeline.sh called directly
+- [ ] Pipeline suggestion: "light review or skip"
+- [ ] Edit operation succeeds (no blocking)
+
+---
+
+## Test P3.4-4: SubagentStart/Stop Tracking
+
+**Action**: Invoke a sub-agent (e.g., Task tool)
+
+**Verification**:
+- [ ] track-pipeline-start.sh fires (check logs/pipeline-tracking.log)
+- [ ] track-pipeline-stop.sh fires when sub-agent completes
+- [ ] Log contains agent_id and timestamps
+
+---
+
+## Test P3.5-1: SessionStart Protocol Injection
+
+**Setup**: Fresh session, empty logs/hooks.log
+
+**Action**: Start Claude Code session
+
+**Verification**:
+- [ ] Governance protocol visible in Claude's context
+- [ ] Content matches `skills/governance-protocol/SKILL.md` body
+- [ ] logs/hooks.log contains "SessionStart: Governance protocol injected"
+- [ ] Timestamp is present in log entry
+
+---
+
+## Test P3.5-2: SessionStart once:true Behavior
+
+**Setup**: Session already started (Test P3.5-1 complete)
+
+**Action**: Run `/clear` command
+
+**Verification**:
+- [ ] Session clears
+- [ ] logs/hooks.log still has only ONE SessionStart entry
+- [ ] Protocol is NOT re-injected (once:true working)
+
+---
+
+## Test P3.5-3: Session Reset
+
+**Setup**: Previous session with one SessionStart entry
+
+**Action**: Exit Claude Code, start fresh session
+
+**Verification**:
+- [ ] logs/hooks.log now has TWO SessionStart entries
+- [ ] Each entry has different timestamp
+- [ ] once:true reset on new session (correct behavior)
+
+---
+
+## Test P3.5-4: Governance Protocol Skill Customization
+
+**Action**: Add custom rule to "Project-Specific Rules" section in skills/governance-protocol/SKILL.md
+
+**Verification**:
+- [ ] Start new session
+- [ ] Custom rule appears in Claude's context
+- [ ] Core governance rules still present
+- [ ] No script modification required
+
+---
+
+## Test P3.4-5: Development Sync Script
+
+**Setup**: Fresh checkout or modified hooks/hooks.json
+
+**Action**: Run `just sync-hooks` (or `./scripts/sync-hooks-for-dev.sh`)
+
+**Verification**:
+- [ ] Script completes without error
+- [ ] `.claude/settings.json` contains hooks section
+- [ ] All `${CLAUDE_PLUGIN_ROOT}` replaced with `${CLAUDE_PROJECT_DIR}`
+- [ ] Other settings in `.claude/settings.json` preserved (if any existed)
+- [ ] Running script again produces same result (idempotent)
+- [ ] Hooks fire correctly after sync (test with edit operation)
+
+---
+
+## Post-Test Checklist (P3.4-5)
+
+- [ ] hooks.json contains all required hooks (enforce-quality, track-pipeline-*, inject-protocol)
+- [ ] suggest-pipeline.sh NOT in hooks.json (called internally by enforce-quality.sh)
+- [ ] All hooks use ${CLAUDE_PLUGIN_ROOT} for command paths
+- [ ] Code files: Quality checks run, then pipeline suggestion
+- [ ] Non-code files: Quality checks skipped, pipeline suggestion runs directly
+- [ ] enforce-quality.sh blocks on quality failures (code files only)
+- [ ] Timeout values are in milliseconds (60000, 30000, 5000)
+- [ ] governance-protocol skill exists with valid frontmatter
+- [ ] governance-protocol skill has user-extensible section
+- [ ] inject-protocol.sh reads skill content (not hardcoded)
+- [ ] inject-protocol.sh fires exactly once per session
+- [ ] All logs write to project's logs/ directory
+- [ ] once:true resets only on new session, not /clear or /compact
+- [ ] Chained execution verified (enforce-quality → suggest-pipeline)
+- [ ] sync-hooks-for-dev.sh transforms paths correctly
+- [ ] `just sync-hooks` target works
+
+---
+
+## Test Results Template (P3.4-5)
+
+```yaml
+# tests/logs/enforcement-hooks-test-results-YYYYMMDD.yaml
+test_date: 2026-01-XX
+tester: [name]
+session_id: [from /context]
+
+results:
+  code_quality_pass:
+    status: pass|fail
+    quality_checks_passed: true|false
+    pipeline_suggested: true|false
+    notes: ""
+  code_quality_fail:
+    status: pass|fail
+    blocking_worked: true|false
+    notes: ""
+  noncode_skip_quality:
+    status: pass|fail
+    quality_skipped: true|false
+    notes: ""
+  subagent_tracking:
+    status: pass|fail
+    start_logged: true|false
+    stop_logged: true|false
+    notes: ""
+  sessionstart_injection:
+    status: pass|fail
+    protocol_visible: true|false
+    log_entry_exists: true|false
+    notes: ""
+  once_true_behavior:
+    status: pass|fail
+    single_entry_after_clear: true|false
+    notes: ""
+  session_reset:
+    status: pass|fail
+    two_entries_after_restart: true|false
+    notes: ""
+  skill_customization:
+    status: pass|fail
+    custom_rule_visible: true|false
+    notes: ""
+  sync_hooks:
+    status: pass|fail
+    paths_transformed: true|false
+    idempotent: true|false
+    notes: ""
+
+overall: pass|fail
+blockers: []
+```
+
+---
+
+## Known Limitations (P3.4-5)
+
+1. **Hook execution order**: Multiple hooks on same event may fire in parallel; chaining done internally
+2. **SessionStart stdout**: Only visible when hook exit 0; exit 2 only shows warning
+3. **once:true persistence**: Tied to session, not process; new claude process = new session
+4. **Timeout values**: Must be in milliseconds; values < 1000 are likely errors
+5. **Path transformation**: sync-hooks-for-dev.sh is for development only; production uses PLUGIN_ROOT
