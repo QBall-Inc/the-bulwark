@@ -41,8 +41,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/inject-protocol.sh",
-            "timeout": 5000,
-            "once": true
+            "timeout": 5000
           }
         ]
       }

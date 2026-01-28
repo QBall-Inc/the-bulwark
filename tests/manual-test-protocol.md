@@ -1726,11 +1726,11 @@ Report which templates are valid and what recipes each contains.
 2. Claude reports on each template
 
 **Verification**:
-- [ ] justfile-node.just valid syntax
-- [ ] justfile-python.just valid syntax
-- [ ] justfile-rust.just valid syntax
-- [ ] justfile-generic.just valid syntax
-- [ ] All templates have: typecheck, lint, build, test, ci, check, fix, default recipes
+- [x] justfile-node.just valid syntax
+- [x] justfile-python.just valid syntax
+- [x] justfile-rust.just valid syntax
+- [x] justfile-generic.just valid syntax
+- [x] All templates have: typecheck, lint, build, test, ci, check, fix, default recipes
 
 ---
 
@@ -1749,11 +1749,11 @@ Run /bulwark-scaffold in tests/fixtures/express-api/ to set up Bulwark infrastru
 5. Hook output visible (may show quality check or pipeline suggestion)
 
 **Verification**:
-- [ ] Language detected as Node (package.json found)
-- [ ] Justfile created with Node recipes (tsc, eslint, npm)
-- [ ] logs/ directory structure created
-- [ ] .gitignore updated with Bulwark patterns
-- [ ] Hook fired on Justfile write (check Claude's response for hook output)
+- [x] Language detected as Node (package.json found)
+- [x] Justfile created with Node recipes (tsc, eslint, npm)
+- [x] logs/ directory structure created
+- [x] .gitignore updated with Bulwark patterns
+- [x] Hook fired on Justfile write (check Claude's response for hook output)
 
 ---
 
@@ -1765,10 +1765,10 @@ Run /bulwark-scaffold in tests/fixtures/flask-service/ to set up Bulwark infrast
 ```
 
 **Verification**:
-- [ ] Language detected as Python (pyproject.toml)
-- [ ] Justfile uses mypy, ruff, pytest
-- [ ] logs/ structure created
-- [ ] Hook fired on Justfile write
+- [x] Language detected as Python (pyproject.toml)
+- [x] Justfile uses mypy, ruff, pytest
+- [x] logs/ structure created
+- [x] Hook fired on Justfile write
 
 ---
 
@@ -1780,9 +1780,9 @@ Run /bulwark-scaffold in tests/fixtures/actix-server/ to set up Bulwark infrastr
 ```
 
 **Verification**:
-- [ ] Language detected as Rust (Cargo.toml)
-- [ ] Justfile uses cargo check, clippy, cargo test
-- [ ] logs/ structure created
+- [x] Language detected as Rust (Cargo.toml)
+- [x] Justfile uses cargo check, clippy, cargo test
+- [x] logs/ structure created
 
 ---
 
@@ -1794,9 +1794,9 @@ Run /bulwark-scaffold in tests/fixtures/shellscript-utils/ to set up Bulwark inf
 ```
 
 **Verification**:
-- [ ] Language detected as Generic (no manifest found)
-- [ ] Justfile has placeholder recipes with guidance
-- [ ] logs/ structure created
+- [x] Language detected as Generic (no manifest found)
+- [x] Justfile has placeholder recipes with guidance
+- [x] logs/ structure created
 
 ---
 
@@ -1815,9 +1815,9 @@ Then run /bulwark-scaffold and observe what happens.
 4. Scaffold does NOT overwrite
 
 **Verification**:
-- [ ] Warning message shown about existing Justfile
-- [ ] Justfile still contains custom recipe
-- [ ] logs/ and .gitignore still processed
+- [x] Warning message shown about existing Justfile
+- [x] Justfile still contains custom recipe
+- [x] logs/ and .gitignore still processed
 
 ---
 
@@ -1829,65 +1829,93 @@ Run /bulwark-scaffold --force in tests/fixtures/express-api/ to overwrite the ex
 ```
 
 **Verification**:
-- [ ] Backup created: Justfile.backup-{timestamp}
-- [ ] Justfile now contains Node template content
-- [ ] Backup contains original custom content
+- [x] Backup created: Justfile.backup-{timestamp}
+- [x] Justfile now contains Node template content
+- [x] Backup contains original custom content
 
 ---
 
 ## Test P3.2-1: Hook Trigger - Code File with Passing Quality
 
+**NOTE**: This test uses the Bulwark project itself (not test fixtures) because:
+1. Test fixtures lack installed dependencies
+2. Bulwark has working quality checks
+3. Tests real behavior in a real project
+
 **Prompt**:
 ```
-Add a new helper function called "multiply" to tests/fixtures/express-api/src/index.js
-that takes two numbers and returns their product. Include JSDoc comments.
-Make it at least 8 lines.
+Create a new TypeScript utility file at scripts/test-utils/string-helpers.ts with
+the following functions (at least 15 lines total):
+1. capitalize(str: string): string - capitalizes first letter
+2. truncate(str: string, maxLen: number): string - truncates with ellipsis
+3. slugify(str: string): string - converts to URL-friendly slug
+Include JSDoc comments for each function and export them.
 ```
 
 **Expected Behavior**:
-1. Claude writes the function using Edit/Write
+1. Claude creates the directory and file using Write
 2. **PostToolUse hook fires**
 3. enforce-quality.sh runs (typecheck, lint, build)
-4. If quality passes, suggest-pipeline.sh chains
-5. Claude may show pipeline suggestion in response
+4. Quality checks PASS (valid TypeScript)
+5. suggest-pipeline.sh chains and suggests Code Review
+6. Claude may acknowledge the pipeline suggestion
 
 **Verification**:
-- [ ] Code written successfully
-- [ ] Hook fired (visible in Claude's response or check logs/hooks.log)
-- [ ] Quality checks ran (typecheck, lint, build)
-- [ ] Pipeline suggestion appeared (for >5 lines of code)
+- [x] File created at scripts/test-utils/string-helpers.ts
+- [x] Hook fired (check logs/hooks.log for PostToolUse entry)
+- [x] Quality checks ran and passed
+- [x] Pipeline suggestion appeared (>5 lines of code)
+- [x] logs/hooks.log shows "Pipeline: SUGGEST (Code Review for X lines)"
+
+**Cleanup**: Delete scripts/test-utils/ after test (tracked in CLEANUP-002)
 
 ---
 
 ## Test P3.2-2: Hook Trigger - Code File with Failing Quality
 
+**NOTE**: Uses Bulwark project. The hook should BLOCK the write and show error.
+
 **Prompt**:
 ```
-Add a new function to tests/fixtures/express-api/src/index.js that has a deliberate
-type error - for example, assign a string to a variable that should be a number.
+Create a new TypeScript file at scripts/test-utils/broken-types.ts with this
+exact content:
+
+const count: number = "not a number";
+export function badFunction(): void {
+  const result: string = 123;
+  return result;
+}
 ```
 
 **Expected Behavior**:
-1. Claude writes code with type error
+1. Claude writes code with type errors
 2. **PostToolUse hook fires**
 3. enforce-quality.sh runs and FAILS on typecheck
 4. Hook returns exit code 2 (blocking)
-5. Claude sees the error and attempts to fix
+5. Claude sees the error message and attempts to fix
 
 **Verification**:
-- [ ] Hook fired and blocked the operation
-- [ ] Error message shown (typecheck failed)
-- [ ] Claude attempted to fix the error
-- [ ] suggest-pipeline.sh did NOT run (quality gate failed)
+- [x] Hook fired and BLOCKED the operation
+- [x] Error message shown (typecheck failed)
+- [x] Claude attempted to fix the type errors
+- [x] suggest-pipeline.sh did NOT run (quality gate failed)
+- [x] logs/hooks.log shows PostToolUse entry but NO Pipeline entry for this file
+
+**Cleanup**: Delete scripts/test-utils/broken-types.ts after test (tracked in CLEANUP-002)
 
 ---
 
 ## Test P3.2-3: Hook Trigger - Documentation File
 
+**NOTE**: Uses Bulwark project docs/ directory.
+
 **Prompt**:
 ```
-Add a comprehensive "Architecture" section to tests/fixtures/express-api/README.md
-with at least 15 lines describing the project structure.
+Create a new documentation file at docs/test-architecture-overview.md with at least
+20 lines describing a hypothetical microservices architecture. Include:
+1. A header "# Test Architecture Overview"
+2. Sections for "## Services", "## Communication", "## Data Flow"
+3. At least 3 bullet points per section
 ```
 
 **Expected Behavior**:
@@ -1898,10 +1926,13 @@ with at least 15 lines describing the project structure.
 5. Suggestion is "light review or skip" (documentation)
 
 **Verification**:
-- [ ] Documentation written
-- [ ] Hook fired but quality checks skipped
-- [ ] Pipeline suggestion is appropriate for docs
+- [ ] Documentation file created
+- [ ] Hook fired (check logs/hooks.log)
+- [ ] Quality checks SKIPPED (no typecheck/lint/build entries for this file)
+- [ ] Pipeline suggestion: "light review or skip"
 - [ ] No blocking error
+
+**Cleanup**: Delete docs/test-architecture-overview.md after test (tracked in CLEANUP-002)
 
 ---
 

@@ -79,6 +79,10 @@ If DRY_RUN is true, display preview and exit:
 - logs/debug-reports/
 {IF NOT SKIP_HOOKS}
 - .claude/settings.json (hooks configuration)
+- .claude/skills/governance-protocol/SKILL.md
+- scripts/hooks/inject-protocol.sh
+- scripts/hooks/enforce-quality.sh
+- scripts/hooks/suggest-pipeline.sh
 {ENDIF}
 
 **Would update:**
@@ -135,6 +139,17 @@ Check if `.claude/settings.json` exists:
 ```json
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/scripts/hooks/inject-protocol.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
@@ -142,7 +157,7 @@ Check if `.claude/settings.json` exists:
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/scripts/hooks/enforce-quality.sh",
-            "timeout": 60
+            "timeout": 60000
           }
         ]
       }
@@ -150,6 +165,16 @@ Check if `.claude/settings.json` exists:
   }
 }
 ```
+
+**Note:** SessionStart has no matcher, so it fires for all session events (start, resume, clear, compact).
+
+**Also copy required files:**
+1. Copy `scripts/hooks/inject-protocol.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
+2. Copy `scripts/hooks/enforce-quality.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
+3. Copy `scripts/hooks/suggest-pipeline.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
+4. Copy `skills/governance-protocol/SKILL.md` to `${CLAUDE_PROJECT_DIR}/.claude/skills/governance-protocol/SKILL.md`
+
+Create parent directories as needed (`mkdir -p`).
 
 ### Step 9: Write Scaffold Log
 
@@ -198,6 +223,7 @@ Present summary to user:
 **logs/:** Created with subdirectories (diagnostics, validations, debug-reports)
 **.gitignore:** {updated|created|unchanged}
 **Hooks:** {created|merged|skipped (--no-hooks)}
+**Governance:** {installed|skipped} - Protocol injected at session start
 
 Run `just` to see available recipes:
 - `just typecheck` - Run type checker

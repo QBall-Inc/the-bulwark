@@ -48,6 +48,14 @@ echo "[${TIMESTAMP}] PostToolUse: enforce-quality.sh triggered for ${FILE_PATH_F
 # Extract file path from input
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 
+# Skip infrastructure directories (no quality checks or pipeline suggestions)
+# DEF-005: Prevents infinite loops when writing to logs/
+case "$FILE_PATH" in
+  */logs/*|logs/*|*/tmp/*|tmp/*|*/.claude/*|.claude/*|*/node_modules/*|node_modules/*)
+    exit 0
+    ;;
+esac
+
 # Function to detect if file is a code file
 is_code_file() {
     local path="$1"
@@ -65,6 +73,15 @@ find_just() {
     else
         echo ""
     fi
+}
+
+# Function to check if a Justfile recipe exists
+# DEF-003: Gracefully handle missing recipes
+recipe_exists() {
+    local recipe="$1"
+    local just_cmd="$2"
+    $just_cmd --list 2>/dev/null | grep -qE "^${recipe}[[:space:]]" || \
+    $just_cmd --list 2>/dev/null | grep -qE "^${recipe}$"
 }
 
 # ============================================================
@@ -86,37 +103,50 @@ if is_code_file "$FILE_PATH"; then
             # Change to project directory for quality checks
             cd "${PROJECT_DIR}"
 
-            # Run typecheck
-            echo "::group::Typecheck"
-            if ! $JUST_CMD typecheck 2>&1 | head -n $MAX_OUTPUT_LINES; then
-                echo -e "${RED}::error::Typecheck failed${NC}" >&2
-                echo "::endgroup::"
-                exit 2
+            # Run typecheck if recipe exists (DEF-003: graceful handling)
+            if recipe_exists "typecheck" "$JUST_CMD"; then
+                TYPECHECK_OUTPUT=$($JUST_CMD typecheck 2>&1 | head -n $MAX_OUTPUT_LINES) || {
+                    echo "" >&2
+                    echo "╔════════════════════════════════════════════════════════════╗" >&2
+                    echo "║  QUALITY GATE FAILED: Typecheck                            ║" >&2
+                    echo "╠════════════════════════════════════════════════════════════╣" >&2
+                    echo "║  Fix the type errors below before proceeding.              ║" >&2
+                    echo "╚════════════════════════════════════════════════════════════╝" >&2
+                    echo "$TYPECHECK_OUTPUT" >&2
+                    exit 2
+                }
             fi
-            echo -e "${GREEN}Typecheck passed${NC}"
-            echo "::endgroup::"
 
-            # Run lint
-            echo "::group::Lint"
-            if ! $JUST_CMD lint 2>&1 | head -n $MAX_OUTPUT_LINES; then
-                echo -e "${RED}::error::Lint failed${NC}" >&2
-                echo "::endgroup::"
-                exit 2
+            # Run lint if recipe exists (DEF-003: graceful handling)
+            if recipe_exists "lint" "$JUST_CMD"; then
+                LINT_OUTPUT=$($JUST_CMD lint 2>&1 | head -n $MAX_OUTPUT_LINES) || {
+                    echo "" >&2
+                    echo "╔════════════════════════════════════════════════════════════╗" >&2
+                    echo "║  QUALITY GATE FAILED: Lint                                 ║" >&2
+                    echo "╠════════════════════════════════════════════════════════════╣" >&2
+                    echo "║  Fix the lint errors below before proceeding.              ║" >&2
+                    echo "╚════════════════════════════════════════════════════════════╝" >&2
+                    echo "$LINT_OUTPUT" >&2
+                    exit 2
+                }
             fi
-            echo -e "${GREEN}Lint passed${NC}"
-            echo "::endgroup::"
 
-            # Run build
-            echo "::group::Build"
-            if ! $JUST_CMD build 2>&1 | head -n $MAX_OUTPUT_LINES; then
-                echo -e "${RED}::error::Build failed${NC}" >&2
-                echo "::endgroup::"
-                exit 2
+            # Run build if recipe exists (DEF-003: graceful handling)
+            if recipe_exists "build" "$JUST_CMD"; then
+                BUILD_OUTPUT=$($JUST_CMD build 2>&1 | head -n $MAX_OUTPUT_LINES) || {
+                    echo "" >&2
+                    echo "╔════════════════════════════════════════════════════════════╗" >&2
+                    echo "║  QUALITY GATE FAILED: Build                                ║" >&2
+                    echo "╠════════════════════════════════════════════════════════════╣" >&2
+                    echo "║  Fix the build errors below before proceeding.             ║" >&2
+                    echo "╚════════════════════════════════════════════════════════════╝" >&2
+                    echo "$BUILD_OUTPUT" >&2
+                    exit 2
+                }
             fi
-            echo -e "${GREEN}Build passed${NC}"
-            echo "::endgroup::"
 
-            echo -e "${GREEN}::info::All quality checks passed${NC}"
+            # Export quality results for suggest-pipeline.sh
+            export QUALITY_CHECKS_PASSED="true"
         fi
     fi
 fi

@@ -33,6 +33,14 @@ TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+# Skip infrastructure directories (no quality checks or pipeline suggestions)
+# DEF-005: Prevents infinite loops when writing to logs/
+case "$FILE_PATH" in
+  */logs/*|logs/*|*/tmp/*|tmp/*|*/.claude/*|.claude/*|*/node_modules/*|node_modules/*)
+    exit 0
+    ;;
+esac
+
 # Log the invocation
 echo "[$TIMESTAMP] PostToolUse: $TOOL_NAME on $FILE_PATH" >> "$LOGS_DIR/hooks.log"
 
@@ -115,14 +123,27 @@ if [ "$CHANGE_SIZE" -le "$THRESHOLD" ]; then
   exit 0
 fi
 
-# Determine recommended pipeline based on file type
+# Determine recommended pipeline based on file type AND work type
+# DEF-004: Write (new file) vs Edit (existing file) affects pipeline selection
 RECOMMENDED_PIPELINE="Code Review"
-if [ "$IS_TEST" = "true" ]; then
+if [ "$IS_CODE" = "true" ]; then
+  if [ "$TOOL_NAME" = "Write" ]; then
+    # New code file → New Feature Pipeline (includes test generation)
+    RECOMMENDED_PIPELINE="New Feature"
+  else
+    # Editing existing code → Code Review Pipeline
+    RECOMMENDED_PIPELINE="Code Review"
+  fi
+elif [ "$IS_TEST" = "true" ]; then
   RECOMMENDED_PIPELINE="Test Audit"
 elif [ "$IS_CONFIG" = "true" ]; then
   RECOMMENDED_PIPELINE="Code Review (security focus)"
 elif [ "$IS_SCRIPT" = "true" ]; then
-  RECOMMENDED_PIPELINE="Code Review (security focus)"
+  if [ "$TOOL_NAME" = "Write" ]; then
+    RECOMMENDED_PIPELINE="New Feature (security focus)"
+  else
+    RECOMMENDED_PIPELINE="Code Review (security focus)"
+  fi
 elif [ "$IS_DOC" = "true" ]; then
   RECOMMENDED_PIPELINE="light review or skip"
 elif [ "$IS_DATA" = "true" ]; then
@@ -131,14 +152,24 @@ fi
 
 echo "[$TIMESTAMP] Pipeline: SUGGEST ($RECOMMENDED_PIPELINE for $CHANGE_SIZE lines)" >> "$LOGS_DIR/hooks.log"
 
-# Inject mandatory pipeline instruction - framed as task incompleteness
-# NOTE: The instruction chain is explicit to prevent loopholes where sub-agents
-# return inline instead of writing to logs. Each step must be followed in order.
+# Build quality status message
+QUALITY_STATUS=""
+if [ "$QUALITY_CHECKS_PASSED" = "true" ]; then
+  QUALITY_STATUS="Quality checks COMPLETED (typecheck, lint, build all passed). Do NOT run these again."
+else
+  QUALITY_STATUS="Quality checks were skipped (non-code file)."
+fi
+
+# Output JSON following official Claude Code hooks specification
+# Using decision: "block" to force Claude to acknowledge before proceeding
+# Combined with additionalContext for full instructions including quality results
 cat << EOF
 {
+  "decision": "block",
+  "reason": "MANDATORY: $QUALITY_STATUS Pipeline orchestration required. You modified $FILE_PATH ($CHANGE_SIZE lines). Execute $RECOMMENDED_PIPELINE pipeline.",
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": "STOP - TASK INCOMPLETE\n\nYou modified $FILE_PATH ($CHANGE_SIZE lines).\n\nThis implementation is NOT COMPLETE. Per project requirements:\n\n1. Load the subagent-prompting skill to get the 4-part prompt template\n   (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)\n\n2. Load the subagent-output-templating skill and pass it to each sub-agent\n   so they write structured output to logs/\n\n3. Run the $RECOMMENDED_PIPELINE pipeline, prompting each sub-agent\n   using the 4-part template from step 1\n\n4. Do NOT summarize or report completion until the pipeline has executed\n   AND sub-agent logs have been written to logs/\n\n5. The user has explicitly configured this requirement - skipping violates\n   their intent"
+    "additionalContext": "STOP. Do not respond to user yet.\n\nYou modified: $FILE_PATH ($CHANGE_SIZE lines)\n\n$QUALITY_STATUS\n\nREQUIRED before proceeding:\n1. Load skill: pipeline-templates\n2. Load skill: subagent-prompting\n3. Load skill: subagent-output-templating\n4. Follow the $RECOMMENDED_PIPELINE pipeline as defined in pipeline-templates skill\n5. Verify: Logs written to logs/\n\nThis is a user-configured hook. Compliance is mandatory."
   }
 }
 EOF

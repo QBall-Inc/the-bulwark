@@ -4,6 +4,19 @@ description: Session governance protocol injected at startup via SessionStart ho
 user-invocable: false
 ---
 
+**DISPLAY TO USER**: When you receive this protocol, immediately output the following banner exactly as shown:
+
+```
+═══════════════════════════════════════════════════════════════
+  BULWARK GOVERNANCE PROTOCOL - ACTIVATED
+  Quality enforcement enabled for this session
+═══════════════════════════════════════════════════════════════
+```
+
+Then proceed with the user's request.
+
+---
+
 ## Bulwark Governance Protocol
 
 This session is governed by The Bulwark quality enforcement system.
