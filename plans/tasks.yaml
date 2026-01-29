@@ -3,13 +3,16 @@
 # Each task has an implementation plan in plans/task-briefs/P{phase}.{task}-{name}.md
 # Tasks are designed to be self-contained or explicitly dependent
 #
+# NOTE: Completed phases (P0-P3) archived to tasks_completed.yaml (Session 29)
+#
 # SCHEDULE RATIONALE:
-# - P0: Foundation skills + Test Audit skills (T1-T4 rules encoded here)
-# - P1: Early Agents (custom sub-agents for pipeline stages)
-# - P2: Verification Scripts
-# - P3: Enforcement Infrastructure (hooks with once: true, just)
+# - P0: Foundation skills + Test Audit skills (T1-T4 rules encoded here) - COMPLETED
+# - P1: Early Agents (custom sub-agents for pipeline stages) - COMPLETED
+# - P2: Verification Scripts - COMPLETED
+# - P3: Enforcement Infrastructure (hooks with once: true, just) - COMPLETED
 # - P4: Review Skills + Standalone Auditor/Implementer agents
 # - P5: Commands, Evolution (Ralph loops), Testing, and Polish
+# - P6: Optional Enhancements
 #
 # CLAUDE CODE 2.1.1 UPDATES:
 # - Custom sub-agents defined as markdown files in tests/agents/ or skills/
@@ -35,524 +38,14 @@
 project: the-bulwark
 version: 4.5.0
 created: 2026-01-04
-updated: 2026-01-27
+updated: 2026-01-29
 current_phase: P4
 current_task: P4.1
-current_task_status: "P3 complete (Sessions 25-28). All defects fixed, E2E validation passed. Ready to start P4 (Review Skills & Standalone Agents)."
+current_task_status: "P4 planning complete (Session 29). P4-synthesis doc created, 43-task execution plan in Claude Code tasklist. Ready to start T-001 brainstorming."
+
+# For completed phases P0-P3, see: plans/tasks_completed.yaml
 
 phases:
-  - id: P0
-    name: "Foundation & Test Audit Skills"
-    description: "Skills needed for workflow + test auditing (T1-T4 rules encoded here)"
-    status: completed
-    tasks:
-      - id: P0.1
-        name: "Create subagent-prompting skill"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P0.1-subagent-prompting.md"
-        deliverables:
-          - "skills/subagent-prompting/SKILL.md"
-        acceptance_criteria:
-          - "4-part template defined (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)"
-          - "Pipeline syntax documented with examples"
-          - "Model selection guidance included"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Apply template to sample sub-agent invocation"
-          - "Verify all 4 parts present and useful"
-          - "Verify skill does NOT appear in / menu"
-        estimated_sessions: 1
-
-      - id: P0.2
-        name: "Create subagent-output-templating skill"
-        status: completed
-        dependencies: [P0.1]
-        implementation_plan: "plans/task-briefs/P0.2-subagent-output-templating.md"
-        deliverables:
-          - "skills/subagent-output-templating/SKILL.md"
-        acceptance_criteria:
-          - "Log file format defined"
-          - "Task completion report template (WHY/WHAT/TRADE-OFFS/RISKS)"
-          - "Summary format for main thread (200 tokens max)"
-          - "Diagnostic output format documented"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Generate sample output using template"
-          - "Verify structure is parseable and useful"
-          - "Verify skill does NOT appear in / menu"
-        estimated_sessions: 1
-
-      - id: P0.3
-        name: "Create pipeline-templates skill"
-        status: completed
-        dependencies: [P0.1, P0.2]
-        implementation_plan: "plans/task-briefs/P0.3-pipeline-templates.md"
-        deliverables:
-          - "skills/pipeline-templates/SKILL.md"
-          - "skills/pipeline-templates/references/code-review.md"
-          - "skills/pipeline-templates/references/fix-validation.md"
-          - "skills/pipeline-templates/references/test-audit.md"
-          - "skills/pipeline-templates/references/new-feature.md"
-          - "skills/pipeline-templates/references/research-planning.md"
-          - "skills/pipeline-templates/references/test-execution-fix.md"
-          - "scripts/hooks/validate-pipeline.sh"
-          - "scripts/hooks/track-pipeline-start.sh"
-          - "scripts/hooks/track-pipeline-stop.sh"
-          - "tests/agents/code-analyzer.md"
-          - "tests/agents/file-counter.md"
-          - "tests/manual-test-protocol.md"
-        acceptance_criteria:
-          - "Code review pipeline defined"
-          - "Fix validation pipeline defined"
-          - "Test audit pipeline defined"
-          - "New feature pipeline defined"
-          - "Research & planning pipeline defined (min 3 iterations)"
-          - "Test execution & fix pipeline defined"
-          - "PreToolUse hook validates Task calls"
-          - "SubagentStart/Stop hooks track progress"
-          - "Single-agent tasks bypass validation silently"
-          - "Model selection references P0.1 task-type rubric"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Execute sample pipeline flow"
-          - "Verify conditional branching works"
-          - "Verify hook scripts fire correctly"
-          - "Verify single-agent bypass works"
-          - "Verify skill does NOT appear in / menu"
-        notes:
-          - "Development hooks configured in .claude/settings.json"
-          - "P3.4 will migrate pipeline hooks to hooks/hooks.json"
-        estimated_sessions: 1
-
-      - id: P0.4
-        name: "Create issue-debugging skill"
-        status: completed
-        dependencies: [P0.1, P0.2]
-        implementation_plan: "plans/task-briefs/P0.4-issue-debugging.md"
-        deliverables:
-          - "skills/issue-debugging/SKILL.md"
-        acceptance_criteria:
-          - "Root cause analysis methodology (5 Whys, hypothesis-driven)"
-          - "Impact/dependency analysis procedure (upstream/downstream mapping)"
-          - "Debug report format defined (separate file: logs/debug-reports/)"
-          - "Tiered validation plan (P1 must, P2 should, P3 nice-to-have)"
-          - "Confidence rubric (high/medium/low criteria)"
-          - "Escalation triggers (low confidence + broad scope, OR cannot validate)"
-          - "Debug journey logging (required for medium/high complexity)"
-          - "Anti-patterns checklist (no shotgun debugging, no fix-without-verify)"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Apply to sample issue, verify debug report generated"
-          - "Verify validation plan includes tiered test priorities"
-          - "Verify confidence rubric applied correctly"
-          - "Verify skill does NOT appear in / menu"
-        notes:
-          - "Used by bulwark-issue-analyzer agent (P1.2) in Fix Validation pipeline"
-          - "Debug report is contract between IssueAnalyzer → FixWriter → FixValidator"
-        estimated_sessions: 1
-
-      - id: P0.5
-        name: "Create anthropic-validator skill (2.1.1 updated)"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P0.5-anthropic-validator.md"
-        deliverables:
-          - "skills/anthropic-validator/SKILL.md"
-          - "skills/anthropic-validator/references/*.md"
-          - "agents/bulwark-standards-reviewer.md"
-        acceptance_criteria:
-          - "Hooks validation checklist (includes once: true, matcher support by event)"
-          - "Skills validation checklist (2.1.1 fields: context, agent, user-invocable, hooks)"
-          - "Agents validation checklist (frontmatter, lookup priority)"
-          - "Plugin validation checklist (flat skills/ structure)"
-          - "Commands validation checklist (merged with skills)"
-          - "MCP validation checklist"
-          - "Reference docs linked"
-          - "Frontmatter: user-invocable: true (user-facing validation tool)"
-          - "Argument handling via $ARGUMENTS/$1"
-          - "Batch validation with individual processing"
-        verification:
-          - "Validate a sample hook against checklist"
-          - "Validate a sample skill with 2.1.1 frontmatter"
-          - "Catch intentional guideline violation"
-          - "Verify skill does NOT appear in / menu"
-        estimated_sessions: 1
-
-      # Test Audit Skills (moved from P1 - encodes T1-T4 rules)
-      # Architecture: Skills as prompt templates, orchestrator spawns general-purpose sub-agents
-      # See consolidated brief: plans/task-briefs/P0.6-8-test-audit-skills.md
-      - id: P0.6
-        name: "Create test-classification skill (prompt template)"
-        status: completed
-        completion_notes: "Option B+ applied: always-flag rule for integration/e2e, parallel batching"
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
-        deliverables:
-          - "skills/test-classification/SKILL.md"
-        acceptance_criteria:
-          - "4-part prompt template for Haiku sub-agent"
-          - "Real integration test indicators defined"
-          - "Mock-based test indicators defined"
-          - "Classification output schema specified"
-          - "Frontmatter: user-invocable: false"
-          - "Frontmatter: NO agent field (orchestrator spawns general-purpose)"
-        verification:
-          - "Orchestrator spawns Haiku with skill prompt"
-          - "Classify sample real integration test"
-          - "Classify sample mock-heavy test"
-          - "Verify skill does NOT appear in / menu"
-        estimated_sessions: 1
-
-      - id: P0.7
-        name: "Create mock-detection skill (prompt template)"
-        status: completed
-        completion_notes: "Option B+ applied: parallel batching for >10 flagged files"
-        dependencies: [P0.6]
-        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
-        deliverables:
-          - "skills/mock-detection/SKILL.md"
-        acceptance_criteria:
-          - "4-part prompt template for Haiku sub-agent"
-          - "T1-T4 violation patterns documented"
-          - "High-risk mock patterns identified"
-          - "Detection output schema with line numbers"
-          - "Frontmatter: user-invocable: false"
-          - "Frontmatter: NO agent field (orchestrator spawns general-purpose)"
-        verification:
-          - "Orchestrator spawns Haiku with skill prompt + P0.6 context"
-          - "Detect mocked spawn() in sample test"
-          - "Verify real test not flagged"
-          - "Verify skill does NOT appear in / menu"
-        estimated_sessions: 1
-
-      - id: P0.8
-        name: "Create test-audit skill (orchestration + synthesis)"
-        status: completed
-        completion_notes: "Option B+ applied: batching orchestration, Known Limitations documented"
-        dependencies: [P0.6, P0.7]
-        implementation_plan: "plans/task-briefs/P0.6-8-test-audit-skills.md"
-        deliverables:
-          - "skills/test-audit/SKILL.md"
-        acceptance_criteria:
-          - "User-invocable entry point (/test-audit)"
-          - "Orchestration instructions for full pipeline"
-          - "Synthesis prompt template for Sonnet sub-agent"
-          - "REWRITE_REQUIRED directive logic"
-          - "Automatic rewrite when directive is true"
-          - "Frontmatter: user-invocable: true"
-          - "Frontmatter: NO agent field (Main Context Orchestration pattern)"
-        verification:
-          - "/test-audit triggers full pipeline"
-          - "Orchestrator spawns Haiku (P0.6), Haiku (P0.7), Sonnet (synthesis)"
-          - "Verify YAML audit output with REWRITE_REQUIRED directive"
-          - "Verify automatic rewrite triggers correctly"
-          - "Verify skill appears in / menu"
-        notes:
-          - "Main Context Orchestration pattern (like anthropic-validator)"
-          - "Opus orchestrates, Haiku/Sonnet audit (bias avoidance)"
-          - "Same flow for explicit (/test-audit) and implicit (hook) invocation"
-        estimated_sessions: 1
-
-  - id: P1
-    name: "Pipeline Stage Agents"
-    description: "Custom sub-agents for Fix Validation pipeline stages - IssueAnalyzer and FixValidator"
-    status: completed
-    tasks:
-      - id: P1.1
-        name: "Create bulwark-test-auditor agent"
-        status: skipped
-        skip_reason: "Redundant - Main Context Orchestration pattern handles test-audit"
-        dependencies: [P0.8, P0.1]
-        implementation_plan: "N/A - skipped"
-        deliverables: []
-        acceptance_criteria: []
-        verification: []
-        decision_notes:
-          - "Session 12 (2026-01-19): Reviewed necessity after P0.8 completion"
-          - "ARCHITECTURAL CONSTRAINT: Sub-agents cannot spawn other sub-agents"
-          - "test-audit requires 3-stage orchestration (classification → detection → synthesis)"
-          - "A wrapper agent couldn't orchestrate these stages internally"
-          - "SOLUTION: Main Context Orchestration pattern - orchestrator loads test-audit skill and follows its instructions to spawn sub-agents"
-          - "This pattern is validated and working (P0.6-8 complete)"
-          - "Pipeline chaining: When other pipelines need test-audit, orchestrator loads the skill directly"
-          - "CONTRAST with P1.2/P1.3: Those agents are single-stage (no internal sub-agent spawning) and benefit from isolated context for bias avoidance"
-        estimated_sessions: 0
-
-      - id: P1.2
-        name: "Create bulwark-issue-analyzer agent"
-        status: completed
-        dependencies: [P0.4]
-        implementation_plan: "plans/task-briefs/P1.2-bulwark-issue-analyzer.md"
-        deliverables:
-          - "agents/bulwark-issue-analyzer.md"
-          - "tests/fixtures/issue-analyzer/"
-          - "tests/fixtures/issue-analyzer-expected/"
-        acceptance_criteria:
-          - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: model: sonnet"
-          - "Frontmatter: skills: issue-debugging, subagent-output-templating, subagent-prompting"
-          - "Invoked via Task tool (agents don't appear in / menu)"
-          - "Input passed via CONTEXT in prompt (not $ARGUMENTS)"
-          - "Handles production code bugs AND test code issues"
-          - "Produces debug report at logs/debug-reports/"
-          - "Summary includes debug report path"
-          - "Diagnostic output to logs/diagnostics/"
-          - "No code modification constraint enforced"
-        verification:
-          - "Test P1.2-1: Conversational invocation - production bug"
-          - "Test P1.2-2: Conversational invocation - test bug"
-          - "Test P1.2-3: Pipeline integration (Stage 1)"
-          - "Test P1.2-4: N/A - agents don't appear in / menu"
-          - "Test P1.2-5: No code modification constraint"
-          - "Manual tests in tests/manual-test-protocol.md"
-        notes:
-          - "Pipeline stage: IssueAnalyzer in Fix Validation pipeline"
-          - "Invoked via Task tool or conversational request (NOT slash command)"
-          - "Test fixtures must NOT contain bias (no explanatory comments)"
-          - "Manual testing required in separate session"
-          - "LEARNING: user-invocable field applies to skills, not agents"
-        estimated_sessions: 1
-
-      - id: P1.3
-        name: "Create bulwark-fix-validator agent"
-        status: completed
-        completion_notes: "Session 17: All 5 manual tests passed. Added test execution checklist for enforcement."
-        dependencies: [P0.4, P1.2]
-        implementation_plan: "plans/task-briefs/P1.3-bulwark-fix-validator.md"
-        deliverables:
-          - "agents/bulwark-fix-validator.md"
-          - "tests/fixtures/fix-validator/"
-          - "tests/fixtures/fix-validator-expected/"
-          - "skills/fix-bug/SKILL.md"
-        acceptance_criteria:
-          - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: model: sonnet"
-          - "Frontmatter: skills: issue-debugging, subagent-output-templating, subagent-prompting"
-          - "Invoked via Task tool (agents don't appear in / menu)"
-          - "Reads debug report from IssueAnalyzer (validation plan, confidence criteria)"
-          - "Executes tiered validation plan (P1/P2/P3 tests)"
-          - "Multiple test execution strategies (native runner, script, manual)"
-          - "Outputs confidence level (high/medium/low) with rationale"
-          - "Produces validation report at logs/validations/"
-          - "Escalates to manual testing when required"
-          - "Diagnostic output to logs/diagnostics/"
-          - "No code modification constraint enforced"
-          - "/fix-bug skill triggers Fix Validation pipeline deterministically"
-        verification:
-          - "Test P1.3-1: Basic fix validation"
-          - "Test P1.3-2: Validation with test failures"
-          - "Test P1.3-3: Pipeline integration"
-          - "Test P1.3-4: No code modification constraint"
-          - "Test P1.3-5: /fix-bug skill invocation"
-          - "Manual tests in tests/manual-test-protocol.md"
-        notes:
-          - "Pipeline stage: FixValidator (Stage 4) in Fix Validation pipeline"
-          - "Depends on bulwark-issue-analyzer debug report"
-          - "INSIGHT (Session 14): Improvised validator generated JS scripts for test execution"
-          - "INSIGHT (Session 14): Wrote readable validation-results.txt in addition to YAML"
-          - "LEARNING: user-invocable field applies to skills, not agents"
-          - "LEARNING (Session 16): Conversational prompts may skip pipeline stages; /fix-bug skill ensures deterministic invocation"
-          - "LEARNING (Session 17): LLMs skip test execution without checklist enforcement; added mandatory execution_attempts block to validation report"
-          - "LEARNING (Session 17): Test fixtures without package.json cause npm error 254; agent correctly falls back to generated scripts"
-        estimated_sessions: 1
-
-  - id: P2
-    name: "Verification Scripts"
-    description: "Skills for creating verification scripts"
-    status: completed
-    completion_notes: "Session 20-22: All skills implemented, manual tested (7/7 pass), post-test fixes applied"
-    tasks:
-      # P2.1-3 consolidated into single task brief (like P0.6-8)
-      # See: plans/task-briefs/P2.1-3-verification-skills.md
-      - id: P2.1
-        name: "Create assertion-patterns skill"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
-        deliverables:
-          - "skills/assertion-patterns/SKILL.md"
-        acceptance_criteria:
-          - "T1-T4 transformation patterns documented"
-          - "Real vs mock assertion patterns documented"
-          - "Language-agnostic pattern descriptions"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Patterns cover all T1-T4 violations"
-          - "Transformations produce real verification"
-          - "Passes anthropic-validator"
-        estimated_sessions: 1
-        notes:
-          - "Consolidated brief with P2.2 and P2.3"
-          - "Used by test-audit Stage 7 for structured rewrites"
-
-      - id: P2.2
-        name: "Create component-patterns skill"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
-        deliverables:
-          - "skills/component-patterns/SKILL.md"
-        acceptance_criteria:
-          - "CLI command verification pattern"
-          - "HTTP server verification pattern"
-          - "File parser verification pattern"
-          - "Process spawner verification pattern"
-          - "Database verification pattern"
-          - "External API verification pattern"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Patterns cover all 6 component types"
-          - "Language-specific examples included"
-          - "Passes anthropic-validator"
-        estimated_sessions: 1
-        notes:
-          - "Consolidated brief with P2.1 and P2.3"
-          - "Used by test-audit Stage 7 for structured rewrites"
-
-      - id: P2.3
-        name: "Create bulwark-verify skill"
-        status: completed
-        dependencies: [P2.1, P2.2]
-        implementation_plan: "plans/task-briefs/P2.1-3-verification-skills.md"
-        deliverables:
-          - "skills/bulwark-verify/SKILL.md"
-          - "tests/fixtures/verification-script/"
-          - "skills/test-audit/SKILL.md (updated)"
-        acceptance_criteria:
-          - "Main Context Orchestration pattern"
-          - "Orchestrates assertion-patterns and component-patterns"
-          - "Produces language-specific verification scripts"
-          - "Language detection (Node, Python, Rust, Generic)"
-          - "Scripts report pass/fail"
-          - "Frontmatter: user-invocable: true"
-          - "Frontmatter: skills array includes P2.1 and P2.2"
-          - "test-audit Step 7 updated to use P2 patterns"
-        verification:
-          - "/bulwark-verify generates executable scripts"
-          - "Language detection works correctly"
-          - "test-audit Step 7 uses P2 skills"
-          - "Passes anthropic-validator"
-          - "Manual tests in tests/manual-test-protocol.md"
-        estimated_sessions: 2
-        notes:
-          - "Consolidated brief with P2.1 and P2.2"
-          - "Main Context Orchestration (like test-audit, anthropic-validator)"
-          - "Includes test-audit integration update"
-          - "Future: Hook pipeline enhancement (after P3.x)"
-          - "Future: Justfile integration (after P3.1)"
-          - "Renamed from verification-script to bulwark-verify (Session 20)"
-
-  - id: P3
-    name: "Enforcement Infrastructure"
-    description: "Hooks and just integration for deterministic enforcement"
-    status: completed
-    completion_notes: "Sessions 25-28: All tasks implemented, manually tested, defects fixed (DEF-001,003,004,005), E2E validation passed"
-    tasks:
-      - id: P3.1
-        name: "Create Justfile templates"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P3.1-3-enforcement-core.md"
-        notes:
-          - "Consolidated brief with P3.2 and P3.3 (like P0.6-8, P2.1-3)"
-        deliverables:
-          - "lib/templates/justfile-node.just"
-          - "lib/templates/justfile-python.just"
-          - "lib/templates/justfile-rust.just"
-          - "lib/templates/justfile-generic.just"
-        acceptance_criteria:
-          - "Each has lint, test, typecheck, fix recipes"
-          - "All use log-based output pattern"
-          - "Summary only to stdout"
-        verification:
-          - "Copy template to test project"
-          - "Run just lint, verify log output"
-        estimated_sessions: 1
-
-      - id: P3.2
-        name: "Create scaffold command"
-        status: completed
-        dependencies: [P3.1]
-        implementation_plan: "plans/task-briefs/P3.1-3-enforcement-core.md"
-        notes:
-          - "Consolidated brief with P3.1 and P3.3"
-        deliverables:
-          - "commands/scaffold.md"
-          - "scripts/scaffold.sh"
-        acceptance_criteria:
-          - "Detects project type"
-          - "Generates appropriate Justfile"
-          - "Creates logs directory"
-        verification:
-          - "Run in Node project, verify Justfile"
-          - "Run in Python project, verify correct template"
-        estimated_sessions: 1
-
-      - id: P3.3
-        name: "Create enforce-quality script"
-        status: completed
-        dependencies: [P3.1]
-        implementation_plan: "plans/task-briefs/P3.1-3-enforcement-core.md"
-        notes:
-          - "Consolidated brief with P3.1 and P3.2"
-        deliverables:
-          - "scripts/enforce-quality.sh"
-        acceptance_criteria:
-          - "Uses ${CLAUDE_PLUGIN_ROOT} for plugin, $CLAUDE_PROJECT_DIR for project"
-          - "Calls just typecheck and lint"
-          - "Exit 2 on failure"
-          - "Truncates output"
-        verification:
-          - "Trigger with failing code, verify Exit 2"
-          - "Trigger with passing code, verify Exit 0"
-        estimated_sessions: 1
-
-      - id: P3.4
-        name: "Configure global hooks (hooks.json)"
-        status: completed
-        dependencies: [P3.3]
-        implementation_plan: "plans/task-briefs/P3.4-5-enforcement-hooks.md"
-        notes:
-          - "Consolidated brief with P3.5 (like P0.6-8, P2.1-3, P3.1-3)"
-        deliverables:
-          - "hooks/hooks.json"
-        acceptance_criteria:
-          - "PostToolUse (Edit|Write): Quality enforcement, calls enforce-quality.sh"
-          - "PreToolUse (Task): Pipeline validation (from P0.3)"
-          - "SubagentStart: Pipeline tracking (from P0.3)"
-          - "SubagentStop: Pipeline tracking (from P0.3)"
-          - "Matches code files for quality hooks"
-        verification:
-          - "Edit .ts file with error, verify blocked"
-          - "Invoke Task, verify pipeline hook fires"
-        notes:
-          - "Migrate P0.3 pipeline hooks from .claude/settings.json to hooks/hooks.json"
-          - "P0.3 hooks: scripts/hooks/validate-pipeline.sh, track-pipeline-start.sh, track-pipeline-stop.sh"
-          - "HOOK CHAINING ORDER: enforce-quality.sh runs FIRST (typecheck+lint), then suggest-pipeline.sh"
-          - "Both scripts on same PostToolUse event - quality enforcement gates pipeline suggestion"
-        estimated_sessions: 1
-
-      - id: P3.5
-        name: "Create SessionStart protocol (once: true)"
-        status: completed
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P3.4-5-enforcement-hooks.md"
-        notes:
-          - "Consolidated brief with P3.4 (like P0.6-8, P2.1-3, P3.1-3)"
-        deliverables:
-          - "scripts/inject-protocol.sh"
-        acceptance_criteria:
-          - "Hook configured with once: true (2.1.1)"
-          - "Injects governance protocol"
-          - "Reminds of review requirement"
-          - "Logs to hooks.log for verification"
-        verification:
-          - "Start session, verify protocol visible"
-          - "Force reload, verify protocol does NOT re-inject"
-          - "Verify hooks.log shows exactly one SessionStart entry"
-        estimated_sessions: 1
-
   - id: P4
     name: "Review Skills & Standalone Agents"
     description: "Unified code-review skill with sections + standalone agents for ad-hoc use"
@@ -562,7 +55,7 @@ phases:
         name: "Create code-review skill (unified with sections)"
         status: not_started
         dependencies: []
-        implementation_plan: "plans/task-briefs/P4.1-code-review.md"
+        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
         deliverables:
           - "skills/code-review/SKILL.md"
         acceptance_criteria:
@@ -583,13 +76,14 @@ phases:
           - "Consolidates previous P4.1 (security-heuristics) and P4.2 (type-safety)"
           - "Adds linting and coding-standards sections"
           - "Pipeline uses role-based general-purpose agents referencing sections"
+          - "Two-phase flow: static tools (just typecheck/lint) first, then LLM judgment"
         estimated_sessions: 1
 
       - id: P4.2
         name: "Create bug-magnet-data skill"
         status: not_started
         dependencies: []
-        implementation_plan: "plans/task-briefs/P4.2-bug-magnet-data.md"
+        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
         deliverables:
           - "skills/bug-magnet-data/SKILL.md"
           - "skills/bug-magnet-data/data/heuristics.json"
@@ -603,13 +97,14 @@ phases:
           - "Pull edge case data for test"
         notes:
           - "Renumbered from P4.3"
+          - "Consumers (test-audit, bulwark-verify, fix-validator) updated after implementation"
         estimated_sessions: 1
 
       - id: P4.3
         name: "Create bulwark-code-auditor agent (standalone)"
         status: not_started
         dependencies: [P4.1, P0.1]
-        implementation_plan: "plans/task-briefs/P4.3-bulwark-code-auditor.md"
+        implementation_plan: "plans/task-briefs/P4.3-4-standalone-agents.md"
         deliverables:
           - "agents/bulwark-code-auditor.md"
           - "scripts/agents/finalize-code-auditor.sh"
@@ -636,7 +131,7 @@ phases:
         name: "Create bulwark-implementer agent"
         status: not_started
         dependencies: [P0.1]
-        implementation_plan: "plans/task-briefs/P4.4-bulwark-implementer.md"
+        implementation_plan: "plans/task-briefs/P4.3-4-standalone-agents.md"
         deliverables:
           - "agents/bulwark-implementer.md"
           - "scripts/agents/finalize-implementer.sh"
@@ -974,6 +469,7 @@ phases:
 summary:
   total_tasks: 32  # Was 32, P1.1 and P5.2 skipped, P6.1-2 added
   total_estimated_sessions: 33  # Was 33, P1.1 and P5.2 skipped, P6.1-2 added
+  completed_phases: "P0, P1, P2, P3 (see tasks_completed.yaml)"
   skipped_tasks:
     - id: P1.1
       reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
@@ -983,8 +479,8 @@ summary:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
     P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
     P2: 3 tasks (Verification Scripts) - COMPLETED
-    P3: 5 tasks (Enforcement Infrastructure with once: true)
-    P4: 4 tasks (Review Skills & Standalone Agents)
+    P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
+    P4: 4 tasks (Review Skills & Standalone Agents) - NOT STARTED
     P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
     P6: 2 tasks (Optional Enhancements) - Post-completion polish
   architecture_notes:
