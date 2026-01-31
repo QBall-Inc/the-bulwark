@@ -11,12 +11,32 @@ Review code for quality, security, and correctness before merge or deployment.
 - Pre-deployment verification
 - Security assessments
 
+## Two-Phase Workflow
+
+**CRITICAL**: The code-review skill enforces a two-phase workflow:
+
+```
+Phase 1: Static Analysis (Deterministic)
+├── Run: just typecheck → capture output
+├── Run: just lint → capture output
+└── If failures: STOP, return to user (fail fast)
+
+Phase 2: LLM Review (Judgment-Based)
+└── Each pipeline stage applies its section
+```
+
+Each stage assumes Phase 1 passed before running Phase 2 for its section.
+
 ## Architecture: Role-Based Agents
 
 This pipeline uses **role-based general-purpose agents**. Each agent:
 1. Loads the `code-review` skill via frontmatter (`skills: code-review`)
-2. References a specific section of the skill based on its role
-3. Outputs findings in a standardized YAML format
+2. References a specific section using `--section=<name>`
+3. Outputs findings using templates from `skills/code-review/templates/`
+
+**Severity Tiers**: critical (must fix) | important (should fix) | suggestion (optional)
+
+**Confidence Levels**: verified (data flow traced) | suspected (pattern match, needs validation)
 
 **Standalone alternative**: For ad-hoc code auditing outside pipelines, use `bulwark-code-auditor` which runs all sections.
 
@@ -65,17 +85,20 @@ Each review stage uses a general-purpose agent with:
 - Files changed in PR/commit
 - Project security requirements (if any)
 
-**OUTPUT**: Security findings in YAML format
+**OUTPUT**: Security findings using `skills/code-review/templates/output-pipeline.yaml`
 ```yaml
-findings:
+security_review:
   section: security
-  items:
-    - file: path/to/file.ts
+  findings:
+    - severity: critical
+      confidence: verified
+      file: path/to/file.ts
       line: 42
-      severity: high
-      pattern: SQL_INJECTION
+      pattern: sql_injection
+      owasp: "A03:2021-Injection"
+      evidence: "User input from req.query.id flows to db.query()"
       description: User input not sanitized
-      recommendation: Use parameterized queries
+      fix: Use parameterized queries
 ```
 
 ### Stage 2: TypeSafetyReviewer
@@ -97,17 +120,19 @@ findings:
 - Files changed in PR/commit
 - Project TypeScript configuration
 
-**OUTPUT**: Type safety findings in YAML format
+**OUTPUT**: Type safety findings using `skills/code-review/templates/output-pipeline.yaml`
 ```yaml
-findings:
+type_safety_review:
   section: type_safety
-  items:
-    - file: path/to/file.ts
+  findings:
+    - severity: important
+      confidence: verified
+      file: path/to/file.ts
       line: 15
-      severity: medium
-      pattern: ANY_USAGE
+      pattern: any_explicit
+      evidence: "Explicit 'any' type annotation at line 15"
       description: Using 'any' bypasses type checking
-      recommendation: Define proper interface
+      fix: Define proper interface
 ```
 
 ### Stage 3: LintReviewer
@@ -129,17 +154,22 @@ findings:
 - Files changed in PR/commit
 - Project linting configuration (if any)
 
-**OUTPUT**: Linting findings in YAML format
+**OUTPUT**: Linting findings using `skills/code-review/templates/output-pipeline.yaml`
 ```yaml
-findings:
+lint_review:
   section: linting
-  items:
-    - file: path/to/file.ts
+  findings:
+    - severity: suggestion
+      confidence: verified
+      file: path/to/file.ts
       line: 100
-      severity: low
-      pattern: HIGH_COMPLEXITY
-      description: Function has cyclomatic complexity of 15
-      recommendation: Split into smaller functions
+      pattern: deep_nesting
+      metrics:
+        nesting_depth: 5
+        function_length: 85
+      evidence: "Function has cyclomatic complexity of 15"
+      description: Function has high complexity
+      fix: Split into smaller functions
 ```
 
 ### Stage 4: StandardsReviewer
@@ -162,17 +192,20 @@ findings:
 - Files changed in PR/commit
 - Project coding standards (if any)
 
-**OUTPUT**: Standards findings in YAML format
+**OUTPUT**: Standards findings using `skills/code-review/templates/output-pipeline.yaml`
 ```yaml
-findings:
-  section: coding_standards
-  items:
-    - file: path/to/file.ts
+standards_review:
+  section: standards
+  findings:
+    - severity: suggestion
+      confidence: suspected
+      file: path/to/file.ts
       line: 5
-      severity: low
-      pattern: NAMING_CONVENTION
-      description: Function name doesn't follow camelCase
-      recommendation: Rename to camelCase
+      pattern: cs1_single_responsibility
+      principle: "CS1"
+      evidence: "Function handles validation, persistence, and notification"
+      description: Function has multiple responsibilities
+      fix: Split into validateOrder, saveOrder, notifyOrder
 ```
 
 ### Stage 5: ReviewSynthesizer
@@ -192,25 +225,30 @@ findings:
 **CONTEXT**:
 - Findings from all previous stages (Security, Type Safety, Linting, Standards)
 
-**OUTPUT**: Consolidated review report
+**OUTPUT**: Consolidated review report (uses `skills/code-review/templates/output-direct.yaml` format)
 ```yaml
-review:
-  status: changes_requested | approved
-  summary: "5 issues found: 1 critical, 2 high, 2 low"
-  findings_by_severity:
-    critical: 1
-    high: 2
-    medium: 0
-    low: 2
-  priority_fixes:
-    - "Fix SQL injection in auth.ts:42 (critical)"
-    - "Add null check in user.ts:15 (high)"
-    - "Remove any usage in config.ts:30 (high)"
-  all_findings:
-    - {from: security, count: 1}
-    - {from: type_safety, count: 2}
-    - {from: linting, count: 1}
-    - {from: coding_standards, count: 1}
+code_review:
+  mode: comprehensive
+  static_analysis:
+    typecheck: passed
+    lint: passed
+  findings:
+    critical:
+      - {file: auth.ts, line: 42, section: security, pattern: sql_injection}
+    important:
+      - {file: user.ts, line: 15, section: type_safety, pattern: any_explicit}
+      - {file: config.ts, line: 30, section: type_safety, pattern: null_gap}
+    suggestions:
+      - {file: processor.ts, line: 100, section: linting, pattern: deep_nesting}
+      - {file: service.ts, line: 5, section: standards, pattern: cs1_single_responsibility}
+  summary:
+    critical_count: 1
+    important_count: 2
+    suggestion_count: 2
+    recommendation: "Fix critical SQL injection before merge"
+  gate:
+    passed: false
+    blocking_findings: 1
 ```
 
 ### Stage 6: FixWriter (Conditional)
