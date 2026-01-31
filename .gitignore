@@ -21,6 +21,29 @@ desktop.ini
 .vscode/
 .idea/
 
+# Shell profile files (user-specific)
+.bash_profile
+.bashrc
+.profile
+.zprofile
+.zshrc
+
+# Git config (user-specific)
+.gitconfig
+.gitmodules
+
+# Ripgrep config
+.ripgreprc
+
+# MCP config (user-specific)
+.mcp.json
+
+# Claude commands (user-specific)
+.claude/commands
+
+# Test task logs
+tests/logs/
+
 # Node (if used for testing)
 node_modules/
 npm-debug.log
