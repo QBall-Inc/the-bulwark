@@ -23,10 +23,7 @@
 
 **Prompt** (conversational, non-developer language):
 ```
-I just joined the team and was asked to review the user authentication module
-before we go live. Can you take a look at scripts/components/user-service.ts
-and let me know if there's anything concerning? I'm particularly worried about
-customer data safety.
+I just joined the team and was asked to review the user authentication module before we go live. Can you take a look at scripts/components/user-service.ts and let me know if there's anything concerning? I'm particularly worried about customer data safety.
 ```
 
 **Expected Behavior**:
@@ -36,19 +33,19 @@ customer data safety.
 4. Findings include SQL injection, hardcoded secrets
 
 **Verification**:
-- [ ] Skill loaded (visible in response)
-- [ ] Phase 1 passes (no blocking errors)
-- [ ] SQL injection detected in `getUserByEmail` (CRITICAL)
-- [ ] SQL injection detected in `authenticateUser` (CRITICAL)
-- [ ] SQL injection detected in `updateUserProfile` (CRITICAL)
-- [ ] Hardcoded API key detected (CRITICAL)
-- [ ] Hardcoded JWT secret detected (CRITICAL)
-- [ ] Path traversal risk in `downloadUserFile` (CRITICAL or IMPORTANT)
-- [ ] Insecure token generation noted (IMPORTANT)
-- [ ] Output in YAML format or structured findings
+- [x] Skill loaded (visible in response)
+- [x] Phase 1 passes (no blocking errors)
+- [x] SQL injection detected in `getUserByEmail` (CRITICAL) - SEC-003 line 14
+- [x] SQL injection detected in `authenticateUser` (CRITICAL) - SEC-003 line 25
+- [x] SQL injection detected in `updateUserProfile` (CRITICAL) - SEC-003 line 40
+- [x] Hardcoded API key detected (CRITICAL) - SEC-001 line 4
+- [x] Hardcoded JWT secret detected (CRITICAL) - SEC-002 line 5
+- [x] Path traversal risk in `downloadUserFile` (CRITICAL or IMPORTANT) - SEC-005 lines 45-46
+- [x] Insecure token generation noted (IMPORTANT) - SEC-006 lines 51-53
+- [x] Output in YAML format or structured findings
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). All expected findings detected. Bonus findings: SEC-004 (plaintext password), SEC-007 (user enumeration), TS-001 (unsafe assertion). Diagnostic log written to logs/diagnostics/code-review-2026-02-01T120000Z.yaml. DEF-P4-003 and DEF-P4-004 fixed prior to this test.
 
 ---
 
@@ -68,17 +65,17 @@ scripts/components/data-processor.ts for any issues with how data types are hand
 4. Findings include excessive `any` usage
 
 **Verification**:
-- [ ] Skill loaded
-- [ ] Phase 1 passes
-- [ ] Excessive `any` in cache property detected (CRITICAL or IMPORTANT)
-- [ ] Excessive `any` in config property detected
-- [ ] `any` in function parameters detected (processRecords, transformRecord)
-- [ ] `any` return types detected
-- [ ] Unsafe assertion `(e as any).message` detected
-- [ ] `as unknown as` pattern noted as type-unsafe
+- [x] Skill loaded
+- [x] Phase 1 passes
+- [x] Excessive `any` in cache property detected (CRITICAL or IMPORTANT) - TS-003 lines 9-10
+- [x] Excessive `any` in config property detected - TS-003 lines 9-10
+- [x] `any` in function parameters detected (processRecords, transformRecord) - TS-004 (8 functions)
+- [x] `any` return types detected - TS-004, TS-005
+- [x] Unsafe assertion `(e as any).message` detected - TS-002 lines 37-38
+- [x] `as unknown as` pattern noted as type-unsafe - TS-007 (parseResponse)
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). All expected findings detected. Bonus findings: TS-001 (unvalidated JSON.parse), TS-006 (null gap on Map.get). Root cause analysis included: "any-driven development" pattern identified. Diagnostic log: logs/diagnostics/code-review-2026-02-01T121500Z.yaml
 
 ---
 
@@ -99,18 +96,18 @@ this follows good coding practices?
 4. Findings include naming and complexity issues
 
 **Verification**:
-- [ ] Skill loaded
-- [ ] Phase 1 passes
-- [ ] Single-letter function name `p` detected (IMPORTANT)
-- [ ] Single-letter function name `x` detected
-- [ ] Single-letter function name `z` detected
-- [ ] Deep nesting (8+ levels) in `p` detected
-- [ ] Generic variable names (`s`, `d`, `c`, `i`, `r`) detected
-- [ ] High cyclomatic complexity noted
-- [ ] Suggestions for refactoring provided
+- [x] Skill loaded
+- [x] Phase 1 passes
+- [x] Single-letter function name `p` detected (IMPORTANT) - LINT-001
+- [x] Single-letter function name `x` detected - LINT-001
+- [x] Single-letter function name `z` detected - LINT-001
+- [x] Deep nesting (8+ levels) in `p` detected - LINT-003 (8 levels)
+- [x] Generic variable names (`s`, `d`, `c`, `i`, `r`) detected - LINT-002 (10 vars)
+- [x] High cyclomatic complexity noted - LINT-004 (~15 decision points, god function)
+- [x] Suggestions for refactoring provided - LINT-001 recommendations
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). All expected findings detected. Bonus findings: LINT-005 (pyramid of doom in x), LINT-006 (14x duplicate `as Record` casts), LINT-007 (early return missing), LINT-008 (magic strings), LINT-009 (abbreviated 'op'). Diagnostic log: logs/diagnostics/code-review-2026-02-01T123000Z.yaml
 
 ---
 
@@ -131,17 +128,17 @@ and tell me if this follows our team's coding standards?
 4. Findings include multiple responsibilities and side effects
 
 **Verification**:
-- [ ] Skill loaded
-- [ ] Phase 1 passes
-- [ ] Multiple responsibilities detected (config, connections, cache, logging, metrics)
-- [ ] Global mutable state detected
-- [ ] Implicit side effects in `getConfig` detected (auto-initialization)
-- [ ] Mixed concerns in `processRequest` detected
-- [ ] Single Responsibility Principle violation noted
-- [ ] "No Magic" principle violation noted
+- [x] Skill loaded
+- [x] Phase 1 passes
+- [x] Multiple responsibilities detected (config, connections, cache, logging, metrics) - STD-002 (7 responsibilities)
+- [x] Global mutable state detected - STD-003 (module-level variables)
+- [x] Implicit side effects in `getConfig` detected (auto-initialization) - STD-001 (DB, cache, logging, metrics, feature flags)
+- [x] Mixed concerns in `processRequest` detected - STD-005 (request handler in config manager)
+- [x] Single Responsibility Principle violation noted - STD-002, STD-005
+- [x] "No Magic" principle violation noted - STD-001, STD-003, STD-004
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). All expected findings detected. Bonus findings: STD-006 (5x console.log in prod), STD-007 (missing JSDoc on 7 exports), STD-008 (resetSystem incomplete). Root cause analysis included. Diagnostic log: logs/diagnostics/code-review-2026-02-01T124500Z.yaml
 
 ---
 
@@ -161,16 +158,16 @@ code review of all files in that directory?
 4. Summary report generated
 
 **Verification**:
-- [ ] All 4 files analyzed (user-service, data-processor, workflow-handler, config-manager)
-- [ ] Security findings from user-service
-- [ ] Type Safety findings from data-processor
-- [ ] Linting findings from workflow-handler
-- [ ] Standards findings from config-manager
-- [ ] Summary shows CRITICAL/IMPORTANT/SUGGESTION counts
-- [ ] Diagnostic output written to `logs/diagnostics/`
+- [x] All 4 files analyzed (user-service, data-processor, workflow-handler, config-manager) - files_count: 4
+- [x] Security findings from user-service - SEC-001 to SEC-005 (5 critical)
+- [x] Type Safety findings from data-processor - TS-001 (1 critical)
+- [x] Linting findings from workflow-handler - 3 important, 1 suggestion
+- [x] Standards findings from config-manager - 1 important, 1 suggestion
+- [x] Summary shows CRITICAL/IMPORTANT/SUGGESTION counts - 6/6/3
+- [x] Diagnostic output written to `logs/diagnostics/` - code-review-20260201-001.yaml
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). All 4 files reviewed with all 4 sections. Verdict: NOT_PRODUCTION_READY with blocking issues (SQL injection, hardcoded secrets, broken auth). Total 15 findings across sections. Diagnostic log: logs/diagnostics/code-review-20260201-001.yaml
 
 ---
 
@@ -187,13 +184,13 @@ code review of all files in that directory?
 3. Only security findings reported
 
 **Verification**:
-- [ ] Only Security findings in output
-- [ ] No Type Safety findings
-- [ ] No Linting findings
-- [ ] No Standards findings
+- [x] Only Security findings in output - SEC-001 through SEC-008 (8 critical)
+- [x] No Type Safety findings
+- [x] No Linting findings
+- [x] No Standards findings
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). Section flag correctly limited review to security-only. All 8 findings are security section. Diagnostic log: logs/diagnostics/code-review-20260201-001.yaml (overwritten from P4.1-5)
 
 ---
 
@@ -210,14 +207,14 @@ code review of all files in that directory?
 3. Faster review
 
 **Verification**:
-- [ ] Security section runs
-- [ ] Type Safety section runs
-- [ ] Linting section skipped
-- [ ] Standards section skipped
-- [ ] Mode noted as "quick" in output
+- [x] Security section runs - SEC-001 through SEC-007
+- [x] Type Safety section runs - TS-001 (double assertion)
+- [x] Linting section skipped - No LINT-* findings
+- [x] Standards section skipped - No STD-* findings
+- [x] Mode noted as "quick" in output - `mode: quick`
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). File is 59 lines → falls in 50-500 tier → Security + Type Safety only. Tiering logic correct. 8 findings (7 security, 1 type safety). Diagnostic log: logs/diagnostics/code-review-20260201-001.yaml (overwritten)
 
 ---
 
@@ -230,11 +227,11 @@ code review of all files in that directory?
 - Can be invoked as `/code-review [path]`
 
 **Verification**:
-- [ ] Skill appears in `/` menu
-- [ ] `user-invocable: true` working correctly
+- [x] Skill appears in `/` menu
+- [x] `user-invocable: true` working correctly
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). Implicitly verified via P4.1-6 and P4.1-7 which used `/code-review` slash command invocation. Skill correctly appears in menu and responds to direct invocation.
 
 ---
 
@@ -262,21 +259,21 @@ before deployment.
 5. Output follows pipeline template format
 
 **Verification**:
-- [ ] Pipeline triggered (not just `/code-review` direct invocation)
-- [ ] Sub-agents spawned for each section (visible in output or logs)
-- [ ] payment-gateway.ts findings:
-  - [ ] Security: Hardcoded STRIPE_SECRET_KEY, SQL injection
-  - [ ] Type Safety: `any` usage in paymentCache, metadata param
-  - [ ] Standards: Global mutable state, implicit initialization
-- [ ] analytics-tracker.ts findings:
-  - [ ] Security: Hardcoded ANALYTICS_API_KEY
-  - [ ] Type Safety: `any` in eventQueue, sessionData
-  - [ ] Linting: Single-letter function `t`, deep nesting
-- [ ] Consolidated summary with severity counts
-- [ ] Output in pipeline YAML format (not direct format)
+- [x] Pipeline triggered (not just `/code-review` direct invocation)
+- [x] Sub-agents spawned for each section (visible in output or logs)
+- [x] payment-gateway.ts findings:
+  - [x] Security: Hardcoded STRIPE_SECRET_KEY, SQL injection
+  - [x] Type Safety: `any` usage in paymentCache, metadata param
+  - [x] Standards: Global mutable state, implicit initialization
+- [x] analytics-tracker.ts findings:
+  - [x] Security: Hardcoded ANALYTICS_API_KEY
+  - [x] Type Safety: `any` in eventQueue, sessionData
+  - [x] Linting: Single-letter function `t`, deep nesting
+- [x] Consolidated summary with severity counts
+- [x] Output in pipeline YAML format (not direct format)
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). Initial prompt required amendment to explicitly invoke pipeline-templates skill. Hybrid execution pattern observed: Phase 1 (static analysis) ran once in main context, Phase 2 spawned 4 parallel general-purpose sub-agents for sections. This is efficient - avoids redundant typecheck/lint runs. Pipeline summary: 80 unique findings (40 critical) after deduplication. Gate: FAILED. Logs: security-review-stage1.yaml, type-safety-review-stage2.yaml, code-review-standards-findings.yaml, review-report.yaml (synthesis).
 
 ---
 
@@ -298,13 +295,13 @@ for vulnerabilities? Don't worry about code style for now.
 4. Security findings prioritized in output
 
 **Verification**:
-- [ ] Security findings prominent (SQL injection, hardcoded keys)
-- [ ] Type Safety/Linting findings either absent or de-prioritized
-- [ ] Response acknowledges security focus
-- [ ] Actionable fix recommendations for security issues
+- [-] Security findings prominent (SQL injection, hardcoded keys)
+- [-] Type Safety/Linting findings either absent or de-prioritized
+- [-] Response acknowledges security focus
+- [-] Actionable fix recommendations for security issues
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL / [x] SKIPPED
+**Notes**: Session 33 (2026-02-01). Skipped - redundant after P4.1-9 comprehensive pipeline test. Security-focused review already validated via P4.1-6 (--section=security flag) and P4.1-9 security stage findings.
 
 ---
 
@@ -326,15 +323,45 @@ critical problems you find?
 4. Fixes applied OR recommendations provided
 
 **Verification**:
-- [ ] Review completed with findings
-- [ ] Critical issues identified (hardcoded API key is security-critical)
-- [ ] Either:
+- [x] Review completed with findings
+- [x] Critical issues identified (hardcoded API key is security-critical)
+- [x] Either:
   - [ ] Fixes applied automatically (FixWriter triggered), OR
-  - [ ] Fix recommendations provided with clear guidance
+  - [x] Fix recommendations provided with clear guidance
 - [ ] Changes verified if fixes applied
 
-**Result**: [ ] PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [ ] PASS / [x] SOFT PASS / [ ] FAIL
+**Notes**: Session 33 (2026-02-01). Claude correctly identified 5 issue categories and chose Fix Validation Pipeline. However, issue identification bypassed code-review skill (no structured sections, OWASP patterns, severity tiers). See OBS-003 below.
+
+---
+
+### OBS-003: Pipeline Routing and Skill Bypass (Session 33)
+
+During P4.1-11, Claude identified issues by reading the file directly rather than using the code-review skill's structured analysis.
+
+**Observed behavior:**
+1. Claude chose Fix Validation Pipeline (reasonable for "review + fix" prompt)
+2. Identified 5 issue categories correctly (security, type safety, code quality)
+3. BUT: Did not load code-review skill - used direct LLM judgment
+
+**Gap 1: Issue identification without code-review skill**
+- No structured sections (Security, Type Safety, Linting, Standards)
+- No OWASP pattern references
+- No severity tier classification (critical/important/suggestion)
+- No diagnostic log output
+
+**Gap 2: Fix Validation CodeReviewer ≠ code-review skill**
+- Stage 5 (CodeReviewer) focuses on fix verification
+- Does not use code-review skill's structured analysis
+- Missing: Security patterns, type safety checks, standards validation
+
+**Action Items (P6+ Enhancements):**
+
+| ID | Action | Reference |
+|----|--------|-----------|
+| OBS-003-A | Amend Code Review → FixWriter pipeline trigger language in pipeline-templates | `tests/manual-test-protocol-P4.md#OBS-003` |
+| OBS-003-B | Update Fix Validation Stage 5 (CodeReviewer) to use code-review skill | `tests/manual-test-protocol-P4.md#OBS-003` |
+| OBS-003-C | Investigate routing: when should "review + fix" trigger Code Review vs Fix Validation? | `tests/manual-test-protocol-P4.md#OBS-003` |
 
 ---
 
@@ -370,21 +397,26 @@ critical problems you find?
 
 ## Post-Test Checklist (P4.1)
 
-- [ ] code-review appears in `/` menu
-- [ ] Phase 1 (static tools) runs before Phase 2 (LLM)
-- [ ] Phase 1 failures block Phase 2 (fail fast)
-- [ ] Security section detects SQL injection
-- [ ] Security section detects hardcoded secrets
-- [ ] Type Safety section detects `any` abuse
-- [ ] Type Safety section detects unsafe assertions
-- [ ] Linting section detects poor naming
-- [ ] Linting section detects deep nesting
-- [ ] Standards section detects multiple responsibilities
-- [ ] Standards section detects implicit side effects
-- [ ] `--section` flag limits to single section
-- [ ] `--quick` flag applies tiered review
-- [ ] Diagnostic output written to `logs/diagnostics/`
-- [ ] All YAML outputs valid and parseable
+- [x] code-review appears in `/` menu (P4.1-8)
+- [x] Phase 1 (static tools) runs before Phase 2 (LLM) (all tests)
+- [x] Phase 1 failures block Phase 2 (fail fast) (verified in skill design)
+- [x] Security section detects SQL injection (P4.1-1, P4.1-6)
+- [x] Security section detects hardcoded secrets (P4.1-1, P4.1-6)
+- [x] Type Safety section detects `any` abuse (P4.1-2)
+- [x] Type Safety section detects unsafe assertions (P4.1-2)
+- [x] Linting section detects poor naming (P4.1-3)
+- [x] Linting section detects deep nesting (P4.1-3)
+- [x] Standards section detects multiple responsibilities (P4.1-4)
+- [x] Standards section detects implicit side effects (P4.1-4)
+- [x] `--section` flag limits to single section (P4.1-6)
+- [x] `--quick` flag applies tiered review (P4.1-7)
+- [x] Diagnostic output written to `logs/diagnostics/` (all tests)
+- [x] All YAML outputs valid and parseable (verified)
+
+**P4.1 Testing Complete**: Session 33 (2026-02-01)
+- 8 PASS, 1 SOFT PASS, 1 SKIPPED
+- 3 Observations recorded (OBS-001, OBS-002, OBS-003)
+- 4 P6+ enhancement tasks added (P6.4, P6.5, P6.6, P6.7)
 
 ---
 
@@ -446,6 +478,74 @@ blockers: []
 2. **Phase 1 dependency**: Requires `just` recipes to be working
 3. **Hook integration**: PostToolUse hook may suggest pipeline after file changes
 4. **LLM variability**: Same file may produce slightly different findings between runs
+
+---
+
+## Observations (P4.1)
+
+### OBS-001: Post-Review Fixture Inference (Session 33)
+
+During P4.1-6 testing, Claude inferred `user-service.ts` was a test fixture **after** completing the full review - not before or during.
+
+**Critical timing distinction:**
+- **Pre-review knowledge** ("this is a fixture") → Risk of lenient evaluation, skipped checks, or pattern-matching to expected findings
+- **Post-review inference** ("this looks like a fixture based on finding density") → Review already complete, no bias introduced
+
+The inference came after tracing data flows and cataloging findings. By that point, the evaluation was done. The observation about fixture-like density was a post-hoc explanation for why the file had so many issues, not a reason to treat it differently during analysis.
+
+**Inference factors cited (post-review):**
+1. Vulnerability concentration - 8 critical issues in 59 lines
+2. Textbook patterns - Pedagogically perfect examples
+3. Project context - The Bulwark is a code review tool
+4. Git status - `scripts/components/` untracked (`??`)
+
+**Fixture design validation:**
+The fixtures are indistinguishable from plausible production code that happens to have problems:
+- No revealing comments (e.g., `// VULNERABLE: SQL injection`)
+- No revealing filenames (e.g., `insecure-example.ts`)
+- Path looks like real application code
+- Structure is coherent
+- Vulnerabilities are the kind that actually ship in codebases
+
+This validates both the `test-fixture-creation` skill guidelines and the code-review skill's unbiased execution.
+
+---
+
+### OBS-002: Self-Describing Usage Documentation (Session 33)
+
+When asked "What are the different switches I can use for the code-review command?", Claude extracted and formatted the usage information directly from `SKILL.md`:
+
+```
+Usage: /code-review [path] [flags]
+
+Arguments:
+- path: File or directory to review (default: files in recent context)
+
+Flags:
+- --quick: Tiered review by change size
+- --framework=<name>: Override auto-detected framework
+- --include-git-context: Include git history for complexity findings
+- --section=<name>: Run single section only
+
+Examples:
+- /code-review src/auth/
+- /code-review src/api.ts --quick
+- /code-review src/ --section=security
+```
+
+**Key pattern:** The skill documentation structure enables Claude to serve as its own help system:
+1. Clear **Usage** section with syntax
+2. **Arguments** and **Flags** tables with descriptions
+3. **Examples** showing real invocations
+
+**Action Items (P6+ Enhancements):**
+
+| ID | Action | Reference |
+|----|--------|-----------|
+| OBS-002-A | Review all skills for consistent usage/args documentation pattern | `tests/manual-test-protocol-P4.md#OBS-002` |
+| OBS-002-B | Add guidance to `anthropic-validator` skill for validating command-style skills have self-describing usage sections | `tests/manual-test-protocol-P4.md#OBS-002` |
+
+**Note:** This skill took 3 sessions to plan/draft/create + 1 session to enhance. The investment in research and iterative refinement produced a skill that is both functionally robust and self-documenting.
 
 ---
 

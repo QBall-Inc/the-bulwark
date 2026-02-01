@@ -491,10 +491,101 @@ phases:
           - "Data files have version/last_updated/source_urls metadata for tracking"
         estimated_sessions: 1
 
+      - id: P6.4
+        name: "Standardize self-describing usage patterns across skills"
+        status: not_started
+        dependencies: [P5.6]  # After plugin manifest finalized
+        implementation_plan: "plans/task-briefs/P6.4-skill-usage-patterns.md"
+        deliverables:
+          - "All user-invocable skills with Usage section updated"
+        acceptance_criteria:
+          - "All user-invocable skills have consistent Usage section structure"
+          - "Arguments table with descriptions"
+          - "Flags table with descriptions"
+          - "Examples showing real invocations"
+          - "Claude can extract and present usage info when asked"
+        verification:
+          - "Ask 'what flags does /skill-name support?' for each user-invocable skill"
+          - "Verify Claude accurately extracts and formats usage information"
+        notes:
+          - "Session 33 (2026-02-01): Identified during P4.1 testing"
+          - "Reference: tests/manual-test-protocol-P4.md#OBS-002"
+          - "code-review skill serves as reference implementation"
+          - "Skills double as commands; self-describing docs enable built-in help"
+        estimated_sessions: 1
+
+      - id: P6.5
+        name: "Add usage documentation validation to anthropic-validator"
+        status: not_started
+        dependencies: [P6.4]  # After usage pattern standardized
+        implementation_plan: "plans/task-briefs/P6.5-validator-usage-check.md"
+        deliverables:
+          - "skills/anthropic-validator/SKILL.md (updated)"
+          - "skills/anthropic-validator/references/skills-checklist.md (updated)"
+        acceptance_criteria:
+          - "Validator checks user-invocable skills for Usage section"
+          - "Validates Arguments/Flags tables present when skill accepts args"
+          - "Validates Examples section present"
+          - "Medium severity finding if usage documentation missing"
+        verification:
+          - "Run anthropic-validator on skill with good usage docs"
+          - "Run anthropic-validator on skill missing usage docs"
+          - "Verify appropriate findings generated"
+        notes:
+          - "Session 33 (2026-02-01): Identified during P4.1 testing"
+          - "Reference: tests/manual-test-protocol-P4.md#OBS-002"
+          - "Ensures all command-style skills have self-describing documentation"
+        estimated_sessions: 1
+
+      - id: P6.6
+        name: "Enhance pipeline routing for review+fix scenarios"
+        status: not_started
+        dependencies: [P4.1]  # After code-review skill complete
+        implementation_plan: "plans/task-briefs/P6.6-pipeline-routing.md"
+        deliverables:
+          - "skills/pipeline-templates/SKILL.md (updated)"
+          - "skills/pipeline-templates/references/code-review.md (updated)"
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+        acceptance_criteria:
+          - "Clear trigger language for Code Review → FixWriter pipeline"
+          - "Clear trigger language for Fix Validation pipeline"
+          - "Routing guidance for 'review + fix' prompts"
+        verification:
+          - "Prompt 'review and fix issues' routes to appropriate pipeline"
+          - "Prompt 'review code for issues' routes to Code Review"
+          - "Prompt 'fix this bug' routes to Fix Validation"
+        notes:
+          - "Session 33 (2026-02-01): Identified during P4.1-11 testing"
+          - "Reference: tests/manual-test-protocol-P4.md#OBS-003"
+          - "OBS-003-A and OBS-003-C action items"
+        estimated_sessions: 1
+
+      - id: P6.7
+        name: "Update Fix Validation Stage 5 to use code-review skill"
+        status: not_started
+        dependencies: [P4.1]  # After code-review skill complete
+        implementation_plan: "plans/task-briefs/P6.7-fix-validation-code-review.md"
+        deliverables:
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+        acceptance_criteria:
+          - "Stage 5 (CodeReviewer) loads code-review skill"
+          - "Runs all 4 sections on fixed code"
+          - "Structured findings with severity tiers"
+          - "OWASP patterns checked for security fixes"
+        verification:
+          - "Run Fix Validation pipeline"
+          - "Verify Stage 5 uses code-review skill"
+          - "Verify diagnostic log from code-review written"
+        notes:
+          - "Session 33 (2026-02-01): Identified during P4.1-11 testing"
+          - "Reference: tests/manual-test-protocol-P4.md#OBS-003"
+          - "OBS-003-B action item"
+        estimated_sessions: 1
+
 # Summary
 summary:
-  total_tasks: 33  # Was 32, P1.1 and P5.2 skipped, P6.1-3 added
-  total_estimated_sessions: 34  # Was 33, P1.1 and P5.2 skipped, P6.1-3 added
+  total_tasks: 37  # Was 35, added P6.6-7
+  total_estimated_sessions: 38  # Was 36, added P6.6-7
   completed_phases: "P0, P1, P2, P3 (see tasks_completed.yaml)"
   skipped_tasks:
     - id: P1.1
@@ -508,7 +599,7 @@ summary:
     P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
     P4: 4 tasks (Review Skills & Standalone Agents) - NOT STARTED
     P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
-    P6: 3 tasks (Optional Enhancements) - Post-completion polish
+    P6: 5 tasks (Optional Enhancements) - Post-completion polish
   architecture_notes:
     pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"

@@ -86,6 +86,67 @@ You MUST write diagnostic output after every review...
 
 ---
 
+### DEF-P4-004: Unclear mandatory vs optional dependencies in code-review skill
+
+**Identified:** Session 33 (2026-02-01)
+**Phase:** P4.1 Manual Testing
+**Severity:** Medium
+**Status:** Closed (Session 33)
+
+**Symptom:** Claude executing code-review skill did not load `frameworks/{detected}.md` or `examples/` files. Unclear whether these are required dependencies or optional enhancements.
+
+**Root Cause:** The skill references these files without clarifying their requirement level:
+- Line 69: "Load framework patterns from frameworks/{detected}.md"
+- Lines 123, 126-127, 162-163, 197-198, 241-242: Section references to examples/
+- Line 257: "Auto-detect framework... Loads framework-specific patterns"
+
+**Files that exist but weren't loaded:**
+```
+frameworks/react.md, express.md, angular.md, vue.md, django.md, flask.md, generic.md
+examples/anti-patterns/{security,type-safety,linting,standards}.ts
+examples/recommended/{security,type-safety,linting,standards}.ts
+```
+
+**Unclear behaviors:**
+1. Is loading framework patterns required or an enhancement?
+2. What if no framework is detected - skip or use generic.md?
+3. Are examples for Claude's reference or must they be loaded for calibration?
+
+**Proposed Fix:** Add explicit labels and clarify behaviors:
+
+1. **Add dependency section to frontmatter comments:**
+```markdown
+# Dependencies:
+# - references/*.md - REQUIRED (pattern definitions)
+# - frameworks/*.md - OPTIONAL (load if framework detected, else skip)
+# - examples/*.ts - OPTIONAL (reference for calibration, not required to load)
+```
+
+2. **Update workflow steps with labels:**
+```markdown
+├── Load references/{section}-patterns.md (REQUIRED)
+├── Load frameworks/{detected}.md (OPTIONAL - skip if no framework detected)
+├── Review examples/ for calibration (OPTIONAL - for ambiguous cases)
+```
+
+3. **Add explicit fallback behavior:**
+```markdown
+Framework Detection:
+- If framework detected: Load frameworks/{name}.md
+- If no framework detected: Skip framework patterns (do not use generic.md as default)
+```
+
+**Impact:** Without clarity, Claude may skip loading useful calibration data, or waste tokens loading unnecessary files.
+
+**Fixed:** Updated skill with explicit requirement levels:
+- `references/*.md` → REQUIRED (always load)
+- `frameworks/*.md` → CONDITIONALLY REQUIRED (if framework detected, MUST load)
+- `examples/*.ts` → OPTIONAL (kept for model portability to non-Claude models)
+
+Added Dependencies section, updated Three-Phase Workflow, and Framework Detection sections.
+
+---
+
 ## Open Enhancements
 
 ### ENH-P4-001: Add UserPromptSubmit hook to prefer skills over direct actions

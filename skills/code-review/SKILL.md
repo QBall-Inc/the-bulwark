@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Comprehensive code review with Security, Type Safety, Linting, and Coding Standards sections. Use when reviewing code, checking for security issues, finding type safety problems, auditing code quality, or when user asks to review changes. Three-phase workflow runs static tools, then LLM judgment, then writes diagnostic log.
+description: Comprehensive code review with distinct aspect based sections. Use when reviewing code, checking for security issues, finding type safety problems, auditing code quality, or when user asks to review code, PRs or changes. Three-phase workflow runs static tools, LLM judgment, and writes diagnostic log.
 user-invocable: true
 agent: sonnet
 skills:
@@ -30,6 +30,23 @@ Comprehensive code review with four independently-referenceable sections. Runs s
 - Auditing test quality (use `test-audit` skill)
 - Debugging issues (use `issue-debugging` skill)
 - Performance profiling (requires runtime analysis)
+
+---
+
+## Dependencies
+
+This skill references supporting files. Understanding what's required vs optional ensures consistent execution.
+
+| Category | Files | Requirement | When to Load |
+|----------|-------|-------------|--------------|
+| **Pattern references** | `references/{section}-patterns.md` | **REQUIRED** | Always load for each enabled section |
+| **Framework patterns** | `frameworks/{detected}.md` | **CONDITIONALLY REQUIRED** | If framework detected → MUST load; if not detected → skip |
+| **Examples** | `examples/anti-patterns/*.ts`, `examples/recommended/*.ts` | OPTIONAL | For calibration on ambiguous cases; kept for model portability |
+
+**Fallback behavior:**
+- If framework detected → Loading `frameworks/{name}.md` is REQUIRED
+- If no framework detected → Skip framework patterns entirely (do not load `generic.md`)
+- If a referenced file is missing → Note in diagnostic log, continue with available patterns
 
 ---
 
@@ -66,8 +83,10 @@ Phase 1: Static Analysis (Deterministic)
 └── If failures: STOP, return to user (fail fast)
 
 Phase 2: LLM Review (Judgment-Based)
-├── Load framework patterns from frameworks/{detected}.md
-├── Apply each enabled section
+├── Load references/{section}-patterns.md for each enabled section (REQUIRED)
+├── If framework detected: Load frameworks/{detected}.md (REQUIRED)
+├── If no framework detected: Skip framework patterns
+├── Apply each enabled section using loaded patterns
 └── Output findings to user
 
 Phase 3: Write Diagnostic Log (REQUIRED)
@@ -117,12 +136,13 @@ Threats and exploits: authentication/authorization logic, injection patterns, se
 - `just typecheck` passed
 - `just lint` passed
 
-### Patterns
-See `references/security-patterns.md` for:
+### Patterns (REQUIRED)
+Load `references/security-patterns.md` for:
 - OWASP Top 10 checklist with detection criteria
-- Framework-specific patterns (load from `frameworks/{detected}.md`)
+- Framework-specific patterns (from `frameworks/{detected}.md` if framework detected)
 
-### Examples
+### Examples (OPTIONAL - for calibration)
+Reference when encountering ambiguous cases:
 - Anti-patterns: `examples/anti-patterns/security.ts`
 - Recommended: `examples/recommended/security.ts`
 
@@ -152,13 +172,14 @@ Type system integrity: explicit `any`, implicit any from missing types, unsafe t
 ### Prerequisites
 - `just typecheck` passed (confirms type-correct, looking for holes)
 
-### Patterns
-See `references/type-safety-patterns.md` for:
+### Patterns (REQUIRED)
+Load `references/type-safety-patterns.md` for:
 - `any` usage patterns (explicit, implicit, from libraries)
 - Null handling patterns (optional chaining gaps, assertion misuse)
 - Unsafe assertion patterns (as unknown as T, non-null assertion operator)
 
-### Examples
+### Examples (OPTIONAL - for calibration)
+Reference when encountering ambiguous cases:
 - Anti-patterns: `examples/anti-patterns/type-safety.ts`
 - Recommended: `examples/recommended/type-safety.ts`
 
@@ -187,13 +208,14 @@ Style and structure requiring judgment: cyclomatic complexity, semantic naming, 
 ### Prerequisites
 - `just lint` passed (catches automatable issues)
 
-### Patterns
-See `references/linting-patterns.md` for:
+### Patterns (REQUIRED)
+Load `references/linting-patterns.md` for:
 - Complexity thresholds (cyclomatic, nesting depth, function length)
 - Naming anti-patterns (single letters, generic names, misleading names)
 - Structure anti-patterns (god functions, mixed concerns)
 
-### Examples
+### Examples (OPTIONAL - for calibration)
+Reference when encountering ambiguous cases:
 - Anti-patterns: `examples/anti-patterns/linting.ts`
 - Recommended: `examples/recommended/linting.ts`
 
@@ -231,13 +253,14 @@ Conventions and architecture: atomic principles (single responsibility, explicit
 ### Prerequisites
 - Code compiles and passes lint
 
-### Patterns
-See `references/standards-patterns.md` for:
+### Patterns (REQUIRED)
+Load `references/standards-patterns.md` for:
 - Atomic principles checklist (CS1-CS4 from Rules.md)
 - Documentation requirements (when to document, JSDoc format)
 - Pattern consistency checks
 
-### Examples
+### Examples (OPTIONAL - for calibration)
+Reference when encountering ambiguous cases:
 - Anti-patterns: `examples/anti-patterns/standards.ts`
 - Recommended: `examples/recommended/standards.ts`
 
@@ -254,7 +277,7 @@ See `references/standards-patterns.md` for:
 
 ## Framework Detection
 
-Auto-detect framework from project files. Loads framework-specific patterns from `frameworks/{name}.md`.
+Auto-detect framework from project files. **If detected, loading framework patterns is REQUIRED.**
 
 ### Detection Logic
 
@@ -271,14 +294,17 @@ django                    → django
 flask                     → flask
 fastapi                   → fastapi
 
-(none of above)           → generic
+(none of above)           → (no framework)
 ```
 
 ### Override
 Use `--framework=<name>` to override detection.
 
 ### Fallback Behavior
-If detection fails or is ambiguous, use `generic` patterns (OWASP Top 10 only) and note in output that framework-specific checks were skipped.
+If no framework is detected:
+- **Do NOT load `generic.md`** - skip framework patterns entirely
+- Continue with core patterns from `references/*.md` files (which are REQUIRED)
+- Note in diagnostic log that framework-specific checks were skipped
 
 ---
 
