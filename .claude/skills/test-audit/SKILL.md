@@ -7,6 +7,7 @@ skills:
   - mock-detection
   - assertion-patterns
   - component-patterns
+  - bug-magnet-data
 ---
 
 # Test Audit
@@ -217,20 +218,42 @@ IF REWRITE_REQUIRED == true:
         2. Load `assertion-patterns` skill (P2.1) for T1-T4 transformation patterns
         3. Identify component type from code analysis
         4. Load `component-patterns` skill (P2.2) for verification templates
-        5. Select applicable patterns for the violation type:
+        5. Load `bug-magnet-data` context file matching component type:
+           - CLI: context/cli-args.md
+           - HTTP Server: context/http-body.md
+           - File Parser: context/file-contents.md
+           - Database: context/db-query.md
+           - Process Spawner: context/process-spawn.md
+        6. Load T0 + T1 edge cases from bug-magnet-data/data/ for the component:
+           - T0 (Always): strings/boundaries, numbers/boundaries, booleans/boundaries
+           - T1 (Common): strings/injection (if input handling), strings/unicode
+        7. Select applicable patterns for the violation type:
            - T1 fix: Apply "Function call" or "Process spawn" patterns from P2.1
            - T2 fix: Apply "Add result assertion" pattern from P2.1
            - T3 fix: Apply "HTTP Server" or appropriate boundary pattern from P2.2
            - T3+ fix: Apply chain patterns from P2.1
-        6. Generate verification script as intermediate artifact:
+        8. Generate verification script as intermediate artifact:
            - Location: tmp/verification/{test-name}-verify.{ext}
            - Purpose: Validate rewrite works before modifying test
-        7. Rewrite test file using structured patterns
-        8. Run verification script to confirm fix
-        9. Run original test to verify it now passes
+           - REQUIRED: Include edge cases from bug-magnet-data in verification
+        9. Rewrite test file using structured patterns
+       10. Run verification script to confirm fix
+       11. Run original test to verify it now passes
 ELSE:
     Display recommendations without auto-rewrite
 ```
+
+**Bug-Magnet-Data Integration (REQUIRED)**
+
+When generating verification scripts (step 8), you MUST include edge cases from bug-magnet-data:
+
+1. **Read the context file** for the detected component type (step 5)
+2. **Load applicable data files** based on context file's "Applicable Categories" section
+3. **Include at minimum**:
+   - Empty string / zero / null boundary values (T0)
+   - Length extremes for any string inputs (T0)
+   - Injection patterns if component handles external input (T1)
+4. **Mark destructive patterns** (`safe_for_automation: false`) as manual-only in script comments
 
 ---
 
@@ -528,9 +551,37 @@ This skill has the following known limitations that are documented for transpare
 
 ---
 
+## Completion Checklist
+
+Before completing test-audit execution, verify ALL items:
+
+### Pipeline Stages
+- [ ] Stage 1 (Classification) completed - output written to `logs/test-classification-*.yaml`
+- [ ] Stage 2 (Mock Detection) completed - output written to `logs/mock-detection-*.yaml`
+- [ ] Stage 3 (Synthesis) completed - output written to `logs/test-audit-*.yaml`
+- [ ] Summary presented to user with violation counts and REWRITE_REQUIRED status
+
+### If REWRITE_REQUIRED == true
+- [ ] For each file: component type identified
+- [ ] For each file: `bug-magnet-data` context file loaded for component type
+- [ ] For each file: T0 + T1 edge cases loaded from bug-magnet-data
+- [ ] Verification scripts include edge cases from bug-magnet-data
+- [ ] Destructive patterns (`safe_for_automation: false`) excluded or marked manual-only
+- [ ] Rewrites applied using assertion-patterns and component-patterns
+- [ ] Verification scripts executed successfully
+- [ ] Original tests pass after rewrite
+
+### Diagnostics
+- [ ] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
+
+**Do NOT return to user until all applicable checklist items are verified.**
+
+---
+
 ## Related Skills
 
 - `test-classification` (P0.6) - Classification prompt template
 - `mock-detection` (P0.7) - Detection prompt template
 - `pipeline-templates` (P0.3) - Test Audit pipeline definition
 - `subagent-prompting` (P0.1) - 4-part template reference
+- `bug-magnet-data` (P4.2) - Curated edge case test data

@@ -7,6 +7,7 @@ skills:
   - issue-debugging
   - subagent-output-templating
   - subagent-prompting
+  - bug-magnet-data
 tools:
   - Read
   - Grep
@@ -168,10 +169,39 @@ Examine the fix applied:
 |-------|-------------|
 | **Root cause addressed** | Does fix target the issue identified in debug report? |
 | **Minimal change** | Is fix surgical or does it touch unrelated code? |
-| **Edge cases** | Are boundary conditions handled? |
+| **Edge cases** | Systematic check using bug-magnet-data (see below) |
 | **Type safety** | Does fix align with type system? |
 | **No regressions** | Do existing tests still pass? |
 | **Call site coverage** | Are all call sites covered or flagged as risks? |
+
+**Edge Case Analysis (REQUIRED)**
+
+You MUST check the fix against edge cases from `bug-magnet-data`:
+
+1. **Identify fix domain**: What data types does the fix handle? (strings, numbers, dates, etc.)
+2. **Load T0 edge cases** (Always):
+   - If fix handles strings: Check against `data/strings/boundaries.yaml` (empty, single char, long)
+   - If fix handles numbers: Check against `data/numbers/boundaries.yaml` (0, -1, MAX_INT)
+   - If fix handles collections: Check against `data/collections/arrays.yaml` (empty, single, large)
+3. **Load T1 edge cases** (If input handling):
+   - If fix handles external input: Check against `data/strings/injection.yaml`
+   - If fix handles user text: Check against `data/strings/unicode.yaml`
+4. **Document findings**:
+   - For each T0/T1 category loaded, note whether the fix handles it correctly
+   - Flag any edge cases the fix does NOT handle as risks in the validation report
+
+**Edge case assessment template** (include in `fix_analysis.edge_cases_handled`):
+```yaml
+edge_cases_handled:
+  - case: "empty string input"
+    category: "strings/boundaries (T0)"
+    status: handled | not_handled | not_applicable
+    evidence: "{how fix handles this case}"
+  - case: "SQL injection attempt"
+    category: "strings/injection (T1)"
+    status: handled | not_handled | not_applicable
+    evidence: "{how fix handles this case}"
+```
 
 ### Step 6: Assess Confidence
 
@@ -543,6 +573,56 @@ The debug report's `confidence_criteria` section defines what HIGH/MEDIUM/LOW me
 
 ---
 
+## Completion Checklist
+
+Before completing fix validation, verify ALL items:
+
+### Debug Report (Step 1)
+- [ ] Debug report YAML parsed successfully
+- [ ] Validation plan extracted (tests_to_execute, functionalities_to_validate)
+- [ ] Confidence criteria extracted
+- [ ] Complexity level noted (Low/Medium/High)
+
+### Test Execution (Step 2)
+- [ ] Test execution strategy documented (native_runner, direct_execution, generated_script, or manual)
+- [ ] P1 tests executed (REQUIRED)
+- [ ] P2 tests executed (if Medium/High complexity)
+- [ ] P3 tests executed (if High complexity)
+- [ ] If manual validation used: justification documented for why strategies 1-3 failed
+
+### Functionality Validation (Step 3)
+- [ ] Each functionality from debug report checked
+- [ ] Evidence recorded for each validation
+
+### Call Site Analysis (Step 4) - Skip for Low complexity
+- [ ] Modified functions identified
+- [ ] All call sites found via Grep
+- [ ] Coverage status noted for each call site
+- [ ] Uncovered call sites flagged as risks
+
+### Edge Case Analysis (Step 5) - REQUIRED
+- [ ] Fix domain identified (strings, numbers, dates, etc.)
+- [ ] T0 edge cases loaded from bug-magnet-data for fix domain
+- [ ] T1 edge cases loaded if fix handles external input
+- [ ] Each edge case category assessed (handled/not_handled/not_applicable)
+- [ ] Evidence documented for each assessment
+- [ ] Unhandled edge cases flagged as risks
+
+### Confidence Assessment (Step 6)
+- [ ] Confidence level assigned (HIGH/MEDIUM/LOW)
+- [ ] Rationale documented
+- [ ] Escalation items listed if manual testing required
+
+### Output (Step 7)
+- [ ] Validation report written to `logs/validations/fix-validation-*.yaml`
+- [ ] Human-readable report written to `tmp/` (Medium/High complexity)
+- [ ] Diagnostics written to `logs/diagnostics/bulwark-fix-validator-*.yaml`
+- [ ] Summary returned to orchestrator with confidence and recommendation
+
+**Do NOT return to orchestrator until all applicable checklist items are verified.**
+
+---
+
 ## Related Skills
 
 The following skills are loaded via frontmatter and inform this agent's behavior:
@@ -550,3 +630,4 @@ The following skills are loaded via frontmatter and inform this agent's behavior
 - **issue-debugging** - Understand debug report structure, validation plan format
 - **subagent-output-templating** - Output format (YAML schema, summary token budget)
 - **subagent-prompting** - 4-part template structure for any sub-agents
+- **bug-magnet-data** - Curated edge case test data for systematic boundary testing
