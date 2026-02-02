@@ -40,8 +40,8 @@ version: 4.5.0
 created: 2026-01-04
 updated: 2026-01-29
 current_phase: P4
-current_task: P4.1
-current_task_status: "P4.1 code-review skill implemented (Session 31). T-003-T-006 complete. T-007-T-010 (test fixtures/manual testing) pending user guidance on bias avoidance and sandboxing. Hooks config needs restoration from session 27-28."
+current_task: P4.2
+current_task_status: "P4.1 complete (testing done Session 33, cleanup Session 34). P4.2 bug-magnet-data skill implemented and validated (T-011, T-012 complete). Consumer updates (T-013 through T-015) pending next session."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
