@@ -377,9 +377,271 @@ During P4.1-11, Claude identified issues by reading the file directly rather tha
 
 ---
 
-# P4.2 Bug-Magnet-Data Tests
+# P4.2 Bug-Magnet-Data Consumer Tests
 
-*To be added after P4.2 implementation*
+**Purpose**: Verify bug-magnet-data integration in test-audit, bulwark-verify, and bulwark-fix-validator.
+**Prerequisite**: P4.2 implementation complete, consumers updated (T-013, T-014, T-015)
+**Fixtures**: `scripts/handlers/input-handler.ts`, `tests/handlers/input-handler.test.ts`
+
+---
+
+## Pre-Test Setup (P4.2)
+
+1. Ensure fixtures exist:
+   - `scripts/handlers/input-handler.ts` (source component)
+   - `tests/handlers/input-handler.test.ts` (test file with edge case gaps)
+2. Run `just sync-hooks` to sync hooks
+3. Verify `just typecheck` and `just lint` pass
+4. Start a **fresh Claude Code session**
+
+---
+
+## Test P4.2-1: test-audit Edge Case Gap Detection
+
+**Fixture**: `tests/handlers/input-handler.test.ts`
+**Backup**: `backup/tests/handlers/input-handler.test.ts` (restore if modified)
+
+**Prompt** (conversational):
+```
+I wrote some tests for our input handler but I'm worried they might not cover
+all the edge cases. Can you audit tests/handlers/input-handler.test.ts and
+tell me if there are any gaps in my test coverage? Please just list the issues
+and recommendations - don't make any changes to the file yet.
+```
+
+**Expected Behavior**:
+1. Claude loads test-audit skill
+2. Classification stage runs (Haiku)
+3. Mock detection stage runs (Sonnet)
+4. Synthesis stage runs (Sonnet)
+5. Step 7 loads bug-magnet-data for HTTP/input component type
+6. Edge case gaps identified
+
+**Verification**:
+- [ ] test-audit skill loaded
+- [ ] Component type detected (HTTP body handler or similar)
+- [ ] bug-magnet-data context file loaded
+- [ ] Edge case gaps flagged:
+  - [ ] Missing empty string tests (T0 - strings/boundaries)
+  - [ ] Missing unicode tests (T1 - strings/unicode)
+  - [ ] Missing injection tests (T1 - strings/injection)
+  - [ ] Missing number boundary tests (T0 - 0, negative, MAX_INT)
+  - [ ] Missing empty array tests (T0 - collections/arrays)
+- [ ] Recommendations reference bug-magnet-data categories
+- [ ] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
+
+**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: _____
+
+---
+
+## Test P4.2-2: bulwark-verify Edge Case Injection
+
+**Fixture**: `scripts/handlers/input-handler.ts`
+**Backup**: `backup/scripts/handlers/input-handler.ts`
+
+**Prompt** (slash command):
+```
+/bulwark-verify scripts/handlers/input-handler.ts
+```
+
+**Expected Behavior**:
+1. Claude loads bulwark-verify skill
+2. Component type detected (HTTP body handler)
+3. bug-magnet-data context file loaded (context/http-body.md)
+4. T0 + T1 edge cases loaded from data files
+5. Sonnet sub-agent generates verification script
+6. Script includes edge cases from bug-magnet-data
+
+**Verification**:
+- [ ] bulwark-verify skill loaded
+- [ ] Component type identified
+- [ ] bug-magnet-data context file loaded
+- [ ] Verification script generated to `tmp/verification/input-handler-verify.*.js`
+- [ ] Script includes T0 edge cases:
+  - [ ] Empty string test (`""`)
+  - [ ] Very long string test
+  - [ ] Zero value test
+  - [ ] Empty array test
+- [ ] Script includes T1 edge cases:
+  - [ ] Unicode characters
+  - [ ] Special characters (quotes, escapes)
+- [ ] Destructive patterns excluded or marked manual-only
+- [ ] Script syntax validated (passes `node --check`)
+
+**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: _____
+
+---
+
+## Test P4.2-3: bulwark-fix-validator Edge Case Analysis
+
+**Prerequisite**: This test requires a debug report and a fix to validate. Run the setup prompt first.
+
+**Setup Prompt** (to create debug report):
+```
+The input handler in scripts/handlers/input-handler.ts has a bug - when a user
+submits a username with only spaces, it passes validation but causes issues
+downstream. Can you analyze this issue?
+```
+
+**Expected**: IssueAnalyzer produces debug report in `logs/debug-reports/`
+
+**Then apply this fix** (manually or ask Claude):
+```typescript
+// In validateUserInput, after checking username length:
+else if (data.username.trim().length < 3) {
+  errors.push('Username must have at least 3 non-whitespace characters');
+}
+```
+
+**Test Prompt** (after fix applied):
+```
+I applied the fix for the whitespace username bug. Can you validate that the
+fix is correct and complete?
+```
+
+**Expected Behavior**:
+1. Claude loads bulwark-fix-validator (or invokes via Task)
+2. Reads debug report from IssueAnalyzer
+3. Step 5 performs edge case analysis using bug-magnet-data
+4. Fix checked against T0/T1 edge cases
+5. Validation report generated
+
+**Verification**:
+- [ ] Fix validator invoked
+- [ ] Debug report read
+- [ ] Edge case analysis performed (Step 5):
+  - [ ] T0 edge cases checked (empty string, single char, spaces-only)
+  - [ ] T1 edge cases checked if applicable (unicode whitespace)
+- [ ] `edge_cases_handled` section in validation report
+- [ ] Each edge case has status: handled | not_handled | not_applicable
+- [ ] Unhandled edge cases flagged as risks
+- [ ] Confidence level assessed based on edge case coverage
+- [ ] Validation report written to `logs/validations/fix-validation-*.yaml`
+
+**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: _____
+
+---
+
+## Test P4.2-4: bug-magnet-data Tier Loading
+
+**Prompt** (technical verification):
+```
+I want to understand what edge case data is available. Can you show me the
+bug-magnet-data categories and what tier each belongs to?
+```
+
+**Expected Behavior**:
+1. Claude reads bug-magnet-data skill
+2. Lists available categories by tier (T0, T1, T2, T3)
+3. Explains which tiers are loaded when
+
+**Verification**:
+- [ ] T0 categories listed (boundaries, null handling)
+- [ ] T1 categories listed (basic injection, unicode)
+- [ ] T2 categories listed (dates, encoding, formats)
+- [ ] T3/manual-only patterns explained
+- [ ] Safety filtering (`safe_for_automation: false`) explained
+
+**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: _____
+
+---
+
+## Post-Test Checklist (P4.2)
+
+### test-audit Consumer
+- [ ] bug-magnet-data loaded in Step 7
+- [ ] Component type detected correctly
+- [ ] Context file loaded for component type
+- [ ] Edge case gaps identified
+- [ ] Recommendations reference bug-magnet-data categories
+
+### bulwark-verify Consumer
+- [ ] bug-magnet-data loaded in Step 3
+- [ ] T0 + T1 edge cases included in generated script
+- [ ] Destructive patterns excluded from automation
+- [ ] Script syntax valid
+
+### bulwark-fix-validator Consumer
+- [ ] bug-magnet-data loaded in Step 5
+- [ ] Edge case analysis documented in validation report
+- [ ] Each edge case has status assessment
+- [ ] Unhandled cases flagged as risks
+
+### General
+- [ ] All three consumers use bug-magnet-data correctly
+- [ ] Diagnostic outputs include edge case loading info
+- [ ] No regressions in consumer core functionality
+
+---
+
+## Cleanup Steps (P4.2)
+
+### CLEANUP-P4.2-000: Restore Fixtures from Backup (if modified during testing)
+
+```bash
+# Restore source fixture
+cp backup/scripts/handlers/input-handler.ts scripts/handlers/
+
+# Restore test fixture
+cp backup/tests/handlers/input-handler.test.ts tests/handlers/
+```
+
+### CLEANUP-P4.2-001: Remove Test Fixtures (after all testing complete)
+
+```bash
+# Remove source fixtures
+rm -rf scripts/handlers/
+
+# Remove test fixtures
+rm -rf tests/handlers/
+
+# Remove backup
+rm -rf backup/
+
+# Verify directories empty or removed
+ls scripts/ | grep -v claude-project | grep -v hooks | grep -v statusline | grep -v sync-hooks
+ls tests/ 2>/dev/null || echo "tests/ removed"
+```
+
+### CLEANUP-P4.2-002: Clean Generated Files
+
+```bash
+# Clean verification scripts
+rm -f tmp/verification/input-handler-*
+
+# Clean debug reports (optional - may want to keep)
+# rm -f logs/debug-reports/*input-handler*
+
+# Clean validation reports (optional)
+# rm -f logs/validations/*input-handler*
+
+# Clean diagnostic logs
+rm -f logs/diagnostics/test-audit-*.yaml
+rm -f logs/diagnostics/bulwark-verify-*.yaml
+rm -f logs/diagnostics/bulwark-fix-validator-*.yaml
+```
+
+### CLEANUP-P4.2-003: Verify Clean State
+
+```bash
+just typecheck
+just lint
+git status
+```
+
+### Cleanup Verification Checklist (P4.2)
+
+- [ ] `scripts/handlers/` removed
+- [ ] `tests/handlers/` removed
+- [ ] `backup/` removed
+- [ ] Generated verification scripts cleaned
+- [ ] `just typecheck` passes
+- [ ] `just lint` passes
+- [ ] No untracked test artifacts in git status
 
 ---
 
