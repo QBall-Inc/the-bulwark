@@ -1,6 +1,8 @@
 # Logs
 logs/*.yaml
 logs/*.log
+logs/*.md
+logs/debug-reports/
 logs/diagnostics/*.yaml
 logs/validations/*.yaml
 
@@ -64,3 +66,11 @@ tmp/
 
 # direnv (user-specific environment)
 .envrc
+
+# T-044 hook validation fixtures (temporary, cleaned up after validation)
+scripts/components/
+scripts/hooks/test-agent-hook.sh
+scripts/hooks/test-agent-stop.sh
+
+# Misc artifacts
+report.html

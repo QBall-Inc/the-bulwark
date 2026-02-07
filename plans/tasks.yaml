@@ -40,8 +40,8 @@ version: 4.5.0
 created: 2026-01-04
 updated: 2026-02-02
 current_phase: P4
-current_task: P4.2
-current_task_status: "P4.2 test fixtures complete (T-016 through T-019 done Session 36). Manual testing checkpoint (T-020) pending. Fixtures in scripts/handlers/ and tests/handlers/ with backups in backup/."
+current_task: P4.4
+current_task_status: "P4.4 task brief complete (Session 40). Agent-scoped hooks did NOT fire in T-044 validation - requires research. T-033 blocked until hook mechanism resolved."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -102,54 +102,88 @@ phases:
 
       - id: P4.3
         name: "Create bulwark-code-auditor agent (standalone)"
-        status: not_started
+        status: descoped
+        descope_reason: >
+          Session 39 (2026-02-06): Determined redundant after analysis.
+          /code-review skill already provides direct user invocation (all sections by default).
+          Code Review Pipeline provides bias-free isolated review via 4 parallel agents.
+          Sub-agents spawned by Task tool already run in isolated context windows.
+          Single-agent all-sections review is susceptible to Anthropic-documented security bias.
+          Pipeline's separation of concerns (one agent per section) is architecturally superior.
+          See docs/p4.3-4-research.md Section 7.3 and pipeline coexistence analysis.
         dependencies: [P4.1, P0.1]
-        implementation_plan: "plans/task-briefs/P4.3-4-standalone-agents.md"
-        deliverables:
-          - "agents/bulwark-code-auditor.md"
-          - "scripts/agents/finalize-code-auditor.sh"
-        acceptance_criteria:
-          - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: agent: sonnet"
-          - "Frontmatter: skills: code-review"
-          - "Stop hook for finalization"
-          - "Runs all code-review sections (security, type-safety, linting, standards)"
-          - "Never fixes, only identifies"
-          - "Output to logs/"
-          - "Diagnostic output to logs/diagnostics/"
-        verification:
-          - "Invoke via Task tool with subagent_type=bulwark-code-auditor"
-          - "Verify returns findings list, not fixes"
-          - "Verify all sections executed"
+        implementation_plan: "N/A - descoped"
+        deliverables: []
+        acceptance_criteria: []
+        verification: []
         notes:
           - "Renumbered from P4.5"
-          - "For standalone ad-hoc code auditing outside pipelines"
-          - "Pipeline Code Review uses role-based agents with section references instead"
-        estimated_sessions: 1
+          - "DESCOPED: Redundant with /code-review skill + Code Review Pipeline"
+          - "Pipeline 4-agent pattern is superior due to security bias prevention"
+          - "Sub-agents already have isolated context windows (no author bias)"
+        estimated_sessions: 0
 
       - id: P4.4
         name: "Create bulwark-implementer agent"
         status: not_started
         dependencies: [P0.1]
-        implementation_plan: "plans/task-briefs/P4.3-4-standalone-agents.md"
+        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
         deliverables:
           - "agents/bulwark-implementer.md"
           - "scripts/agents/finalize-implementer.sh"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: agent: sonnet"
-          - "Stop hook for finalization"
-          - "Agent-scoped PostToolUse hook for quality enforcement"
+          - "Frontmatter: model: opus"
+          - "Frontmatter: skills: [subagent-prompting, subagent-output-templating, component-patterns]"
+          - "Agent-scoped PostToolUse hook (matcher: Edit|Write) calling enforce-quality.sh"
+          - "Agent-scoped Stop hook for finalization"
+          - "Hook failure handling: max 3 retries, then escalate to orchestrator"
+          - "Input structure specified for fixes (debug report) and features (design doc)"
           - "Follows Bulwark standards"
           - "Produces code + tests"
-          - "Output to logs/"
+          - "Output to logs/implementer-{id}-{timestamp}.yaml"
           - "Diagnostic output to logs/diagnostics/"
+          - "Pre-Flight Gate with MANDATORY language (DEF-P4-005 prevention)"
+          - "Explicit output paths (DEF-P4-006 prevention)"
         verification:
           - "Invoke via Task tool with subagent_type=bulwark-implementer"
           - "Verify output quality"
-          - "Verify PostToolUse hook fires on Write"
+          - "Verify PostToolUse hook fires on Write/Edit"
+          - "Verify hook failure triggers self-correction"
+          - "Verify Stop hook fires on completion"
         notes:
           - "Renumbered from P4.6"
+          - "Model corrected from sonnet to opus (Session 39) per subagent-prompting: Write → Opus"
+          - "component-patterns required (not optional) for test scaffolding consistency"
+          - "Addresses ENH-P4-003 (unguarded code-writing path)"
+        estimated_sessions: 1
+
+      - id: P4.5
+        name: "Update pipeline-templates for parallel execution and P4.4 integration"
+        status: not_started
+        dependencies: [P4.4]
+        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
+        deliverables:
+          - "skills/pipeline-templates/SKILL.md (updated)"
+          - "skills/pipeline-templates/references/code-review.md (updated)"
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+          - "skills/pipeline-templates/references/new-feature.md (updated)"
+        acceptance_criteria:
+          - "F# pipeline syntax updated with parallel execution notation"
+          - "Code Review Pipeline documents parallel agent spawning"
+          - "Fix Validation Stage 2 updated from Orchestrator to bulwark-implementer"
+          - "New Feature Stage 3 updated from generic Opus to bulwark-implementer"
+          - "Pipeline coexistence documented (skill vs pipeline invocation paths)"
+          - "Removed standalone code-auditor references from code-review.md"
+        verification:
+          - "Parallel notation renders correctly in pipeline docs"
+          - "Fix Validation references bulwark-implementer for Stage 2"
+          - "New Feature references bulwark-implementer for Stage 3"
+          - "No stale references to bulwark-code-auditor"
+        notes:
+          - "Session 39 (2026-02-06): Created after P4.3 descoped"
+          - "Parallel execution update addresses user feedback on F# syntax"
+          - "Pipeline updates are estimated 70% of effort (Contrarian analysis)"
         estimated_sessions: 1
 
   - id: P5
@@ -254,7 +288,7 @@ phases:
       - id: P5.6
         name: "Finalize plugin manifest"
         status: not_started
-        dependencies: [P5.1, P5.2, P4.3, P4.4, P1.1, P1.2, P1.3]
+        dependencies: [P5.1, P5.2, P4.4, P4.5, P1.1, P1.2, P1.3]
         implementation_plan: "plans/task-briefs/P5.6-plugin-manifest.md"
         deliverables:
           - ".claude-plugin/plugin.json"
@@ -290,7 +324,7 @@ phases:
       - id: P5.8
         name: "Create testing infrastructure"
         status: not_started
-        dependencies: [P1.1, P1.2, P1.3, P4.3, P4.4]
+        dependencies: [P1.1, P1.2, P1.3, P4.4, P4.5]
         implementation_plan: "plans/task-briefs/P5.8-testing-infrastructure.md"
         deliverables:
           - "tests/run-diagnostic-tests.sh"
@@ -582,30 +616,72 @@ phases:
           - "OBS-003-B action item"
         estimated_sessions: 1
 
+      - id: P6.8
+        name: "Agent-scoped quality enforcement for bulwark-verify script generation"
+        status: not_started
+        dependencies: [P2.3]  # After bulwark-verify skill exists (already complete)
+        implementation_plan: "plans/task-briefs/P6.8-verify-scriptgen-agent.md"
+        deliverables:
+          - "agents/bulwark-verify-scriptgen.md"
+          - "scripts/hooks/enforce-quality-tmp.sh"
+          - "skills/bulwark-verify/SKILL.md (updated Step 4)"
+        acceptance_criteria:
+          - "Custom agent definition with agent: sonnet in frontmatter"
+          - "Agent frontmatter includes PostToolUse hook (matcher: Write|Edit) referencing enforce-quality-tmp.sh"
+          - "Agent frontmatter includes skills: [assertion-patterns, component-patterns, bug-magnet-data]"
+          - "enforce-quality-tmp.sh is a clone of enforce-quality.sh scoped ONLY to tmp/ folder"
+          - "enforce-quality-tmp.sh runs just typecheck, just lint, just build via Justfile"
+          - "enforce-quality-tmp.sh does NOT chain to suggest-pipeline.sh"
+          - "enforce-quality-tmp.sh rejects files outside tmp/ (safety boundary)"
+          - "enforce-quality-tmp.sh exit 2 on failure (blocks sub-agent Write, forces self-correction)"
+          - "bulwark-verify Step 4 changed from subagent_type=general-purpose to subagent_type=bulwark-verify-scriptgen"
+          - "tsconfig.json evaluated for tmp/verification/**/*.ts inclusion (required for typecheck)"
+        verification:
+          - "Invoke /bulwark-verify on a source component"
+          - "Verify bulwark-verify-scriptgen agent spawned (not general-purpose)"
+          - "Verify PostToolUse hook fires when agent writes to tmp/verification/"
+          - "Verify just typecheck and just lint run on generated script"
+          - "Verify exit 2 blocks a Write with type errors and agent self-corrects"
+          - "Verify enforce-quality-tmp.sh does NOT fire for files outside tmp/"
+          - "Verify existing enforce-quality.sh still skips tmp/ (no regression)"
+        notes:
+          - "Session 38 (2026-02-06): Identified during P4.2 hook investigation"
+          - "Reference: docs/P4-defects.md#ENH-P4-003"
+          - "bulwark-verify is the only code-writing path that bypasses quality enforcement"
+          - "PostToolUse hooks do not fire for sub-agent tool calls - only agent-scoped hooks work"
+          - "General-purpose sub-agents have no agent markdown file, so cannot define hooks"
+          - "Custom agent provides the mechanism to attach PostToolUse hooks to sub-agent writes"
+          - "Two separate enforce-quality scripts maintain clean separation: project files vs generated scripts"
+        estimated_sessions: 1
+
 # Summary
 summary:
-  total_tasks: 37  # Was 35, added P6.6-7
-  total_estimated_sessions: 38  # Was 36, added P6.6-7
+  total_tasks: 39  # Was 38, added P4.5, P4.3 descoped
+  total_estimated_sessions: 39  # P4.3 removed (1), P4.5 added (1), net zero
   completed_phases: "P0, P1, P2, P3 (see tasks_completed.yaml)"
   skipped_tasks:
     - id: P1.1
       reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
     - id: P5.2
       reason: "Redundant - Skills/commands merged in Claude Code 2.1.x, /bulwark-verify serves as both"
+  descoped_tasks:
+    - id: P4.3
+      reason: "Redundant - /code-review skill + Code Review Pipeline cover all use cases. Single-agent review susceptible to security bias. Pipeline's 4-agent separation is architecturally superior."
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
     P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
     P2: 3 tasks (Verification Scripts) - COMPLETED
     P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
-    P4: 4 tasks (Review Skills & Standalone Agents) - NOT STARTED
+    P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - P4.1-2 COMPLETE, P4.3 DESCOPED
     P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
-    P6: 5 tasks (Optional Enhancements) - Post-completion polish
+    P6: 8 tasks (Optional Enhancements) - Post-completion polish
   architecture_notes:
-    pipelines: "Orchestrate general-purpose sub-agents with role-based prompts"
+    pipelines: "Orchestrate general-purpose sub-agents with role-based prompts, support parallel execution"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
-    standalone_agents: "bulwark-code-auditor for ad-hoc use outside pipelines"
+    implementer_agent: "bulwark-implementer for code-writing with mandatory quality hooks"
     custom_sub_agents: "bulwark-issue-analyzer, bulwark-fix-validator for pipeline stages"
     main_context_orchestration: "test-audit uses Main Context Orchestration - orchestrator loads skill and spawns sub-agents directly"
+    code_review_paths: "/code-review skill for direct invocation, Code Review Pipeline (4 parallel agents) for bias-free review"
   claude_code_2_1_1_features:
     - "Custom sub-agents defined as markdown files"
     - "agent: haiku/sonnet for model selection"

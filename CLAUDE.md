@@ -22,6 +22,24 @@ The following commitments are **sacrosanct** and non-negotiable:
 
 ---
 
+## MANDATORY: Read Rules.md
+
+**YOU MUST READ `Rules.md` AT THE START OF EVERY SESSION.**
+
+This is not optional. This is not advisory. This is a binding requirement.
+
+`Rules.md` contains the immutable rules that govern all work in this project, including:
+- **SC1-SC3: Skill Compliance Rules** - When a skill is loaded, ALL instructions within it are BINDING. You MUST spawn sub-agents when instructed. You MUST NOT substitute your judgment for skill instructions.
+- **T1-T4: Testing Rules** - Real behavior verification, no mock-only tests
+- **V1-V4: Verification Rules** - No fix without verification
+- **OR1-OR4: Orchestrator Rules** - Implementation vs delegation boundaries
+
+**Failure to read and follow Rules.md is a contract violation.**
+
+If you find yourself thinking "I can handle this directly without following the skill instructions" - STOP. That thought pattern is explicitly prohibited by SC1-SC2 in Rules.md.
+
+---
+
 ## Your Role
 
 You operate in two modes depending on the work:

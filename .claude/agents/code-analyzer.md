@@ -9,6 +9,18 @@ tools:
   - Write
 skills:
   - subagent-output-templating
+hooks:
+  PostToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: command
+          command: "$CLAUDE_PROJECT_DIR/scripts/hooks/test-agent-hook.sh"
+          timeout: 10000
+  Stop:
+    - hooks:
+        - type: command
+          command: "$CLAUDE_PROJECT_DIR/scripts/hooks/test-agent-stop.sh"
+          timeout: 10000
 ---
 
 # Code Analyzer Agent

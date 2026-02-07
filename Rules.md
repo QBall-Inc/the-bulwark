@@ -163,7 +163,12 @@ All sub-agent invocations use the 4-part template:
 
 ### SA2: Output to Logs
 
-Sub-agent output written to `logs/{agent-name}-{timestamp}.md`. Main thread reads logs, not raw output.
+All sub-agent output MUST be written to the `logs/` directory. Main thread reads logs, not raw output.
+
+- **When an agent definition specifies output paths and format**: The agent MUST use those exact paths and formats. No additional log files. For example, if the agent specifies `logs/debug-reports/{id}-{timestamp}.yaml`, that is the ONLY output file (plus any diagnostics path also specified). Do NOT also write a generic `.md` file.
+- **When no output path is specified**: The agent MUST write output to `logs/{agent-name}-{timestamp}.md` as a fallback.
+
+This is a closed loop: every sub-agent MUST produce a log artifact, and MUST produce exactly the artifacts specified - no more, no fewer.
 
 ### SA3: No Direct Context Pollution
 
@@ -172,6 +177,10 @@ Sub-agent results return as summaries only (findings, severity, next actions). F
 ### SA4: Pipeline Orchestration
 
 Complex workflows use F# pipe syntax. Each agent reads previous agent's log output.
+
+### SA5: Never Background Sub-Agents
+
+Do not use `run_in_background: true` when spawning sub-agents. Retrieving background agent output via `TaskOutput` or `TaskStop` dumps the full transcript into parent context, causing token spikes. Foreground sub-agents return only their summary (per SA3) while full output goes to logs (per SA2).
 
 ---
 

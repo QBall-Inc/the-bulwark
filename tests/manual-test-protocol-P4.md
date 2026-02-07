@@ -377,6 +377,47 @@ During P4.1-11, Claude identified issues by reading the file directly rather tha
 
 ---
 
+## Cleanup Steps (P4.1)
+
+### CLEANUP-P4.1-001: Remove Direct Invocation Fixtures
+
+```bash
+rm -rf scripts/components/
+```
+
+### CLEANUP-P4.1-002: Remove Pipeline Integration Fixtures
+
+```bash
+rm -rf scripts/services/
+```
+
+### CLEANUP-P4.1-003: Remove Supporting Stubs
+
+```bash
+rm -f scripts/lib/database.ts
+rm -f scripts/lib/logger.ts
+rmdir scripts/lib/ 2>/dev/null || true
+```
+
+### CLEANUP-P4.1-004: Verify Clean State
+
+```bash
+just typecheck
+just lint
+git status
+```
+
+### Cleanup Verification Checklist (P4.1)
+
+- [ ] `scripts/components/` removed
+- [ ] `scripts/services/` removed
+- [ ] `scripts/lib/` removed
+- [ ] `just typecheck` passes
+- [ ] `just lint` passes
+- [ ] No untracked test artifacts in git status
+
+---
+
 # P4.2 Bug-Magnet-Data Consumer Tests
 
 **Purpose**: Verify bug-magnet-data integration in test-audit, bulwark-verify, and bulwark-fix-validator.
@@ -418,20 +459,20 @@ and recommendations - don't make any changes to the file yet.
 6. Edge case gaps identified
 
 **Verification**:
-- [ ] test-audit skill loaded
-- [ ] Component type detected (HTTP body handler or similar)
-- [ ] bug-magnet-data context file loaded
-- [ ] Edge case gaps flagged:
-  - [ ] Missing empty string tests (T0 - strings/boundaries)
-  - [ ] Missing unicode tests (T1 - strings/unicode)
-  - [ ] Missing injection tests (T1 - strings/injection)
-  - [ ] Missing number boundary tests (T0 - 0, negative, MAX_INT)
-  - [ ] Missing empty array tests (T0 - collections/arrays)
-- [ ] Recommendations reference bug-magnet-data categories
-- [ ] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
+- [x] test-audit skill loaded
+- [x] Component type detected (HTTP body handler or similar)
+- [x] bug-magnet-data context file loaded
+- [x] Edge case gaps flagged:
+  - [x] Missing empty string tests (T0 - strings/boundaries)
+  - [x] Missing unicode tests (T1 - strings/unicode)
+  - [x] Missing injection tests (T1 - strings/injection)
+  - [x] Missing number boundary tests (T0 - 0, negative, MAX_INT)
+  - [x] Missing empty array tests (T0 - collections/arrays)
+- [x] Recommendations reference bug-magnet-data categories
+- [x] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
 
-**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 37 (2026-02-02). DEF-P4-005 fix verified - Pre-Flight Gate worked. All 3 pipeline stages executed with sub-agents (Haiku classification, Sonnet detection, Sonnet synthesis). 27 coverage gaps identified. Logs written to logs/test-audit-20260202-204444.yaml. ENH-P4-002 logged for summary clarity (Verification Quality vs Test Coverage distinction).
 
 ---
 
@@ -454,23 +495,23 @@ and recommendations - don't make any changes to the file yet.
 6. Script includes edge cases from bug-magnet-data
 
 **Verification**:
-- [ ] bulwark-verify skill loaded
-- [ ] Component type identified
-- [ ] bug-magnet-data context file loaded
-- [ ] Verification script generated to `tmp/verification/input-handler-verify.*.js`
-- [ ] Script includes T0 edge cases:
-  - [ ] Empty string test (`""`)
-  - [ ] Very long string test
-  - [ ] Zero value test
-  - [ ] Empty array test
-- [ ] Script includes T1 edge cases:
-  - [ ] Unicode characters
-  - [ ] Special characters (quotes, escapes)
-- [ ] Destructive patterns excluded or marked manual-only
-- [ ] Script syntax validated (passes `node --check`)
+- [x] bulwark-verify skill loaded
+- [x] Component type identified (`file-parser` / `Input Validator / File Parser`)
+- [x] bug-magnet-data context file loaded (`context/file-contents.md` + T0/T1 edge case files)
+- [x] Verification script generated to `tmp/verification/input-handler-verify.test.ts` (752 lines)
+- [x] Script includes T0 edge cases:
+  - [x] Empty string test (`""`)
+  - [x] Very long string test
+  - [x] Zero value test
+  - [x] Empty array test
+- [x] Script includes T1 edge cases:
+  - [x] Unicode characters
+  - [x] Special characters (quotes, escapes)
+- [x] Destructive patterns excluded or marked manual-only (documented as MANUAL TEST)
+- [x] Script syntax validated (passes `node --check`)
 
-**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 37 (2026-02-03). 68 tests generated (38 validateUserInput + 13 processUserQuery + 17 formatDisplayName). Logs verified at `logs/bulwark-verify-20260203-035450.yaml` and `logs/diagnostics/bulwark-verify-20260203-035450.yaml`. Note: PostToolUse hook did not fire for sub-agent Write operations (logged as ENH-P4-003, deferred to P6.8). Sub-agent used ad-hoc npx commands instead of Justfile recipes for syntax validation. Fixture file was NOT modified during test.
 
 ---
 
@@ -509,19 +550,19 @@ fix is correct and complete?
 5. Validation report generated
 
 **Verification**:
-- [ ] Fix validator invoked
-- [ ] Debug report read
-- [ ] Edge case analysis performed (Step 5):
-  - [ ] T0 edge cases checked (empty string, single char, spaces-only)
-  - [ ] T1 edge cases checked if applicable (unicode whitespace)
-- [ ] `edge_cases_handled` section in validation report
-- [ ] Each edge case has status: handled | not_handled | not_applicable
-- [ ] Unhandled edge cases flagged as risks
-- [ ] Confidence level assessed based on edge case coverage
-- [ ] Validation report written to `logs/validations/fix-validation-*.yaml`
+- [x] Fix validator invoked
+- [x] Debug report read (`logs/debug-reports/whitespace-username-20260206-081500.yaml`)
+- [x] Edge case analysis performed (Step 5):
+  - [x] T0 edge cases checked (empty string, single char, spaces-only, min/max valid, over-max)
+  - [x] T1 edge cases checked (unicode whitespace, mixed whitespace, leading/trailing, email `' @ '`)
+- [x] `edge_cases_handled` section in validation report (12 cases across T0/T1/T2)
+- [x] Each edge case has status: handled | not_handled | not_applicable
+- [x] Unhandled edge cases flagged as risks (email, preferences, formatDisplayName)
+- [x] Confidence level assessed based on edge case coverage (MEDIUM - partial fix)
+- [x] Validation report written to `logs/validations/fix-validation-whitespace-username-20260206-082215.yaml`
 
-**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [ ] PASS / [x] SOFT PASS / [ ] FAIL
+**Notes**: Session 38 (2026-02-06). Core workflow correct: issue analysis identified root cause + 4 related bugs (email, preferences, formatDisplayName, test expectation). Fix validator correctly assessed as PARTIAL FIX with MEDIUM confidence. Bug-magnet-data T0/T1 edge cases properly checked. One deviation: both agents wrote extra `.md` files to `logs/` alongside the correct YAML outputs (DEF-P4-006 - SA2 conflict between generic rule and agent-specific output specs, fixed in Rules.md). Diagnostics: `logs/diagnostics/bulwark-issue-analyzer-20260206-081500.yaml`, `logs/diagnostics/bulwark-fix-validator-20260206-082215.yaml`.
 
 ---
 
@@ -539,42 +580,42 @@ bug-magnet-data categories and what tier each belongs to?
 3. Explains which tiers are loaded when
 
 **Verification**:
-- [ ] T0 categories listed (boundaries, null handling)
-- [ ] T1 categories listed (basic injection, unicode)
-- [ ] T2 categories listed (dates, encoding, formats)
-- [ ] T3/manual-only patterns explained
-- [ ] Safety filtering (`safe_for_automation: false`) explained
+- [x] T0 categories listed (string boundaries, number boundaries, booleans, arrays)
+- [x] T1 categories listed (unicode, special chars, injection, special numbers, precision, objects)
+- [x] T2 categories listed (dates, timezones, encoding, normalization, email/URL/JSON formats, concurrency, state machines + language-specific)
+- [x] T3/manual-only patterns explained (`manual_only: true` / `safe_for_automation: false` excluded from automated runs)
+- [x] Safety filtering (`safe_for_automation: false`) explained
 
-**Result**: [ ] PASS / [ ] SOFT PASS / [ ] FAIL
-**Notes**: _____
+**Result**: [x] PASS / [ ] SOFT PASS / [ ] FAIL
+**Notes**: Session 38 (2026-02-06). Skill loaded via `/bug-magnet-data`. All 4 tiers displayed with category names, file paths, and bugs caught. T0 (4 categories), T1 (6 categories), T2 (10 categories + language-specific JS/Python/Rust), T3 (manual-only exclusion). Clear table format with tier loading rules explained.
 
 ---
 
 ## Post-Test Checklist (P4.2)
 
 ### test-audit Consumer
-- [ ] bug-magnet-data loaded in Step 7
-- [ ] Component type detected correctly
-- [ ] Context file loaded for component type
-- [ ] Edge case gaps identified
-- [ ] Recommendations reference bug-magnet-data categories
+- [x] bug-magnet-data loaded in Step 7
+- [x] Component type detected correctly
+- [x] Context file loaded for component type
+- [x] Edge case gaps identified
+- [x] Recommendations reference bug-magnet-data categories
 
 ### bulwark-verify Consumer
-- [ ] bug-magnet-data loaded in Step 3
-- [ ] T0 + T1 edge cases included in generated script
-- [ ] Destructive patterns excluded from automation
-- [ ] Script syntax valid
+- [x] bug-magnet-data loaded in Step 3
+- [x] T0 + T1 edge cases included in generated script
+- [x] Destructive patterns excluded from automation
+- [x] Script syntax valid
 
 ### bulwark-fix-validator Consumer
-- [ ] bug-magnet-data loaded in Step 5
-- [ ] Edge case analysis documented in validation report
-- [ ] Each edge case has status assessment
-- [ ] Unhandled cases flagged as risks
+- [x] bug-magnet-data loaded in Step 5
+- [x] Edge case analysis documented in validation report
+- [x] Each edge case has status assessment
+- [x] Unhandled cases flagged as risks
 
 ### General
-- [ ] All three consumers use bug-magnet-data correctly
-- [ ] Diagnostic outputs include edge case loading info
-- [ ] No regressions in consumer core functionality
+- [x] All three consumers use bug-magnet-data correctly
+- [x] Diagnostic outputs include edge case loading info
+- [x] No regressions in consumer core functionality
 
 ---
 
@@ -861,8 +902,210 @@ git status
 
 ---
 
+# P4.4 Agent-Scoped Hook Validation (T-044)
+
+**Purpose**: Validate that agent-scoped PostToolUse and Stop hooks work correctly before building bulwark-implementer.
+**Prerequisite**: T-044 setup complete (test hook scripts created, code-analyzer agent modified)
+**Fixture location**: `scripts/components/` (event-emitter.ts, result-type.ts)
+
+---
+
+## Pre-Test Setup (T-044)
+
+1. Verify hook scripts exist and are executable:
+   ```bash
+   ls -la scripts/hooks/test-agent-hook.sh scripts/hooks/test-agent-stop.sh
+   ```
+2. Verify code-analyzer agent has hooks in frontmatter:
+   ```bash
+   head -25 .claude/agents/code-analyzer.md
+   ```
+3. Verify fixture files exist and pass Phase 1:
+   ```bash
+   ls scripts/components/
+   just typecheck
+   ```
+4. Clear previous hook debug logs:
+   ```bash
+   rm -f logs/agent-hook-debug.log logs/agent-stop-debug.log
+   ```
+5. Note current end of hooks.log for comparison:
+   ```bash
+   wc -l logs/hooks.log
+   ```
+6. Start a **fresh Claude Code session**
+
+---
+
+## Test T044-1: Agent-Scoped PostToolUse Hook Fires on Write
+
+**Prompt**:
+```
+Analyze the code in scripts/components/ and produce a summary report. Use the code-analyzer agent for this.
+```
+
+**Expected Behavior**:
+1. Claude spawns code-analyzer via Task tool
+2. Agent reads scripts/components/event-emitter.ts and result-type.ts
+3. Agent writes YAML report to logs/code-analyzer-*.yaml
+4. Agent-scoped PostToolUse hook fires on the Write
+5. Agent completes and Stop hook fires
+
+**Verification** (run after prompt completes):
+```bash
+# V1: Agent-scoped PostToolUse hook fired
+grep "AGENT-HOOK-TEST: PostToolUse fired" logs/hooks.log
+
+# V2: Stop hook fired
+grep "AGENT-HOOK-TEST: Stop fired" logs/hooks.log
+
+# V3: $CLAUDE_PROJECT_DIR was available
+grep "AGENT-HOOK-TEST: CLAUDE_PROJECT_DIR=" logs/hooks.log
+
+# V4: Global hooks also fired (parallel execution)
+grep "SubagentStop" logs/hooks.log | tail -3
+
+# V5: PostToolUse stdin structure captured
+cat logs/agent-hook-debug.log
+
+# V6: Stop stdin structure captured
+cat logs/agent-stop-debug.log
+
+# V7: Code-analyzer report was written
+ls -la logs/code-analyzer-*.yaml | tail -1
+```
+
+**Checklist**:
+- [ ] `AGENT-HOOK-TEST: PostToolUse fired` appears in hooks.log
+- [ ] `AGENT-HOOK-TEST: Stop fired` appears in hooks.log
+- [ ] `CLAUDE_PROJECT_DIR` is set (not "NOT set")
+- [ ] Global SubagentStop also fired (parallel execution confirmed)
+- [ ] `agent-hook-debug.log` contains JSON with `tool_input.file_path`
+- [ ] `agent-stop-debug.log` contains JSON with `agent_id`
+- [ ] Code-analyzer YAML report exists in logs/
+
+**Result**: [ ] PASS / [ ] FAIL
+**Notes**: _____
+
+---
+
+## Test T044-2: Exit 2 Blocking Behavior
+
+**Pre-requisite**: Uncomment the exit 2 block in `scripts/hooks/test-agent-hook.sh` (lines 55-57):
+```bash
+# In scripts/hooks/test-agent-hook.sh, change:
+#   # echo "AGENT-HOOK-TEST: Simulated quality gate failure" >&2
+#   # echo "Fix the type errors below before proceeding." >&2
+#   # exit 2
+# To:
+echo "AGENT-HOOK-TEST: Simulated quality gate failure" >&2
+echo "Fix the type errors below before proceeding." >&2
+exit 2
+```
+
+**Prompt** (same as T044-1):
+```
+Analyze the code in scripts/components/ and produce a summary report. Use the code-analyzer agent for this.
+```
+
+**Expected Behavior**:
+1. Agent attempts Write to logs/
+2. Hook fires, returns exit 2 with stderr message
+3. Agent receives the error feedback
+4. Agent acknowledges or attempts to handle the error
+
+**Verification**:
+```bash
+# Check hooks.log for the PostToolUse entry (hook ran before exit 2)
+grep "AGENT-HOOK-TEST: PostToolUse fired" logs/hooks.log | tail -1
+```
+
+**Checklist**:
+- [ ] Hook fired (entry in hooks.log before exit 2)
+- [ ] Agent received stderr message ("Simulated quality gate failure")
+- [ ] Agent behavior observed: _____ (document what happened)
+
+**Result**: [ ] PASS / [ ] FAIL
+**Notes**: _____
+
+**IMPORTANT**: Re-comment the exit 2 block after this test:
+```bash
+# Restore scripts/hooks/test-agent-hook.sh to exit 0
+```
+
+---
+
+## Post-Test: Document Findings
+
+Record the answers to these questions in the session handoff:
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Does PostToolUse hook fire on agent Write? | |
+| 2 | Does stdin JSON match global PostToolUse format? | |
+| 3 | Is $CLAUDE_PROJECT_DIR available? | |
+| 4 | Does exit 2 send stderr to agent? | |
+| 5 | Do agent-scoped and global hooks both fire? | |
+| 6 | Does Stop hook fire on agent completion? | |
+
+---
+
+## Cleanup Steps (T-044)
+
+### CLEANUP-T044-001: Remove Hook Validation Fixtures
+
+```bash
+rm -rf scripts/components/event-emitter.ts
+rm -rf scripts/components/result-type.ts
+rmdir scripts/components/ 2>/dev/null
+```
+
+### CLEANUP-T044-002: Remove Test Hook Scripts
+
+```bash
+rm scripts/hooks/test-agent-hook.sh
+rm scripts/hooks/test-agent-stop.sh
+```
+
+### CLEANUP-T044-003: Restore Code-Analyzer Agent
+
+Remove the `hooks:` section from frontmatter in both locations:
+- `.claude/agents/code-analyzer.md`
+- `tests/agents/code-analyzer.md`
+
+Restore to original (frontmatter ends after `skills:` list, no `hooks:` key).
+
+### CLEANUP-T044-004: Remove Debug Logs
+
+```bash
+rm -f logs/agent-hook-debug.log
+rm -f logs/agent-stop-debug.log
+```
+
+### CLEANUP-T044-005: Verify Clean State
+
+```bash
+just typecheck
+git status
+```
+
+### T-044 Cleanup Verification Checklist
+
+- [ ] `scripts/components/event-emitter.ts` removed
+- [ ] `scripts/components/result-type.ts` removed
+- [ ] `scripts/hooks/test-agent-hook.sh` removed
+- [ ] `scripts/hooks/test-agent-stop.sh` removed
+- [ ] `code-analyzer.md` restored (both locations)
+- [ ] Debug logs removed
+- [ ] `just typecheck` passes
+- [ ] No untracked T-044 artifacts in git status
+
+---
+
 ## Design Reference
 
 - **Skill**: `skills/code-review/SKILL.md`
 - **Task Brief**: `plans/task-briefs/P4.1-2-review-skills.md`
 - **Synthesis Doc**: `docs/code-review-synthesis.md`
+- **Task Brief (P4.4-5)**: `plans/task-briefs/P4.4-5-implementer-and-pipelines.md`
+- **Research Doc**: `docs/p4.3-4-research.md`

@@ -17,6 +17,35 @@ Then proceed with the user's request.
 
 ---
 
+## MANDATORY: Rules.md is Binding
+
+**YOU MUST READ AND FOLLOW `Rules.md` THROUGHOUT THIS SESSION.**
+
+This is not optional. This is not advisory. This is a binding, mandatory, non-negotiable contract.
+
+`Rules.md` contains immutable rules including:
+
+### SC1-SC3: Skill Compliance Rules (CRITICAL)
+
+When a skill is loaded:
+- **ALL instructions within the skill are BINDING**, not advisory
+- **You MUST spawn sub-agents when the skill specifies sub-agent spawning**
+- **You MUST NOT perform the sub-agent's work yourself**
+- **You MUST NOT substitute your judgment for skill instructions**
+- **You MUST NOT skip steps because they seem unnecessary**
+
+If you find yourself thinking "I can analyze this directly and give a faster answer" - **STOP**. That thought pattern violates SC1-SC2. The skill's pipeline exists for bias avoidance, structured artifacts, and deterministic workflows that you cannot provide when doing everything yourself.
+
+### Violation Consequences
+
+Ignoring skill instructions:
+- Defeats the purpose of the Bulwark quality enforcement system
+- Produces inconsistent, non-reproducible outputs
+- Bypasses bias separation that sub-agent pipelines enforce
+- Breaks the observability chain required for multi-agent workflows
+
+---
+
 ## Bulwark Governance Protocol
 
 This session is governed by The Bulwark quality enforcement system.

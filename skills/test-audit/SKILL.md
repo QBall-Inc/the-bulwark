@@ -36,6 +36,67 @@ User-facing entry point for test suite quality auditing. Orchestrates classifica
 
 ---
 
+## Pre-Flight Gate (BLOCKING)
+
+**STOP. Before ANY analysis, you MUST acknowledge what this skill requires.**
+
+This skill uses a **multi-stage pipeline with sub-agents**. You are the orchestrator, NOT the executor.
+
+### What You MUST Do
+
+1. **Spawn sub-agents** for each stage:
+   - Stage 1: Classification → `Task(subagent_type="general-purpose", model="haiku", ...)`
+   - Stage 2: Mock Detection → `Task(subagent_type="general-purpose", model="sonnet", ...)`
+   - Stage 3: Synthesis → `Task(subagent_type="general-purpose", model="sonnet", ...)`
+
+2. **Write outputs to logs/**:
+   - `logs/test-classification-{timestamp}.yaml`
+   - `logs/mock-detection-{timestamp}.yaml`
+   - `logs/test-audit-{timestamp}.yaml`
+   - `logs/diagnostics/test-audit-{timestamp}.yaml`
+
+3. **Follow the orchestration instructions exactly** - do not substitute your own judgment
+
+### What You MUST NOT Do
+
+- **Do NOT perform classification yourself** - spawn a Haiku sub-agent
+- **Do NOT perform mock detection yourself** - spawn a Sonnet sub-agent
+- **Do NOT perform synthesis yourself** - spawn a Sonnet sub-agent
+- **Do NOT skip stages** because you think you can do it faster
+- **Do NOT return to user** until all log files are written
+
+### Why This Matters
+
+The pipeline exists for:
+- **Bias avoidance** - Different models for different stages prevent self-review bias
+- **Structured artifacts** - Logs enable observability and debugging
+- **Deterministic workflow** - Reproducible results across sessions
+- **Separation of concerns** - Each stage has a specific role
+
+**If you find yourself thinking "I can just analyze this directly" - STOP. That violates SC1-SC2 in Rules.md.**
+
+### Completion Checklist
+
+Before returning to user, verify ALL items:
+
+- [ ] Stage 1 (Classification) completed - output written to `logs/test-classification-*.yaml`
+- [ ] Stage 2 (Mock Detection) completed - output written to `logs/mock-detection-*.yaml`
+- [ ] Stage 3 (Synthesis) completed - output written to `logs/test-audit-*.yaml`
+- [ ] Summary presented to user with violation counts and REWRITE_REQUIRED status
+- [ ] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
+
+**If REWRITE_REQUIRED == true, also verify:**
+- [ ] For each file: component type identified
+- [ ] For each file: `bug-magnet-data` context file loaded for component type
+- [ ] For each file: T0 + T1 edge cases loaded from bug-magnet-data
+- [ ] Verification scripts include edge cases from bug-magnet-data
+- [ ] Destructive patterns (`safe_for_automation: false`) excluded or marked manual-only
+- [ ] Rewrites applied using assertion-patterns and component-patterns
+
+**Do NOT return to user until all applicable checklist items are verified.**
+
+---
+
 ## Usage
 
 ```
@@ -548,33 +609,6 @@ This skill has the following known limitations that are documented for transpare
 **Issue:** Single sub-agent calls can handle ~20-25 test files before approaching context limits.
 
 **Mitigation:** Batching with parallel sub-agents implemented for >20 files (classification) and >10 flagged files (detection).
-
----
-
-## Completion Checklist
-
-Before completing test-audit execution, verify ALL items:
-
-### Pipeline Stages
-- [ ] Stage 1 (Classification) completed - output written to `logs/test-classification-*.yaml`
-- [ ] Stage 2 (Mock Detection) completed - output written to `logs/mock-detection-*.yaml`
-- [ ] Stage 3 (Synthesis) completed - output written to `logs/test-audit-*.yaml`
-- [ ] Summary presented to user with violation counts and REWRITE_REQUIRED status
-
-### If REWRITE_REQUIRED == true
-- [ ] For each file: component type identified
-- [ ] For each file: `bug-magnet-data` context file loaded for component type
-- [ ] For each file: T0 + T1 edge cases loaded from bug-magnet-data
-- [ ] Verification scripts include edge cases from bug-magnet-data
-- [ ] Destructive patterns (`safe_for_automation: false`) excluded or marked manual-only
-- [ ] Rewrites applied using assertion-patterns and component-patterns
-- [ ] Verification scripts executed successfully
-- [ ] Original tests pass after rewrite
-
-### Diagnostics
-- [ ] Diagnostic output written to `logs/diagnostics/test-audit-*.yaml`
-
-**Do NOT return to user until all applicable checklist items are verified.**
 
 ---
 

@@ -29,6 +29,51 @@ Curated edge case test data for boundary testing, verification scripts, and test
 
 ---
 
+## Pre-Flight Gate (BLOCKING)
+
+**STOP. Before providing ANY edge case data, you MUST follow the three-phase workflow.**
+
+This skill provides **curated data** through a **deterministic workflow**. You must execute all phases.
+
+### What You MUST Do
+
+1. **Phase 1: Component Detection** - Identify component type and load context file
+2. **Phase 2: Data Loading** - Load T0 + T1 data files (REQUIRED), T2 if specified by context
+3. **Phase 3: Edge Case Application** - Apply edge cases and report what was loaded
+
+### What You MUST NOT Do
+
+- **Do NOT generate edge cases from your own knowledge** - use the curated data files
+- **Do NOT skip loading context files** - they determine which categories apply
+- **Do NOT skip the safety filter** - patterns marked `safe_for_automation: false` must be excluded
+- **Do NOT return partial data** - all applicable tiers must be loaded
+
+### Why This Matters
+
+The curated data exists because:
+- **Curation beats generation** - 50 well-chosen edge cases find more bugs than 10,000 random inputs
+- **Reproducibility** - Same component type = same edge cases every time
+- **Safety** - Destructive patterns are explicitly marked and filtered
+
+**If you find yourself thinking "I know some good edge cases" - STOP. Use the data files.**
+
+### Completion Checklist
+
+Before returning to consumer, verify ALL items:
+
+- [ ] Phase 1: Component type detected
+- [ ] Phase 1: Context file loaded for component type
+- [ ] Phase 2: T0 data files loaded (boundaries, booleans, collections)
+- [ ] Phase 2: T1 data files loaded (unicode, special-chars, injection, special numbers)
+- [ ] Phase 2: T2 data files loaded (if specified by context file)
+- [ ] Phase 2: Safety filter applied (excluded manual_only and safe_for_automation: false)
+- [ ] Phase 3: Edge cases applied to test/verification scenario
+- [ ] Phase 3: Report includes categories loaded and patterns excluded
+
+**Do NOT return to consumer until all checkboxes can be marked complete.**
+
+---
+
 ## Dependencies
 
 This skill provides data files and context guidance. Understanding what to load ensures deterministic execution.
@@ -237,19 +282,3 @@ values:
 5. Report any edge cases that break the fix
 ```
 
----
-
-## Completion Checklist
-
-**IMPORTANT**: Before returning to the consumer, verify ALL items are complete:
-
-- [ ] Phase 1: Component type detected
-- [ ] Phase 1: Context file loaded for component type
-- [ ] Phase 2: T0 data files loaded (boundaries, booleans, collections)
-- [ ] Phase 2: T1 data files loaded (unicode, special-chars, injection, special numbers)
-- [ ] Phase 2: T2 data files loaded (if specified by context file)
-- [ ] Phase 2: Safety filter applied (excluded manual_only and safe_for_automation: false)
-- [ ] Phase 3: Edge cases applied to test/verification scenario
-- [ ] Phase 3: Report includes categories loaded and patterns excluded
-
-**Do NOT return to consumer until all checkboxes can be marked complete.**
