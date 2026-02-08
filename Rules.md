@@ -182,6 +182,14 @@ Complex workflows use F# pipe syntax. Each agent reads previous agent's log outp
 
 Do not use `run_in_background: true` when spawning sub-agents. Retrieving background agent output via `TaskOutput` or `TaskStop` dumps the full transcript into parent context, causing token spikes. Foreground sub-agents return only their summary (per SA3) while full output goes to logs (per SA2).
 
+### SA6: Pipeline Suggestions from Code-Writing Sub-Agents
+
+When a code-writing sub-agent returns pipeline suggestions in its summary, the orchestrator MUST evaluate each suggestion and either:
+1. **Execute** the suggested pipeline, or
+2. **Document** why it was deferred (e.g., "Deferred: change is < 5 lines, code-review not warranted")
+
+Ignoring pipeline suggestions silently is a rule violation. Pipeline suggestions use MANDATORY language in the sub-agent's return summary to ensure orchestrator visibility and action.
+
 ---
 
 ## Issue Debugging Rules (ID)

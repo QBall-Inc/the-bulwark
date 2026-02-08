@@ -72,6 +72,14 @@ completion:
   next_steps:
     - "{action item 1}"
 
+# Required for code-writing agents (omit for read-only agents):
+# Pipeline suggestions from implementer-quality.sh output
+pipeline_suggestions:
+  - pipeline: "{recommended pipeline name}"
+    target_files:
+      - "{file path}"
+    reason: "{why this pipeline is recommended}"
+
 # Required: Summary for main thread (100-300 tokens)
 summary: |
   {Concise summary for main thread consumption}
@@ -247,6 +255,18 @@ Next: run migration in staging, monitor for 48h before production.
 - Verbose explanations
 - Duplicate information from log
 
+### Pipeline Suggestions in Summary (Code-Writing Agents)
+
+Code-writing agents (e.g., bulwark-implementer) that invoke `implementer-quality.sh` and receive pipeline suggestions MUST include them in the summary with MANDATORY language. This ensures the orchestrator sees and acts on them per SA6.
+
+```
+MANDATORY FOLLOW-UP (SA6): Run the following pipeline(s):
+  - {pipeline} on {target_files} ({reason})
+Orchestrator MUST evaluate each suggestion and either execute or document deferral per SA6.
+```
+
+Read-only agents (reviewers, auditors) omit this section.
+
 ---
 
 ## Diagnostic Output
@@ -329,6 +349,12 @@ completion:
   next_steps:
     - "{action}"
 
+# Include for code-writing agents only (omit for read-only agents):
+pipeline_suggestions:
+  - pipeline: "{pipeline name}"
+    target_files: ["{path}"]
+    reason: "{reason}"
+
 summary: |
   {100-300 token summary}
 
@@ -350,6 +376,7 @@ diagnostics:
 [ ] Key risks mentioned
 [ ] Next steps listed
 [ ] Under 300 tokens
+[ ] Pipeline suggestions with MANDATORY language (code-writing agents only)
 ```
 
 ### Output Location Checklist

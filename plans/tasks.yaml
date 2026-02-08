@@ -38,10 +38,10 @@
 project: the-bulwark
 version: 4.5.0
 created: 2026-01-04
-updated: 2026-02-02
+updated: 2026-02-07
 current_phase: P4
 current_task: P4.4
-current_task_status: "P4.4 task brief updated for hook pivot (Session 41). Agent-scoped hooks confirmed broken (#18392). Global hooks verified working for sub-agent writes. Design pivoted to global hooks + self-validation. T-033 unblocked, awaiting user review of updated brief."
+current_task_status: "P4.4 task brief fully updated (Session 42). Design finalized: implementer-quality.sh (agent-invoked quality gate), pipeline suggestions via SA6, double execution accepted. Rules.md SA6 added, subagent-output-templating updated with pipeline_suggestions. Ready for T-033 implementation."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -130,14 +130,15 @@ phases:
         implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
         deliverables:
           - "agents/bulwark-implementer.md"
-          - "scripts/agents/finalize-implementer.sh"
+          - "scripts/hooks/implementer-quality.sh"
         acceptance_criteria:
           - "Custom sub-agent definition (markdown file)"
           - "Frontmatter: model: opus"
           - "Frontmatter: skills: [subagent-prompting, subagent-output-templating, component-patterns]"
-          - "Agent-scoped PostToolUse hook (matcher: Edit|Write) calling enforce-quality.sh"
-          - "Agent-scoped Stop hook for finalization"
-          - "Hook failure handling: max 3 retries, then escalate to orchestrator"
+          - "Frontmatter: NO hooks: section (agent-scoped hooks broken, bug #18392)"
+          - "Agent calls implementer-quality.sh directly via Bash after each Write/Edit"
+          - "Pipeline suggestions logged to report and returned in summary with MANDATORY language (SA6)"
+          - "Quality failure handling: max 3 retries, then escalate to orchestrator"
           - "Input structure specified for fixes (debug report) and features (design doc)"
           - "Follows Bulwark standards"
           - "Produces code + tests"
@@ -148,14 +149,16 @@ phases:
         verification:
           - "Invoke via Task tool with subagent_type=bulwark-implementer"
           - "Verify output quality"
-          - "Verify PostToolUse hook fires on Write/Edit"
-          - "Verify hook failure triggers self-correction"
-          - "Verify Stop hook fires on completion"
+          - "Verify agent calls implementer-quality.sh after Write/Edit"
+          - "Verify quality failure triggers self-correction"
+          - "Verify pipeline suggestions in summary with MANDATORY language"
+          - "Verify SubagentStop hook verifies log output (track-pipeline-stop.sh)"
         notes:
           - "Renumbered from P4.6"
           - "Model corrected from sonnet to opus (Session 39) per subagent-prompting: Write → Opus"
           - "component-patterns required (not optional) for test scaffolding consistency"
           - "Addresses ENH-P4-003 (unguarded code-writing path)"
+          - "Session 42: Design finalized with implementer-quality.sh, SA6 pipeline suggestions"
         estimated_sessions: 1
 
       - id: P4.5
