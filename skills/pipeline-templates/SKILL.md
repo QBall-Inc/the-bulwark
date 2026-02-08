@@ -53,7 +53,7 @@ Is this a multi-agent task?
 
 **Custom Sub-Agents**: Fix Validation pipeline uses custom sub-agents (`bulwark-issue-analyzer`, `bulwark-fix-validator`) that encapsulate stage behavior and load relevant skills via frontmatter.
 
-**Standalone Agents**: For ad-hoc use outside pipelines, use `bulwark-code-auditor` which runs all code-review sections.
+**Code-Writing Agent**: Fix Validation and New Feature pipelines use `bulwark-implementer` (custom sub-agent, Opus) for code-writing stages with built-in quality enforcement.
 
 ## Model Selection
 
@@ -65,7 +65,7 @@ Reference `subagent-prompting` skill for the task-type rubric:
 | **Review & Analyze** | Sonnet | Code review, failure analysis, audits |
 | **Write & Fix** | Opus | Write code, write tests, apply fixes |
 
-**Override rule**: If a custom agent specifies `agent:` in frontmatter, use that model instead.
+**Override rule**: If a custom agent specifies `model:` in frontmatter, use that model instead.
 
 ## Validation Rules
 
@@ -130,8 +130,8 @@ All pipelines follow this execution pattern:
 
 ```fsharp
 // F# pipe syntax for workflow orchestration
-// Each stage runs sequentially, reading previous stage's output
 
+// Sequential execution (each stage reads previous stage's output)
 Stage1 (task)     // First agent runs
 |> Stage2 (task)  // Reads Stage1 output, runs
 |> Stage3 (task)  // Reads Stage2 output, runs
@@ -139,10 +139,15 @@ Stage1 (task)     // First agent runs
     then StageA
     else StageB)
 |> LOOP(max=N)    // Optional iteration
+
+// Parallel execution (agents run concurrently, results merged)
+[Stage1a, Stage1b, Stage1c]  // Array notation = parallel
+|> Stage2 (reads all Stage1 outputs)
 ```
 
 **Key principles**:
-- Each stage reads the previous stage's log output
+- **Sequential** (`|>`): Each stage reads the previous stage's log output
+- **Parallel** (`[]`): Stages in array notation run concurrently via multiple Task calls in a single message
 - Conditional branches based on stage results
 - Loops have explicit iteration limits
 - All output logged to `logs/`
@@ -168,16 +173,17 @@ Logs written to: `logs/pipeline-tracking.log`
 ## Quick Reference
 
 ```fsharp
-// Code Review (role-based agents, each loads code-review skill)
-SecurityReviewer (section: Security)
-|> TypeSafetyReviewer (section: Type Safety)
-|> LintReviewer (section: Linting)
-|> StandardsReviewer (section: Coding Standards)
+// Code Review (role-based agents, parallel execution)
+[SecurityReviewer (section: Security),          // Sonnet - role-based
+ TypeSafetyReviewer (section: Type Safety),     // Sonnet - role-based
+ LintReviewer (section: Linting),               // Sonnet - role-based
+ StandardsReviewer (section: Coding Standards)] // Sonnet - role-based
+|> ReviewSynthesizer (consolidates all findings)
 |> (if critical_issues then FixWriter else Done)
 
-// Fix Validation (custom sub-agents + orchestrator)
+// Fix Validation (custom sub-agents)
 IssueAnalyzer (bulwark-issue-analyzer, produces debug_report)
-|> FixWriter (orchestrator implements fix)
+|> FixWriter (bulwark-implementer, implements fix)
 |> (if !tests_cover_scenario                              // Only if tests don't exist
     then TestWriter |> TestAudit (mock-detection only)    // Audit generated tests for T1-T4
     else Skip)
@@ -192,13 +198,13 @@ TestClassifier |> MockDetector |> AuditSynthesizer
 |> LOOP(max=2)
 
 // New Feature
-Researcher |> Implementer |> TestWriter |> CodeReviewer
+Researcher |> Architect |> Implementer (bulwark-implementer) |> TestWriter |> CodeReviewer
 
 // Research & Planning (min 3 iterations)
 Researcher |> PlanDraft |> PlanReviewer |> LOOP(min=3)
 
-// Test Execution & Fix
-TestRunner |> (if failures then FailureAnalyzer |> FixWriter |> LOOP else Done)
+// Test Execution & Fix (orchestrator fixes, PostToolUse hook enforces quality)
+TestRunner |> (if failures then FailureAnalyzer |> FixWriter (orchestrator) |> LOOP else Done)
 
 // CODE CHANGE WORKFLOW (Composite - chains pipelines after code edit)
 // See references/code-change-workflow.md for full details

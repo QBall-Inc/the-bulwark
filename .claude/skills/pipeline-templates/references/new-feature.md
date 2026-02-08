@@ -20,7 +20,7 @@ Implement new functionality with proper research, implementation, testing, and r
 
 Researcher (gather requirements & patterns)      // Haiku - lookups
 |> Architect (design approach)                   // Sonnet - analysis
-|> Implementer (write code)                      // Opus - write code
+|> Implementer (write code)                      // Opus - bulwark-implementer
 |> TestWriter (write tests)                      // Opus - write tests
 |> CodeReviewer (review implementation)          // Sonnet - review
 |> (if !approved
@@ -108,7 +108,9 @@ design:
 
 ### Stage 3: Implementer
 
-**Model**: Opus (code writing required)
+**Agent**: `bulwark-implementer` (custom sub-agent)
+
+**Model**: Opus (code writing with quality enforcement)
 
 **GOAL**: Implement the feature per design.
 
@@ -117,27 +119,58 @@ design:
 - Use existing patterns
 - Do NOT over-engineer
 - Keep changes minimal
+- Max 3 quality gate retries before escalation
 
-**CONTEXT**:
-- Design document from Stage 2
+**CONTEXT** (must include for `context: fork`):
+- Design document from Stage 2 (include full design output or path)
+- Requirements from Stage 1 research
+- Existing patterns to follow
 - Project coding standards
-- Related existing code
 
-**OUTPUT**: Implementation
-```yaml
-implementation:
-  files_created:
-    - path: src/utils/csv-export.ts
-      purpose: "CSV export utility"
-      lines: 45
-  files_modified:
-    - path: src/components/DataTable.tsx
-      changes: "Added export button integration"
-  dependencies_added:
-    - name: csv-stringify
-      version: "^6.0.0"
-      reason: "CSV generation"
+**Invocation**:
 ```
+Task: subagent_type=bulwark-implementer
+Prompt:
+  GOAL: Implement the feature based on the design document.
+  CONSTRAINTS: Follow the design. Write tests. Max 3 quality gate retries.
+  CONTEXT:
+    mode: feature
+    design_document: {Stage 2 design output or path}
+    requirements: {from Stage 1 research}
+    existing_patterns: {relevant pattern files}
+  OUTPUT: Implementation report at logs/implementer-{id}-{timestamp}.yaml
+```
+
+**OUTPUT**: Implementation report at `logs/implementer-{id}-{timestamp}.yaml`
+```yaml
+implementation_report:
+  changes:
+    files_created:
+      - path: src/utils/csv-export.ts
+        purpose: "CSV export utility"
+        lines: 45
+    files_modified:
+      - path: src/components/DataTable.tsx
+        changes: "Added export button integration"
+    dependencies_added:
+      - name: csv-stringify
+        version: "^6.0.0"
+        reason: "CSV generation"
+  tests:
+    files_created:
+      - path: tests/utils/csv-export.test.ts
+        cases: ["exports simple data", "handles special characters", "streams large datasets"]
+  quality_gates:
+    typecheck: passed
+    lint: passed
+    retries: 0
+  pipeline_suggestions:
+    - pipeline: "Code Review"
+      target_files: [src/utils/csv-export.ts, src/components/DataTable.tsx]
+      reason: "New feature implementation, 2 files"
+```
+
+**SA6 Note**: The implementer returns pipeline suggestions with MANDATORY language in its summary. The orchestrator MUST evaluate each suggestion per SA6.
 
 ### Stage 4: TestWriter
 
@@ -206,9 +239,10 @@ review:
 
 ### Loop Condition
 
-If `approved: false`, loop back to Implementer with:
+If `approved: false`, loop back to Stage 3 (`bulwark-implementer`) with:
 - Review feedback
 - Specific concerns to address
+- Previous implementation report path
 
 **Max iterations**: 2 (prevent scope creep)
 
@@ -226,8 +260,9 @@ Task: subagent_type=general-purpose, model=sonnet
 Prompt: [4-part prompt, reads research]
 
 ### Stage 3: Implementer
-Task: subagent_type=general-purpose, model=opus
-Prompt: [4-part prompt, follows design]
+Task: subagent_type=bulwark-implementer
+Prompt: [4-part prompt with design doc, requirements, existing patterns]
+Output: Implementation report at logs/implementer-{id}-{timestamp}.yaml
 
 ### Stage 4: TestWriter
 Task: subagent_type=general-purpose, model=opus
@@ -239,7 +274,7 @@ Prompt: [4-part prompt, reviews all]
 
 ### Loop Check
 If not approved and iterations < 2:
-  Go to Stage 3 with feedback
+  Go to Stage 3 (bulwark-implementer) with feedback + previous implementation report
 ```
 
 ## Success Criteria

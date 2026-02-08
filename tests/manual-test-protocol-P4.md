@@ -694,7 +694,7 @@ git status
 
 # P4.4 Bulwark-Implementer Tests
 
-*To be added after P4.4 implementation*
+See `tests/manual-test-protocol-P4.4-5.md` for P4.4 and P4.5 test cases.
 
 ---
 

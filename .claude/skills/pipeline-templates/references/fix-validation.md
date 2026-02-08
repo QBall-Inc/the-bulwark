@@ -19,7 +19,7 @@ Fix bugs or issues and validate the fix through review and testing.
 // Output: Verified fix with passing tests and confidence assessment
 
 IssueAnalyzer (root cause + debug report)     // Sonnet - bulwark-issue-analyzer
-|> FixWriter (implement fix)                  // Opus - orchestrator
+|> FixWriter (implement fix)                  // Opus - bulwark-implementer
 |> (if !tests_cover_scenario                  // Conditional: only if tests don't already exist
     then TestWriter |> TestAudit              // Opus writes, then audit for T1-T4
     else Skip)
@@ -124,7 +124,9 @@ debug_report:
 
 ### Stage 2: FixWriter
 
-**Model**: Opus (code writing required)
+**Agent**: `bulwark-implementer` (custom sub-agent)
+
+**Model**: Opus (code writing with quality enforcement)
 
 **GOAL**: Implement fix that addresses root cause.
 
@@ -133,22 +135,51 @@ debug_report:
 - Follow existing code patterns
 - Do NOT refactor unrelated code
 - Maintain backward compatibility
+- Max 3 quality gate retries before escalation
 
-**CONTEXT**:
-- Root cause analysis from Stage 1
-- Affected files identified
-- Project coding standards
+**CONTEXT** (must include for `context: fork`):
+- Debug report path: `logs/debug-reports/{issue-id}-{timestamp}.yaml`
+- Root cause from Stage 1 analysis
+- Affected files from impact analysis
+- Fix approach recommendation
+- Project coding standards and patterns
 
-**OUTPUT**: Code changes with explanation
-```yaml
-fix:
-  files_modified:
-    - path: src/auth/login.ts
-      changes: "Added null check at line 42"
-  verification_needed:
-    - "Run unit tests for auth module"
-    - "Manual test: login with user without profile"
+**Invocation**:
 ```
+Task: subagent_type=bulwark-implementer
+Prompt:
+  GOAL: Fix the identified issue based on the debug report.
+  CONSTRAINTS: Only fix the identified issue. Write tests for the fix. Max 3 quality gate retries.
+  CONTEXT:
+    mode: fix
+    debug_report_path: logs/debug-reports/{issue-id}-{timestamp}.yaml
+    root_cause: {from Stage 1}
+    affected_files: {from Stage 1}
+    fix_approach: {from Stage 1}
+  OUTPUT: Implementation report at logs/implementer-{id}-{timestamp}.yaml
+```
+
+**OUTPUT**: Implementation report at `logs/implementer-{id}-{timestamp}.yaml`
+```yaml
+implementation_report:
+  changes:
+    files_modified:
+      - path: src/auth/login.ts
+        changes: "Added null check at line 42"
+  tests:
+    files_created:
+      - path: tests/auth/login-null-profile.test.ts
+  quality_gates:
+    typecheck: passed
+    lint: passed
+    retries: 0
+  pipeline_suggestions:
+    - pipeline: "Code Review"
+      target_files: [src/auth/login.ts]
+      reason: "Bug fix to authentication module"
+```
+
+**SA6 Note**: The implementer returns pipeline suggestions with MANDATORY language in its summary. The orchestrator MUST evaluate each suggestion per SA6.
 
 ### Stage 3: TestWriter
 
@@ -347,10 +378,10 @@ Task: subagent_type=bulwark-issue-analyzer, model=sonnet
 Prompt: [4-part prompt with issue details]
 Output: Debug report at logs/debug-reports/{issue-id}.yaml
 
-### Stage 2: FixWriter (Orchestrator)
-Actor: Orchestrator (Opus) - NOT a sub-agent
-Action: Read debug report, implement fix
-Output: Code changes with explanation
+### Stage 2: FixWriter
+Task: subagent_type=bulwark-implementer
+Prompt: [4-part prompt with debug report path, root cause, affected files, fix approach]
+Output: Implementation report at logs/implementer-{id}-{timestamp}.yaml
 
 ### Stage 3: TestWriter (Orchestrator)
 Actor: Orchestrator (Opus) - NOT a sub-agent

@@ -69,7 +69,7 @@ TestRunner (Haiku, execute tests)
 
 ### Phase 1: Code Review (Optional)
 
-**Dependency**: Requires `code-review` skill (P4.1) and optionally `bulwark-code-auditor` (P4.3)
+**Dependency**: Requires `code-review` skill (P4.1)
 
 **Skip Condition**: If code-review skill not available, proceed to Phase 2
 

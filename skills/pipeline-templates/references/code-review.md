@@ -38,22 +38,23 @@ This pipeline uses **role-based general-purpose agents**. Each agent:
 
 **Confidence Levels**: verified (data flow traced) | suspected (pattern match, needs validation)
 
-**Standalone alternative**: For ad-hoc code auditing outside pipelines, use `bulwark-code-auditor` which runs all sections.
+**Parallel execution**: Stages 1-4 run concurrently (multiple Task calls in a single message) to prevent cross-section bias contamination. Stage 5 waits for all findings before synthesizing.
 
 ## Pipeline Definition
 
 ```fsharp
-// Code Review Pipeline
+// Code Review Pipeline - Parallel Execution
 // Trigger: Code changes requiring review
 // Output: Review report with findings and severity
+// Stages 1-4 run concurrently, findings merged in Stage 5
 
-SecurityReviewer (section: Security)            // Sonnet - role-based
-|> TypeSafetyReviewer (section: Type Safety)    // Sonnet - role-based
-|> LintReviewer (section: Linting)              // Sonnet - role-based
-|> StandardsReviewer (section: Coding Standards) // Sonnet - role-based
-|> ReviewSynthesizer (consolidate all findings) // Sonnet - synthesis
+[SecurityReviewer (section: Security),           // Sonnet - role-based
+ TypeSafetyReviewer (section: Type Safety),      // Sonnet - role-based
+ LintReviewer (section: Linting),                // Sonnet - role-based
+ StandardsReviewer (section: Coding Standards)]  // Sonnet - role-based
+|> ReviewSynthesizer (consolidate all findings)  // Sonnet - synthesis
 |> (if critical_issues > 0
-    then FixWriter (apply fixes)                // Opus - write code
+    then FixWriter (apply fixes)                 // Opus - write code
     else Done)
 ```
 
@@ -273,43 +274,42 @@ code_review:
 ```markdown
 ## Pipeline: Code Review
 
-### Stage 1: SecurityReviewer
-Task: subagent_type=general-purpose, model=sonnet
-Skills: code-review
-Prompt:
-  GOAL: Review code for security issues using the Security section of code-review skill
-  CONSTRAINTS: Do not modify files, focus on OWASP Top 10
-  CONTEXT: [files to review]
-  OUTPUT: YAML findings with section: security
+### Stages 1-4: Parallel Review Agents (single message, multiple Task calls)
+All four agents launched concurrently in ONE message:
 
-### Stage 2: TypeSafetyReviewer
-Task: subagent_type=general-purpose, model=sonnet
-Skills: code-review
-Prompt:
-  GOAL: Review code for type safety using the Type Safety section of code-review skill
-  CONSTRAINTS: Do not modify files, focus on any, null, unsafe assertions
-  CONTEXT: [files to review]
-  OUTPUT: YAML findings with section: type_safety
+Task 1: subagent_type=general-purpose, model=sonnet
+  Skills: code-review
+  Prompt:
+    GOAL: Review code for security issues using the Security section of code-review skill
+    CONSTRAINTS: Do not modify files, focus on OWASP Top 10
+    CONTEXT: [files to review]
+    OUTPUT: YAML findings with section: security
 
-### Stage 3: LintReviewer
-Task: subagent_type=general-purpose, model=sonnet
-Skills: code-review
-Prompt:
-  GOAL: Review code for linting issues using the Linting section of code-review skill
-  CONSTRAINTS: Do not modify files, check complexity and formatting
-  CONTEXT: [files to review]
-  OUTPUT: YAML findings with section: linting
+Task 2: subagent_type=general-purpose, model=sonnet
+  Skills: code-review
+  Prompt:
+    GOAL: Review code for type safety using the Type Safety section of code-review skill
+    CONSTRAINTS: Do not modify files, focus on any, null, unsafe assertions
+    CONTEXT: [files to review]
+    OUTPUT: YAML findings with section: type_safety
 
-### Stage 4: StandardsReviewer
-Task: subagent_type=general-purpose, model=sonnet
-Skills: code-review
-Prompt:
-  GOAL: Review code for standards using the Coding Standards section of code-review skill
-  CONSTRAINTS: Do not modify files, check naming and patterns
-  CONTEXT: [files to review]
-  OUTPUT: YAML findings with section: coding_standards
+Task 3: subagent_type=general-purpose, model=sonnet
+  Skills: code-review
+  Prompt:
+    GOAL: Review code for linting issues using the Linting section of code-review skill
+    CONSTRAINTS: Do not modify files, check complexity and formatting
+    CONTEXT: [files to review]
+    OUTPUT: YAML findings with section: linting
 
-### Stage 5: ReviewSynthesizer
+Task 4: subagent_type=general-purpose, model=sonnet
+  Skills: code-review
+  Prompt:
+    GOAL: Review code for standards using the Coding Standards section of code-review skill
+    CONSTRAINTS: Do not modify files, check naming and patterns
+    CONTEXT: [files to review]
+    OUTPUT: YAML findings with section: coding_standards
+
+### Stage 5: ReviewSynthesizer (after all 4 complete)
 Task: subagent_type=general-purpose, model=sonnet
 Prompt:
   GOAL: Consolidate all findings into actionable review
@@ -329,14 +329,6 @@ Action: Apply fixes for priority issues
 - Findings consolidated with severity prioritization
 - Review report generated with clear approval status
 - Fixes applied for critical/high issues (if requested)
-
-## Standalone Alternative
-
-For ad-hoc code auditing outside the pipeline, use `bulwark-code-auditor`:
-```
-Task: subagent_type=bulwark-code-auditor, model=sonnet
-```
-This agent runs all four sections and produces a consolidated report.
 
 ## Related Pipelines
 
