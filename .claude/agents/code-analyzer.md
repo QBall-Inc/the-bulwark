@@ -2,11 +2,6 @@
 name: code-analyzer
 description: Simple test agent that analyzes code files and counts lines, functions, and classes. Used for testing pipeline orchestration.
 model: haiku
-tools:
-  - Read
-  - Glob
-  - Grep
-  - Write
 skills:
   - subagent-output-templating
 hooks:

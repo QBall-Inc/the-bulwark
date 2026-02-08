@@ -41,7 +41,7 @@ created: 2026-01-04
 updated: 2026-02-02
 current_phase: P4
 current_task: P4.4
-current_task_status: "P4.4 task brief complete (Session 40). Agent-scoped hooks did NOT fire in T-044 validation - requires research. T-033 blocked until hook mechanism resolved."
+current_task_status: "P4.4 task brief updated for hook pivot (Session 41). Agent-scoped hooks confirmed broken (#18392). Global hooks verified working for sub-agent writes. Design pivoted to global hooks + self-validation. T-033 unblocked, awaiting user review of updated brief."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
