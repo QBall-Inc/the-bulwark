@@ -56,15 +56,17 @@ Without this skill, conversational prompts like "please investigate and fix this
 When invoked, follow the Fix Validation pipeline exactly:
 
 ```fsharp
-IssueAnalyzer (bulwark-issue-analyzer)
-|> FixWriter (you implement the fix)
-|> (if !tests_cover_scenario
-    then TestWriter |> TestAudit
+IssueAnalyzer (bulwark-issue-analyzer)          // Sonnet - root cause analysis
+|> FixWriter (bulwark-implementer)              // Opus - implement fix
+|> (if !tests_cover_scenario                    // Conditional: only if tests don't already exist
+    then TestWriter |> TestAudit                // Opus writes, then audit for T1-T4
     else Skip)
-|> FixValidator (bulwark-fix-validator)
-|> CodeReviewer (you review)
-|> (if !approved then IssueAnalyzer else Done)
-|> LOOP(max=3)
+|> FixValidator (bulwark-fix-validator)          // Sonnet - validate against debug report
+|> CodeReviewer (general-purpose)               // Sonnet - review fix
+|> (if !approved
+    then IssueAnalyzer                          // Loop back
+    else Done)
+|> LOOP(max=3)                                  // Max 3 iterations
 ```
 
 ## Execution Instructions
@@ -89,16 +91,30 @@ Task(
 
 ### Stage 2: FixWriter
 
-**Actor**: You (orchestrator)
+**MUST** spawn `bulwark-implementer` agent via Task tool:
 
-**Input**: Read the debug report from Stage 1
+```
+Task(
+  subagent_type="bulwark-implementer",
+  prompt="GOAL: Fix the identified issue based on the debug report.
+  CONSTRAINTS: Only fix the identified issue. Write tests for the fix. Max 3 quality gate retries.
+  CONTEXT:
+    mode: fix
+    debug_report_path: logs/debug-reports/{issue-id}-{timestamp}.yaml
+    root_cause: {from Stage 1}
+    affected_files: {from Stage 1}
+    fix_approach: {from Stage 1}
+  OUTPUT: Implementation report at logs/implementer-{id}-{timestamp}.yaml"
+)
+```
 
-**Action**: Implement the fix following the `fix_approach` from the debug report
+**Input**: Debug report from Stage 1
 
-**Constraints**:
-- Only fix the identified issue
-- Follow existing code patterns
-- Do NOT refactor unrelated code
+**Output**: Implementation report at `logs/implementer-{id}-{timestamp}.yaml`
+
+**SA6 Note**: The implementer returns pipeline suggestions with MANDATORY language in its summary. Evaluate each suggestion per SA6.
+
+**Do NOT** implement the fix yourself. The implementer agent handles quality gates and structured output.
 
 ### Stage 3: TestWriter (Conditional)
 
@@ -113,11 +129,11 @@ Task(
 
 ### Stage 3b: TestAudit (Conditional)
 
-**Condition**: Only if TestWriter created/modified tests
+**Condition**: Run if **any** test files were created or modified in Stage 2 (FixWriter) OR Stage 3 (TestWriter). This ensures implementer-written tests receive T1-T4 audit even when TestWriter is skipped.
 
-**Action**: Run mock-detection on new tests to verify T1-T4 compliance
+**Action**: Run mock-detection on new/modified tests to verify T1-T4 compliance
 
-**If T1 violation**: Return to TestWriter, request rewrite
+**If T1 violation**: Return to TestWriter (or FixWriter if TestWriter was skipped), request rewrite
 
 **If T2-T4 violations**: Log warning, proceed
 
@@ -145,15 +161,28 @@ Task(
 
 ### Stage 5: CodeReviewer
 
-**Actor**: You (orchestrator)
+**MUST** spawn `general-purpose` agent via Task tool:
 
-**Action**: Review the fix considering:
-- Does it address root cause from debug report?
-- Are tests adequate?
-- What is the FixValidator confidence level?
-- Any regressions?
+```
+Task(
+  subagent_type="general-purpose",
+  model="sonnet",
+  prompt="GOAL: Review the fix for correctness, completeness, and safety.
+  CONSTRAINTS: Do NOT modify any files. Review only.
+  CONTEXT:
+    debug_report: logs/debug-reports/{issue-id}-{timestamp}.yaml
+    fix_applied: {description of changes from Stage 2}
+    tests_added: {from Stage 3, if any}
+    validation_results: {from Stage 4}
+  OUTPUT: Approval decision (approved: true/false) with concerns and recommendations."
+)
+```
 
-**Decision**: Approve or reject
+**Approval Criteria**:
+- Fix addresses root cause from debug report
+- Tests verify the specific bug scenario
+- No new issues introduced
+- Validation confidence is acceptable (high or medium with justification)
 
 ### Loop Handling
 
@@ -205,6 +234,7 @@ Stage 5 (CodeReviewer): Complete
 |----------|----------|
 | Pipeline definition | `pipeline-templates/references/fix-validation.md` |
 | IssueAnalyzer agent | `agents/bulwark-issue-analyzer.md` |
+| Implementer agent | `agents/bulwark-implementer.md` |
 | FixValidator agent | `agents/bulwark-fix-validator.md` |
 | Issue debugging skill | `issue-debugging/SKILL.md` |
 

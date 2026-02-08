@@ -246,6 +246,7 @@ echo "TARGET: ${FILE_PATH}"
 echo "LINES: ${CHANGE_SIZE}"
 if [ "$RECOMMENDED_PIPELINE" != "none" ]; then
     echo "REASON: File type detected, ${CHANGE_SIZE} lines exceeds threshold ${THRESHOLD}"
+    echo "ACTION: Load pipeline-templates skill to execute this pipeline"
 else
     if [ "$CHANGE_SIZE" -le "$THRESHOLD" ]; then
         echo "REASON: Small change (${CHANGE_SIZE} lines, threshold ${THRESHOLD}), no pipeline needed"

@@ -72,3 +72,38 @@ This fallback works but is manual - the orchestrator must detect the failure and
 1. Add explicit instructions for detecting unreliable claude-code-guide output (look for phrases like "Your project confirms", "Based on your architecture", or references to local file paths)
 2. Add automatic fallback trigger when detection fires
 3. Document the WebFetch redirect: `docs.anthropic.com` → `code.claude.com/docs/en/skills`
+
+---
+
+### FW-OBS-004: Rules.md token cost — split rules from reasoning
+
+**Identified:** Session 45 (2026-02-08)
+**Source:** User observation during P4.4 testing
+**Severity:** Medium (token efficiency)
+**Status:** Open
+
+**Finding:** `Rules.md` includes both the rules themselves and the reasoning/justification behind each rule. Every session loads the full file, consuming tokens on explanatory text that the model doesn't need every time. The file has grown to ~300 lines.
+
+**Proposed Fix:**
+1. Slim `Rules.md` to rules-only: concise, mandatory, no-ambiguity language
+2. Create `docs/rules-reasoning.md` with the justifications, examples, and rationale
+3. `Rules.md` references `docs/rules-reasoning.md` for human consumption but doesn't require it be loaded
+
+**Benefit:** Reduced per-session token consumption. Rules remain binding. Reasoning available for human reference and future sessions where context is needed.
+
+**Action:** Implement during a future cleanup pass (not during active P4 testing).
+
+---
+
+### FW-OBS-005: Justfile `test` recipe has no jest backend
+
+**Identified:** Session 45 (2026-02-08)
+**Source:** P4.4-3 manual testing — agent attempted `just test`, failed, fell back to `npx jest`
+**Severity:** Low (workaround exists, not blocking)
+**Status:** Open
+
+**Finding:** The Justfile `test` recipe exists but has no actual jest runner configured behind it. When the bulwark-implementer agent calls `just test`, it fails. The agent then falls back to `npx jest` directly, which works but bypasses the `just` abstraction required by V2.
+
+**Impact:** Agents that follow V2 (`just test` not `npx jest`) will hit a failure on first attempt. Self-correcting agents recover by trying `npx jest`, but this is an unnecessary retry and violates the principle that `just` commands should work.
+
+**Action:** Configure the Justfile `test` recipe with a working jest backend. Ensure `just test` runs jest successfully without fallback.

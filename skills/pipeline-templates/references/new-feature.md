@@ -22,6 +22,7 @@ Researcher (gather requirements & patterns)      // Haiku - lookups
 |> Architect (design approach)                   // Sonnet - analysis
 |> Implementer (write code)                      // Opus - bulwark-implementer
 |> TestWriter (write tests)                      // Opus - write tests
+|> TestAudit (mock-detection only)               // Audit any new/modified tests for T1-T4
 |> CodeReviewer (review implementation)          // Sonnet - review
 |> (if !approved
     then Implementer                             // Loop back
@@ -204,6 +205,48 @@ tests:
         - "export button triggers download"
         - "respects column visibility"
 ```
+
+### Stage 4b: TestAudit (Conditional)
+
+**Trigger**: Runs if **any** test files were created or modified in Stage 3 (Implementer) OR Stage 4 (TestWriter). This ensures implementer-written tests receive T1-T4 audit even when TestWriter adds no new tests.
+
+**Model**: Haiku (classification) → Sonnet (detection)
+
+**Skills**: `mock-detection` (lighter weight than full test-audit)
+
+**GOAL**: Verify new/modified tests don't have T1-T4 violations before proceeding to review.
+
+**CONSTRAINTS**:
+- Audit test files touched by Implementer (Stage 3) and/or TestWriter (Stage 4)
+- Block pipeline if T1 violation found (mocking system under test)
+- Warn on T2-T4 violations but allow proceed
+- Do NOT audit existing tests (only new/modified in this pipeline run)
+
+**CONTEXT**:
+- List of test files created/modified by Implementer and/or TestWriter
+- Design document for understanding what's being tested
+
+**OUTPUT**: Audit result
+```yaml
+test_audit:
+  files_audited:
+    - path: tests/utils/csv-export.test.ts
+      status: passed | failed
+      violations: []
+
+  t1_violations: 0  # Critical - blocks pipeline
+  t2_violations: 0  # High - warning only
+  t3_violations: 0  # Medium - warning only
+  t4_violations: 0  # Low - warning only
+
+  proceed: true | false
+  notes: "All generated tests follow T1-T4 rules"
+```
+
+**Failure Handling**:
+- If T1 violation: Return to TestWriter with feedback, request rewrite
+- If T2-T4 violations: Log warning, proceed to CodeReviewer
+- Max 2 audit iterations before escalating to user
 
 ### Stage 5: CodeReviewer
 

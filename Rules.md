@@ -184,11 +184,12 @@ Do not use `run_in_background: true` when spawning sub-agents. Retrieving backgr
 
 ### SA6: Pipeline Suggestions from Code-Writing Sub-Agents
 
-When a code-writing sub-agent returns pipeline suggestions in its summary, the orchestrator MUST evaluate each suggestion and either:
-1. **Execute** the suggested pipeline, or
-2. **Document** why it was deferred (e.g., "Deferred: change is < 5 lines, code-review not warranted")
+Pipeline suggestions from code-writing sub-agents are **PRESUMED EXECUTE**. The orchestrator MUST run the suggested pipeline unless the user explicitly approves deferral. Orchestrator self-deferral is a rule violation.
 
-Ignoring pipeline suggestions silently is a rule violation. Pipeline suggestions use MANDATORY language in the sub-agent's return summary to ensure orchestrator visibility and action.
+- **Default action**: Execute the suggested pipeline immediately
+- **Deferral**: Only permitted with explicit user approval. Ask the user: "Pipeline X was suggested for [files]. Execute or defer?"
+- **Silent ignoring**: Rule violation
+- **Self-rationalizing deferral** (e.g., "change is small", "not warranted"): Rule violation
 
 ---
 

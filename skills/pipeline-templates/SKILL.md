@@ -186,7 +186,7 @@ IssueAnalyzer (bulwark-issue-analyzer, produces debug_report)
 |> FixWriter (bulwark-implementer, implements fix)
 |> (if !tests_cover_scenario                              // Only if tests don't exist
     then TestWriter |> TestAudit (mock-detection only)    // Audit generated tests for T1-T4
-    else Skip)
+    else TestAudit (if FixWriter wrote tests))            // Audit implementer tests for T1-T4
 |> FixValidator (bulwark-fix-validator, validates against debug_report)
 |> CodeReviewer (reviews all, approves/rejects)
 |> (if !approved then IssueAnalyzer else Done)
@@ -198,7 +198,7 @@ TestClassifier |> MockDetector |> AuditSynthesizer
 |> LOOP(max=2)
 
 // New Feature
-Researcher |> Architect |> Implementer (bulwark-implementer) |> TestWriter |> CodeReviewer
+Researcher |> Architect |> Implementer (bulwark-implementer) |> TestWriter |> TestAudit |> CodeReviewer
 
 // Research & Planning (min 3 iterations)
 Researcher |> PlanDraft |> PlanReviewer |> LOOP(min=3)

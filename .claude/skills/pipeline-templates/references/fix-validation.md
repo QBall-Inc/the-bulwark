@@ -213,22 +213,22 @@ tests:
 
 ### Stage 3b: TestAudit (Conditional)
 
-**Trigger**: Only runs if TestWriter created or modified tests in Stage 3.
+**Trigger**: Runs if **any** test files were created or modified in Stage 2 (FixWriter) OR Stage 3 (TestWriter). This ensures implementer-written tests receive T1-T4 audit even when TestWriter is skipped.
 
 **Model**: Haiku (classification) → Sonnet (detection)
 
 **Skills**: `mock-detection` (lighter weight than full test-audit)
 
-**GOAL**: Verify generated tests don't have T1-T4 violations before proceeding to validation.
+**GOAL**: Verify new/modified tests don't have T1-T4 violations before proceeding to validation.
 
 **CONSTRAINTS**:
-- Only audit files touched by TestWriter
+- Audit test files touched by FixWriter (Stage 2) and/or TestWriter (Stage 3)
 - Block pipeline if T1 violation found (mocking system under test)
 - Warn on T2-T4 violations but allow proceed
-- Do NOT audit existing tests (only new/modified)
+- Do NOT audit existing tests (only new/modified in this pipeline run)
 
 **CONTEXT**:
-- List of test files created/modified by TestWriter
+- List of test files created/modified by FixWriter and/or TestWriter
 - Debug report for understanding what's being tested
 
 **OUTPUT**: Audit result

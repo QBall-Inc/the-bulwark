@@ -244,6 +244,44 @@ Sub-agents followed BOTH instructions, producing duplicate outputs: the correct 
 
 ---
 
+### DEF-P4-007: subagent_type always "unknown" in SubagentStart/SubagentStop hook JSON
+
+**Identified:** Session 45 (2026-02-08)
+**Phase:** P4.4 Manual Testing
+**Severity:** Medium
+**Status:** Open (investigation needed)
+
+**Symptom:** Both `track-pipeline-start.sh` and `track-pipeline-stop.sh` log `(unknown)` for every sub-agent's type. The log verification feature added in T-033 (track-pipeline-stop.sh) is effectively dead code — it only runs when `SUBAGENT_TYPE != "unknown"`, which never happens.
+
+**Evidence:** Every SubagentStart and SubagentStop entry in hooks.log since January 12, 2026 (hundreds of entries across 40+ sessions) shows `(unknown)`:
+```
+[2026-02-08T16:04:01Z] SubagentStart: a50a53d (unknown)
+[2026-02-08T16:07:55Z] SubagentStop: a50a53d (unknown)
+```
+
+**Root Cause (suspected):** Both scripts use `jq -r '.subagent_type // "unknown"'` to extract the type from stdin JSON. Either:
+1. The field name in the actual Claude Code JSON payload differs from `subagent_type` (e.g., `type`, `agent_type`, `subagent_name`)
+2. The field is not present in the payload at all
+3. The JSON structure is nested differently than expected
+
+**Investigation needed:** Dump the raw stdin JSON from a SubagentStart or SubagentStop hook to determine the actual payload structure and field names. Add to `track-pipeline-start.sh`:
+```bash
+echo "$INPUT" > "$LOGS_DIR/debug-subagent-start-payload.json"
+```
+
+**Impact:**
+- `track-pipeline-stop.sh` log verification (T-033) never executes — all custom agents skip verification
+- Pipeline tracking logs lack agent type information, making debugging harder
+- This is a pre-existing issue (since project inception) but only became visible when T-033 added a consumer that depends on the parsed type
+
+**Files Affected:**
+- `scripts/hooks/track-pipeline-start.sh` (logs unknown)
+- `scripts/hooks/track-pipeline-stop.sh` (log verification dead code)
+
+**Potential Framework Observation:** If the field genuinely doesn't exist in Claude Code's hook JSON payload, this should be logged as FW-OBS-004 in `docs/fw-observations.md`.
+
+---
+
 ## Open Enhancements
 
 ### ENH-P4-002: Clarify test-audit summary with distinct Verification Quality vs Test Coverage metrics

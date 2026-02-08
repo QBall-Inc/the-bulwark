@@ -38,10 +38,10 @@
 project: the-bulwark
 version: 4.5.0
 created: 2026-01-04
-updated: 2026-02-07
-current_phase: P4
-current_task: P4.4
-current_task_status: "P4.4 and P4.5 in progress. Implementation and test fixtures done, manual testing pending. T-033 done (implementer agent), T-034 done (validator PASS), T-045 done (pipeline updates), T-037-040 done (fixtures + test protocol). Next: T-041 manual testing (user session)."
+updated: 2026-02-08
+current_phase: P5
+current_task: P5.0
+current_task_status: "P4 COMPLETE. All P4 tasks validated and tested. Next: P5 brainstorm and task brief bundling."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -49,11 +49,13 @@ phases:
   - id: P4
     name: "Review Skills & Standalone Agents"
     description: "Unified code-review skill with sections + standalone agents for ad-hoc use"
-    status: not_started
+    status: completed
+    completion_notes: "Sessions 29-45. P4.1 code-review, P4.2 bug-magnet-data, P4.3 descoped, P4.4 implementer agent, P4.5 pipeline-templates. All validated via manual testing and anthropic-validator."
     tasks:
       - id: P4.1
         name: "Create code-review skill (unified with sections)"
-        status: not_started
+        status: completed
+        completion_notes: "Sessions 29-35. Validated via anthropic-validator and manual testing."
         dependencies: []
         implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
         deliverables:
@@ -81,7 +83,8 @@ phases:
 
       - id: P4.2
         name: "Create bug-magnet-data skill"
-        status: not_started
+        status: completed
+        completion_notes: "Sessions 35-38. Consumers updated, validated via manual testing."
         dependencies: []
         implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
         deliverables:
@@ -125,7 +128,8 @@ phases:
 
       - id: P4.4
         name: "Create bulwark-implementer agent"
-        status: not_started
+        status: completed
+        completion_notes: "Sessions 40-45. Validated via anthropic-validator and manual testing (P4.4-1 through P4.4-6)."
         dependencies: [P0.1]
         implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
         deliverables:
@@ -163,7 +167,8 @@ phases:
 
       - id: P4.5
         name: "Update pipeline-templates for parallel execution and P4.4 integration"
-        status: not_started
+        status: completed
+        completion_notes: "Sessions 43-45. Validated via anthropic-validator and manual testing (P4.5-1 through P4.5-7)."
         dependencies: [P4.4]
         implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
         deliverables:
@@ -675,7 +680,7 @@ summary:
     P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
     P2: 3 tasks (Verification Scripts) - COMPLETED
     P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
-    P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - P4.1-2 COMPLETE, P4.3 DESCOPED
+    P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - COMPLETED (P4.3 DESCOPED)
     P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
     P6: 8 tasks (Optional Enhancements) - Post-completion polish
   architecture_notes:
