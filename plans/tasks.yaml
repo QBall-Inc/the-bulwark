@@ -47,7 +47,7 @@ created: 2026-01-04
 updated: 2026-02-08
 current_phase: P8
 current_task: P8.2
-current_task_status: "P8.1 complete (Session 46). Next: P8.2 Essential Agent Skills repo."
+current_task_status: "P8.2 in progress (Session 47). Repo created, skills synced, READMEs written. Awaiting user verification."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -779,28 +779,35 @@ phases:
         estimated_sessions: 1
 
       - id: P8.2
-        name: "Essential Agent Skills repository setup"
-        status: not_started
+        name: "Essential Agents & Skills repository setup"
+        status: in_progress
+        completion_notes: "Session 47. Repo created, 12 skills + 2 agents + statusline script synced. READMEs written with humanizer pass. Pushed to GitHub. Awaiting user verification (clone into fresh project, test skill loading)."
         dependencies: []
         implementation_plan: "plans/task-briefs/P8.2-essential-skills-repo.md"
         deliverables:
-          - "Essential Agent Skills repo on GitHub"
-          - "Git subtree configuration for skill sync"
-          - "README with skill catalog and installation instructions"
+          - "essential-agents-skills repo on GitHub (https://github.com/ashaykubal/essential-agents-skills)"
+          - "scripts/sync-essential-skills.sh (rsync-based selective sync)"
+          - "README.md with skill catalog, dependency map, installation methods"
+          - "Per-skill README.md files (12 skills)"
+          - "MIT LICENSE"
         acceptance_criteria:
-          - "Standalone repo with independent skills extracted from Bulwark"
-          - "Git subtree push from Bulwark to standalone repo works"
-          - "Each skill has its own directory with SKILL.md and dependencies"
-          - "README catalogs all skills with descriptions and usage"
+          - "Standalone repo with 12 skills + 2 agents extracted from Bulwark"
+          - "Sync script copies selected skills (not all) to standalone repo"
+          - "Each skill folder has README.md for GitHub rendering"
+          - "README catalogs all skills with one-line descriptions"
+          - "No Bulwark references except intentional Origin links"
+          - "Statusline ecosystem rebranded (bulwark-statusline -> statusline)"
+          - "standards-reviewer agent included (required by anthropic-validator)"
           - "Future path: GitHub Actions for automated sync"
         verification:
           - "Clone standalone repo, verify skills are complete and self-contained"
-          - "git subtree push from Bulwark successfully updates standalone repo"
+          - "grep -ri bulwark returns only Origin links"
           - "Skills work when installed in a fresh project"
         notes:
           - "Session 46: New task — fork independent skills for standalone distribution"
-          - "Candidate skills: anthropic-validator, code-review, bug-magnet-data, test-audit, assertion-patterns, component-patterns, session-handoff, subagent-prompting, subagent-output-templating, mock-detection, test-classification"
-          - "Phase 1: git subtree. Phase 2: GitHub Actions automation."
+          - "Session 47: Renamed to Essential Agents & Skills. Added statusline ecosystem (rebranded), standards-reviewer agent. Used rsync approach (not git subtree). Per-skill READMEs with humanizer pass."
+          - "Candidate skills expanded: 11 original + statusline = 12 skills, 2 agents"
+          - "Phase 1: rsync sync script. Phase 2: GitHub Actions automation."
         estimated_sessions: 1
 
 # Summary
