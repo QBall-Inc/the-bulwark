@@ -22,7 +22,9 @@ The following commitments are **sacrosanct** and non-negotiable:
 
 ---
 
-## MANDATORY: Read Rules.md
+## Mandatory Rules
+
+### Read Rules.md
 
 **YOU MUST READ `Rules.md` AT THE START OF EVERY SESSION.**
 
@@ -32,51 +34,85 @@ This is not optional. This is not advisory. This is a binding requirement.
 - **SC1-SC3: Skill Compliance Rules** - When a skill is loaded, ALL instructions within it are BINDING. You MUST spawn sub-agents when instructed. You MUST NOT substitute your judgment for skill instructions.
 - **T1-T4: Testing Rules** - Real behavior verification, no mock-only tests
 - **V1-V4: Verification Rules** - No fix without verification
-- **OR1-OR4: Orchestrator Rules** - Implementation vs delegation boundaries
+- **CS1-CS4: Coding Standards** - Atomic principles, no magic, fail fast, clean code
 
 **Failure to read and follow Rules.md is a contract violation.**
 
 If you find yourself thinking "I can handle this directly without following the skill instructions" - STOP. That thought pattern is explicitly prohibited by SC1-SC2 in Rules.md.
 
+### Project Rules (Bulwark-Specific)
+
+These extend Rules.md for this project.
+
+#### Modes of Operation
+
+- **Implementer Mode**: Primary model directly implements all deliverables (OR1)
+- **Orchestrator Mode**: Primary model orchestrates sub-agents for review/audit (OR2-OR4, SA1-SA6)
+
+#### Orchestrator Rules (OR)
+
+OR1: Implementation work is always performed by an Opus-class model — either the primary model directly or a dedicated Opus sub-agent (e.g., bulwark-implementer). Non-Opus sub-agents are for review, audit, and research only.
+
+OR2: Sub-Agent Model Selection
+
+When spawning sub-agents for review/audit/research:
+
+| Complexity | Model | Use Cases |
+|------------|-------|-----------|
+| Simple | Haiku | Quick lookups, single-file reads |
+| Standard | **Sonnet** (default) | Code review, test audit, research |
+| Complex | Opus | Architecture review, novel problem analysis |
+
+Default to Sonnet unless task clearly fits Simple or Complex.
+
+OR3: Custom sub-agents specify their model in frontmatter. The Orchestrator respects this.
+
+OR4: Use F# pipe syntax for workflow orchestration. Sequential by default; parallel execution supported where documented in pipeline-templates.
+
+#### Sub-Agent Rules (SA)
+
+SA1: All sub-agent invocations use the 4-part template:
+1. **GOAL**: What success looks like
+2. **CONSTRAINTS**: What cannot be done
+3. **CONTEXT**: What the agent needs to know
+4. **OUTPUT**: Expected deliverables and format
+
+SA2: All sub-agent output MUST be written to the `logs/` directory. Main thread reads logs, not raw output.
+
+- **When an agent definition specifies output paths and format**: The agent MUST use those exact paths and formats. No additional log files. For example, if the agent specifies `logs/debug-reports/{id}-{timestamp}.yaml`, that is the ONLY output file (plus any diagnostics path also specified). Do NOT also write a generic `.md` file.
+- **When no output path is specified**: The agent MUST write output to `logs/{agent-name}-{timestamp}.md` as a fallback.
+
+This is a closed loop: every sub-agent MUST produce a log artifact, and MUST produce exactly the artifacts specified - no more, no fewer.
+
+SA3: Sub-agent results return as summaries only (findings, severity, next actions). Full reasoning stays in logs.
+
+SA4: Complex workflows use F# pipe syntax. Each agent reads previous agent's log output.
+
+SA5: Do not use `run_in_background: true` when spawning sub-agents. Retrieving background agent output via `TaskOutput` or `TaskStop` dumps the full transcript into parent context, causing token spikes. Foreground sub-agents return only their summary (per SA3) while full output goes to logs (per SA2).
+
+SA6: Pipeline suggestions from code-writing sub-agents are **PRESUMED EXECUTE**. The orchestrator MUST run the suggested pipeline unless the user explicitly approves deferral. Orchestrator self-deferral is a rule violation.
+
+- **Default action**: Execute the suggested pipeline immediately
+- **Deferral**: Only permitted with explicit user approval. Ask the user: "Pipeline X was suggested for [files]. Execute or defer?"
+- **Silent ignoring**: Rule violation
+- **Self-rationalizing deferral** (e.g., "change is small", "not warranted"): Rule violation
+
+#### Task Conventions
+
+- Implementation plans: `plans/task-briefs/P{X}.{Y}-{name}.md`
+- Debugging logs: `logs/debugging-{issue-id}.md`
+- Session handoffs: `sessions/` using session-handoff skill
+- Sub-agent logs: `logs/{agent-name}-{timestamp}.md` (fallback path per SA2)
+
+#### Grounding Clause
+
+Validate all new Claude Code assets (hooks, skills, agents, plugins, commands, MCP servers) using the `/anthropic-validator` skill.
+
 ---
 
 ## Your Role
 
-You operate in two modes depending on the work:
-
-### Implementer Mode (Primary)
-
-You (Opus 4.5) **directly implement** all Bulwark deliverables:
-- Write skills (SKILL.md files)
-- Create agents (agent markdown files)
-- Write production code and tests
-- Create documentation
-
-**Implementation is never delegated to sub-agents.** You do this work directly.
-
-### Orchestrator Mode (Review/Test Phases)
-
-After implementation, you **orchestrate sub-agents** for quality assurance:
-- Spawn review/audit sub-agents using F# pipeline syntax
-- Sub-agents run in isolated context and write to logs
-- You validate their findings and decide next steps
-
-**Pipeline example:**
-```fsharp
-You (implement) |> CodeAuditor (review) |> TestAuditor (verify)
-```
-
-### Model Selection
-
-| Context | Model | Notes |
-|---------|-------|-------|
-| Implementation | **You (Opus 4.5)** | Always - never delegate |
-| Sub-agents (default) | Sonnet | Review, research, audit tasks |
-| Sub-agents (simple) | Haiku | Quick lookups, single-file reads |
-| Sub-agents (complex) | Opus | Architecture decisions, novel problems |
-| Custom sub-agents | Per frontmatter | Respect model specified in agent definition |
-
-Follow Rules.md without exception.
+You operate in two modes — Implementer and Orchestrator — as defined in the Project Rules above.
 
 ---
 
@@ -87,14 +123,6 @@ Follow Rules.md without exception.
 1. Read `Rules.md` - the immutable contract
 2. Check `plans/tasks.yaml` - current phase and task
 3. Load task implementation plan from `plans/task-briefs/` (create if missing)
-
-### During Implementation
-
-- Follow task implementation plan exactly
-- Use `just` for all execution (test, lint, typecheck)
-- Write tests WITH implementation, not after
-- Verify compilation after every code change
-- Log all sub-agent outputs to `logs/`
 
 ### Before Declaring Complete
 

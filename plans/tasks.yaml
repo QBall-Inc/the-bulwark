@@ -10,9 +10,15 @@
 # - P1: Early Agents (custom sub-agents for pipeline stages) - COMPLETED
 # - P2: Verification Scripts - COMPLETED
 # - P3: Enforcement Infrastructure (hooks with once: true, just) - COMPLETED
-# - P4: Review Skills + Standalone Auditor/Implementer agents
-# - P5: Commands, Evolution (Ralph loops), Testing, and Polish
+# - P4: Review Skills + Standalone Auditor/Implementer agents - COMPLETED
+# - P5: Test Audit Hardening, Evolution Tools, Testing Protocol
 # - P6: Optional Enhancements
+# - P7: Launch Activities (plugin manifest, rollout docs) - after all P5+P6 work
+# - P8: Immediate Improvements (Rules.md slimming, Essential Agent Skills repo)
+#
+# EXECUTION ORDER (Session 46 brainstorm):
+# P8.1-2 (immediate) → P5.10-12 (test audit hardening) → P5.3-5 (evolution tools)
+# → P5.13 (plan creation) → P5.8 (test protocol) → P6.x → P7.1-2 (launch)
 #
 # CLAUDE CODE 2.1.1 UPDATES:
 # - Custom sub-agents defined as markdown files in tests/agents/ or skills/
@@ -36,12 +42,12 @@
 # Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
 
 project: the-bulwark
-version: 4.5.0
+version: 5.0.0
 created: 2026-01-04
 updated: 2026-02-08
-current_phase: P5
-current_task: P5.0
-current_task_status: "P4 COMPLETE. All P4 tasks validated and tested. Next: P5 brainstorm and task brief bundling."
+current_phase: P8
+current_task: P8.2
+current_task_status: "P8.1 complete (Session 46). Next: P8.2 Essential Agent Skills repo."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -195,25 +201,24 @@ phases:
         estimated_sessions: 1
 
   - id: P5
-    name: "Commands, Evolution, Testing, and Polish"
-    description: "User-facing commands, evolution tools with Ralph loops, and testing infrastructure"
-    status: not_started
+    name: "Test Audit Hardening, Evolution Tools, and Testing Protocol"
+    description: "Test audit production hardening, evolution tools with Ralph loops, plan creation skill, and consolidated test protocol"
+    status: in_progress
     tasks:
       - id: P5.1
         name: "Create audit command"
-        status: not_started
+        status: descoped
+        descope_reason: >
+          Session 46 (2026-02-08): Redundant after skills/commands merge in Claude Code 2.1.x.
+          test-audit skill is already user-invocable: true with path arguments (/test-audit [path]),
+          batching support (>20 files classification, >10 files detection), and full 3-stage pipeline.
+          A separate audit command adds no value over /test-audit.
         dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.1-audit-command.md"
-        deliverables:
-          - "commands/audit.md"
-        acceptance_criteria:
-          - "Invokes test-audit skill"
-          - "Outputs YAML to file"
-          - "Summarizes findings"
-        verification:
-          - "Run /bulwark:audit"
-          - "Verify YAML generated"
-        estimated_sessions: 1
+        implementation_plan: "N/A - descoped"
+        deliverables: []
+        acceptance_criteria: []
+        verification: []
+        estimated_sessions: 0
 
       - id: P5.2
         name: "Create verify command"
@@ -233,11 +238,12 @@ phases:
           - "SOLUTION: /bulwark-verify [path] works directly as skill invocation"
         estimated_sessions: 0
 
+      # Bundled: P5.3 + P5.4 + P5.5 share one task brief
       - id: P5.3
         name: "Create continuous-feedback skill"
         status: not_started
         dependencies: [P0.2]
-        implementation_plan: "plans/task-briefs/P5.3-continuous-feedback.md"
+        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
         deliverables:
           - "skills/continuous-feedback/SKILL.md"
         acceptance_criteria:
@@ -248,13 +254,16 @@ phases:
         verification:
           - "Capture sample learning"
           - "Propose enhancement to existing skill"
+        notes:
+          - "Bundled with P5.4 and P5.5 into single task brief (Session 46)"
+          - "Requires research on Ralph Wiggum loops, agent teams, feedback patterns"
         estimated_sessions: 1
 
       - id: P5.4
         name: "Create skill-creator skill (with Ralph loop)"
         status: not_started
         dependencies: [P5.3]
-        implementation_plan: "plans/task-briefs/P5.4-skill-creator.md"
+        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
         deliverables:
           - "skills/skill-creator/SKILL.md"
         acceptance_criteria:
@@ -269,13 +278,15 @@ phases:
           - "Verify passes anthropic-validator"
           - "Verify 4-iteration guidance followed"
           - "Verify skill appears in / menu"
+        notes:
+          - "Bundled with P5.3 and P5.5 into single task brief (Session 46)"
         estimated_sessions: 1
 
       - id: P5.5
         name: "Create agent-creator skill (context: fork + Ralph loop)"
         status: not_started
         dependencies: [P5.3]
-        implementation_plan: "plans/task-briefs/P5.5-agent-creator.md"
+        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
         deliverables:
           - "skills/agent-creator/SKILL.md"
         acceptance_criteria:
@@ -291,66 +302,32 @@ phases:
           - "Verify passes anthropic-validator"
           - "Verify generated agent has context: fork"
           - "Verify skill appears in / menu"
-        estimated_sessions: 1
-
-      - id: P5.6
-        name: "Finalize plugin manifest"
-        status: not_started
-        dependencies: [P5.1, P5.2, P4.4, P4.5, P1.1, P1.2, P1.3]
-        implementation_plan: "plans/task-briefs/P5.6-plugin-manifest.md"
-        deliverables:
-          - ".claude-plugin/plugin.json"
-        acceptance_criteria:
-          - "All commands registered"
-          - "All skills discoverable (flat structure)"
-          - "Global hooks configured (hooks.json)"
-          - "No agents/ directory (agents are skills)"
-        verification:
-          - "Install plugin in test project"
-          - "Verify all components accessible"
-          - "Verify skills appear correctly in / menu"
-        estimated_sessions: 1
-
-      - id: P5.7
-        name: "Create rollout documentation"
-        status: not_started
-        dependencies: [P5.6]
-        implementation_plan: "plans/task-briefs/P5.7-rollout-docs.md"
-        deliverables:
-          - "docs/rollout-guide.md"
-          - "docs/quickstart.md"
-        acceptance_criteria:
-          - "Installation instructions"
-          - "Phased rollout guide"
-          - "2.1.1 features documented"
-          - "Troubleshooting section"
-        verification:
-          - "Follow quickstart in new project"
-          - "Verify all steps work"
+        notes:
+          - "Bundled with P5.3 and P5.4 into single task brief (Session 46)"
         estimated_sessions: 1
 
       - id: P5.8
-        name: "Create testing infrastructure"
+        name: "Consolidated test protocol"
         status: not_started
-        dependencies: [P1.1, P1.2, P1.3, P4.4, P4.5]
-        implementation_plan: "plans/task-briefs/P5.8-testing-infrastructure.md"
+        dependencies: [P5.10, P5.3]  # After implementation stabilizes
+        implementation_plan: "plans/task-briefs/P5.8-consolidated-test-protocol.md"
         deliverables:
-          - "tests/run-diagnostic-tests.sh"
-          - "tests/manual-test-protocol.md"
-          - "tests/fixtures/"
+          - "tests/master-test-protocol.md"
         acceptance_criteria:
-          - "Automated diagnostic test script"
-          - "Tests context: fork isolation"
-          - "Tests once: true behavior"
-          - "Tests model selection"
-          - "Tests user-invocable visibility"
-          - "Manual test protocol documented"
-          - "Test fixtures for audit testing"
+          - "Catalogs every skill, agent, hook, and command with test cases"
+          - "Defines fixture setup requirements for each component"
+          - "Serves as regression test guide for future changes"
+          - "Incorporates learnings from all phase-specific manual test protocols"
+          - "Organized by component type (skills, agents, hooks, pipelines)"
         verification:
-          - "Run tests/run-diagnostic-tests.sh"
-          - "All automated tests pass"
-          - "Execute manual test protocol"
-          - "Document results"
+          - "Review covers all implemented components"
+          - "Test cases are actionable and reproducible"
+          - "Fixture setup instructions are complete"
+        notes:
+          - "Session 46: Reframed from 'testing infrastructure' to 'consolidated test protocol'"
+          - "Dropped automated diagnostic script (LLM behavior can't be meaningfully shell-scripted)"
+          - "Audits existing manual test protocols: P4.md, P4.4-5.md, etc."
+          - "Creates single reference document for regression testing"
         estimated_sessions: 1
 
       - id: P5.9
@@ -384,12 +361,12 @@ phases:
           - "Multi-line supported via sequential output"
         estimated_sessions: 1
 
-      # Test Audit Production Hardening (deferred from P0.6-8 Option B+)
+      # Bundled: P5.10 + P5.11 + P5.12 share one task brief (Test Audit Hardening)
       - id: P5.10
         name: "Test audit AST scripts"
         status: not_started
         dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.10-test-audit-ast-scripts.md"
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
         deliverables:
           - "skills/test-audit/scripts/data-flow-analyzer.ts"
           - "skills/test-audit/scripts/verification-counter.ts"
@@ -405,6 +382,7 @@ phases:
           - "Detect skipped tests in fixture"
         notes:
           - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Bundled with P5.11 and P5.12 into single task brief (Session 46)"
           - "Addresses T3+ detection fragility and line counting approximation"
         estimated_sessions: 2
 
@@ -412,7 +390,7 @@ phases:
         name: "Test audit dual-mode"
         status: not_started
         dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.11-test-audit-dual-mode.md"
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
         deliverables:
           - "skills/test-audit/SKILL.md (updated)"
         acceptance_criteria:
@@ -425,6 +403,7 @@ phases:
           - "Run on 50 files, verify scale mode used"
         notes:
           - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Bundled with P5.10 and P5.12 into single task brief (Session 46)"
           - "Optimizes for small vs large test suites"
         estimated_sessions: 1
 
@@ -432,7 +411,7 @@ phases:
         name: "Test audit advanced patterns"
         status: not_started
         dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.12-test-audit-advanced-patterns.md"
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
         deliverables:
           - "skills/test-audit/references/stub-patterns.md"
           - "skills/test-audit/references/false-positive-prevention.md"
@@ -446,8 +425,32 @@ phases:
           - "Verify false positive rate reduced"
         notes:
           - "Deferred from P0.6-8 Option B+ (Session 11)"
+          - "Bundled with P5.10 and P5.11 into single task brief (Session 46)"
           - "Addresses manual stub pattern detection gap"
         estimated_sessions: 1
+
+      - id: P5.13
+        name: "Create plan-creation skill (agent teams research)"
+        status: not_started
+        dependencies: [P5.3]  # Inherits Ralph loop and feedback research from P5.3
+        implementation_plan: "plans/task-briefs/P5.13-plan-creation.md"
+        deliverables:
+          - "skills/plan-creation/SKILL.md"
+        acceptance_criteria:
+          - "Multi-agent research orchestration using agent teams"
+          - "High-level plan input → detailed implementation plan output"
+          - "Integrates with task-briefs workflow"
+          - "Frontmatter: user-invocable: true"
+        verification:
+          - "Create implementation plan from high-level description"
+          - "Verify agent team research spawning"
+          - "Verify plan matches task-brief structure"
+        notes:
+          - "Session 46: Added during P5 brainstorm"
+          - "Depends on P5.3 research (Ralph loops, feedback patterns)"
+          - "Agent teams feature launched with Opus 4.6 (2026-02-01) — needs independent research"
+          - "Standalone brief, not bundled with P5.3-5"
+        estimated_sessions: 2
 
   - id: P6
     name: "Optional Enhancements"
@@ -457,7 +460,7 @@ phases:
       - id: P6.1
         name: "Add subagent-prompting dependency to orchestration skills"
         status: not_started
-        dependencies: [P5.6]  # After plugin manifest finalized
+        dependencies: [P7.1]  # After plugin manifest finalized
         implementation_plan: "plans/task-briefs/P6.1-subagent-prompting-dependency.md"
         deliverables:
           - "skills/bulwark-verify/SKILL.md (updated)"
@@ -536,7 +539,7 @@ phases:
       - id: P6.4
         name: "Standardize self-describing usage patterns across skills"
         status: not_started
-        dependencies: [P5.6]  # After plugin manifest finalized
+        dependencies: [P7.1]  # After plugin manifest finalized
         implementation_plan: "plans/task-briefs/P6.4-skill-usage-patterns.md"
         deliverables:
           - "All user-invocable skills with Usage section updated"
@@ -662,11 +665,148 @@ phases:
           - "Two separate enforce-quality scripts maintain clean separation: project files vs generated scripts"
         estimated_sessions: 1
 
+  - id: P7
+    name: "Launch Activities"
+    description: "Plugin packaging and rollout documentation — done after all P5+P6 work is complete"
+    status: not_started
+    notes:
+      - "Session 46: Moved from P5 (was P5.6 and P5.7)"
+      - "Must capture final state of all skills, agents, hooks, and commands"
+      - "Should be the very last phase before public release"
+    tasks:
+      - id: P7.1
+        name: "Finalize plugin manifest"
+        status: not_started
+        dependencies: [P5.13, P5.8]  # After all P5 work complete
+        implementation_plan: "plans/task-briefs/P7.1-plugin-manifest.md"
+        deliverables:
+          - ".claude-plugin/plugin.json"
+        acceptance_criteria:
+          - "All commands registered"
+          - "All skills discoverable (flat structure)"
+          - "Global hooks configured (hooks.json)"
+          - "No agents/ directory (agents are skills)"
+        verification:
+          - "Install plugin in test project"
+          - "Verify all components accessible"
+          - "Verify skills appear correctly in / menu"
+        notes:
+          - "Session 46: Moved from P5.6 to P7.1"
+          - "Dependencies updated to reflect all P5 work must be complete first"
+        estimated_sessions: 1
+
+      - id: P7.2
+        name: "Create rollout documentation"
+        status: not_started
+        dependencies: [P7.1]
+        implementation_plan: "plans/task-briefs/P7.2-rollout-docs.md"
+        deliverables:
+          - "docs/rollout-guide.md"
+          - "docs/quickstart.md"
+        acceptance_criteria:
+          - "Installation instructions"
+          - "Phased rollout guide"
+          - "2.1.1 features documented"
+          - "Troubleshooting section"
+        verification:
+          - "Follow quickstart in new project"
+          - "Verify all steps work"
+        notes:
+          - "Session 46: Moved from P5.7 to P7.2"
+        estimated_sessions: 1
+
+  - id: P8
+    name: "Immediate Improvements"
+    description: "Cross-cutting improvements to execute before P5 feature work. Not phase-sequential — done first."
+    status: in_progress
+    notes:
+      - "Session 46: Created for items that should be done immediately but don't fit P5"
+      - "Execution order: P8.1 → P8.2 → then resume P5.10-12"
+    tasks:
+      - id: P8.1
+        name: "Rules.md slimming, framework independence, and init scripts"
+        status: completed
+        completion_notes: "Session 46. Rules.md trimmed 305→198 lines (35% reduction). OR/SA moved to CLAUDE.md project rules. Init scripts, scaffold templates, reasoning doc created. All verification passed."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P8.1-rules-slimming.md"
+        deliverables:
+          - "Rules.md (judicious trim ~306→~185 lines, framework-independent)"
+          - "CLAUDE.md (restructured: Mandatory Rules section with project rules, slimmed Your Role)"
+          - "docs/rules-reasoning.md (preserved code examples and URLs)"
+          - "lib/templates/rules.md (portable copy for scaffold)"
+          - "lib/templates/claudemd-injection.md (Binding Contract + Mandatory Rules for scaffold)"
+          - "lib/templates/project-rules-bulwark.md (OR/SA/Conventions/Grounding)"
+          - "lib/templates/project-rules-template.md (blank template for non-Bulwark projects)"
+          - "scripts/init-rules.sh (copies lib/templates/rules.md to target project)"
+          - "scripts/init-project-rules.sh (injects claudemd-injection.md into CLAUDE.md)"
+          - "governance-protocol/SKILL.md (updated references)"
+        acceptance_criteria:
+          - "Rules.md < 200 lines (from ~306) — ~40% reduction, all rule substance preserved"
+          - "Framework-independent: zero Bulwark-specific references in Rules.md"
+          - "OR1-4 (reworked), SA1-6, Task Conventions, Grounding in CLAUDE.md Mandatory Rules"
+          - "OR1 reflects Opus-class model (not 'never delegated'), OR4 supports parallel"
+          - "No model version numbers in OR rules (Opus/Sonnet/Haiku only)"
+          - "CLAUDE.md zero duplication with Rules.md (Your Role slimmed, During Implementation removed)"
+          - "Universal rule IDs preserved (CS1-4, T1-4, V1-4, ID1-3, SC1-3, TR1-3, SR1-4)"
+          - "T4 amended: 'Write tests WITH implementation, not after'"
+          - "lib/templates/rules.md matches project root Rules.md"
+          - "lib/templates/claudemd-injection.md contains Binding Contract + Mandatory Rules"
+          - "Init scripts runnable standalone, idempotent"
+          - "Diff of old vs new Rules.md and CLAUDE.md reviewed by user"
+          - "Governance protocol updated and functional"
+        verification:
+          - "wc -l Rules.md before/after (target: ~185 from ~306)"
+          - "All universal rule IDs present in new Rules.md"
+          - "OR1-4, SA1-6, Task Conventions, Grounding in CLAUDE.md Mandatory Rules"
+          - "diff old vs new Rules.md — every change reviewed"
+          - "diff old vs new CLAUDE.md — every change reviewed"
+          - "Rules.md standalone (no Bulwark-specific references)"
+          - "lib/templates/rules.md matches project root Rules.md"
+          - "init-rules.sh copies Rules.md to test directory"
+          - "init-project-rules.sh injects Mandatory Rules into CLAUDE.md"
+          - "init-project-rules.sh is idempotent (no duplicate sections)"
+          - "New session: governance protocol activates correctly"
+        notes:
+          - "Session 46: Elevated from FW-OBS-004 to dedicated task"
+          - "Session 46: Task brief revised — judicious trim (not aggressive), rule elaboration preserved"
+          - "Key insight: rule elaboration is critical context, not fluff (CS1 three bullets = three constraints)"
+          - "Real savings from CLAUDE.md de-duplication, not Rules.md gutting"
+          - "Portable copies: lib/templates/rules.md and claudemd-injection.md for scaffold"
+          - "Project root Rules.md/CLAUDE.md are for Bulwark development; templates are for scaffold"
+          - "OR1 reworked: 'always Opus-class' replaces 'never delegated' (reflects bulwark-implementer)"
+          - "OR4 reworked: parallel execution supported per pipeline-templates"
+          - "Init scripts created here; packaging into bulwark-scaffold deferred to P7"
+        estimated_sessions: 1
+
+      - id: P8.2
+        name: "Essential Agent Skills repository setup"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P8.2-essential-skills-repo.md"
+        deliverables:
+          - "Essential Agent Skills repo on GitHub"
+          - "Git subtree configuration for skill sync"
+          - "README with skill catalog and installation instructions"
+        acceptance_criteria:
+          - "Standalone repo with independent skills extracted from Bulwark"
+          - "Git subtree push from Bulwark to standalone repo works"
+          - "Each skill has its own directory with SKILL.md and dependencies"
+          - "README catalogs all skills with descriptions and usage"
+          - "Future path: GitHub Actions for automated sync"
+        verification:
+          - "Clone standalone repo, verify skills are complete and self-contained"
+          - "git subtree push from Bulwark successfully updates standalone repo"
+          - "Skills work when installed in a fresh project"
+        notes:
+          - "Session 46: New task — fork independent skills for standalone distribution"
+          - "Candidate skills: anthropic-validator, code-review, bug-magnet-data, test-audit, assertion-patterns, component-patterns, session-handoff, subagent-prompting, subagent-output-templating, mock-detection, test-classification"
+          - "Phase 1: git subtree. Phase 2: GitHub Actions automation."
+        estimated_sessions: 1
+
 # Summary
 summary:
-  total_tasks: 39  # Was 38, added P4.5, P4.3 descoped
-  total_estimated_sessions: 39  # P4.3 removed (1), P4.5 added (1), net zero
-  completed_phases: "P0, P1, P2, P3 (see tasks_completed.yaml)"
+  total_tasks: 42  # Added P5.13, P7.1, P7.2, P8.1, P8.2; descoped P5.1; moved P5.6/P5.7 to P7
+  completed_phases: "P0, P1, P2, P3, P4 (see tasks_completed.yaml for P0-P3)"
   skipped_tasks:
     - id: P1.1
       reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
@@ -674,15 +814,26 @@ summary:
       reason: "Redundant - Skills/commands merged in Claude Code 2.1.x, /bulwark-verify serves as both"
   descoped_tasks:
     - id: P4.3
-      reason: "Redundant - /code-review skill + Code Review Pipeline cover all use cases. Single-agent review susceptible to security bias. Pipeline's 4-agent separation is architecturally superior."
+      reason: "Redundant - /code-review skill + Code Review Pipeline cover all use cases. Single-agent review susceptible to security bias."
+    - id: P5.1
+      reason: "Redundant - test-audit skill is already user-invocable with arguments, batching, and full pipeline."
+  execution_order:
+    immediate: "P8.1 (Rules.md) → P8.2 (Essential Skills repo)"
+    next: "P5.10-12 (Test Audit Hardening)"
+    then: "P5.3-5 (Evolution Tools)"
+    after: "P5.13 (Plan Creation)"
+    final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
+    launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
   phases:
     P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
     P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
     P2: 3 tasks (Verification Scripts) - COMPLETED
     P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
     P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - COMPLETED (P4.3 DESCOPED)
-    P5: 11 tasks (Commands, Evolution, Testing, Polish, Test Audit Hardening) - P5.2 SKIPPED, P5.9 COMPLETED
+    P5: 9 tasks (Test Audit Hardening, Evolution Tools, Plan Creation, Test Protocol) - P5.1 DESCOPED, P5.2 SKIPPED, P5.9 COMPLETED
     P6: 8 tasks (Optional Enhancements) - Post-completion polish
+    P7: 2 tasks (Launch Activities - Plugin Manifest, Rollout Docs) - After all P5+P6
+    P8: 2 tasks (Immediate Improvements - Rules.md, Essential Skills Repo) - Execute first
   architecture_notes:
     pipelines: "Orchestrate general-purpose sub-agents with role-based prompts, support parallel execution"
     skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
@@ -698,3 +849,10 @@ summary:
     - "Flat skills/ directory (no nesting)"
     - "Ralph Wiggum loops for iterative creation"
     - "Diagnostic output for behavioral testing"
+  bundled_task_briefs:
+    - brief: "plans/task-briefs/P5.3-5-evolution-tools.md"
+      tasks: [P5.3, P5.4, P5.5]
+      rationale: "Shared research on Ralph loops, feedback patterns. P5.3 informs P5.4 and P5.5."
+    - brief: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
+      tasks: [P5.10, P5.11, P5.12]
+      rationale: "All address test-audit Known Limitations. Shared context on AST analysis and skill updates."

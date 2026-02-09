@@ -80,18 +80,18 @@ This fallback works but is manual - the orchestrator must detect the failure and
 **Identified:** Session 45 (2026-02-08)
 **Source:** User observation during P4.4 testing
 **Severity:** Medium (token efficiency)
-**Status:** Open
+**Status:** Resolved (P8.1, Session 46)
 
-**Finding:** `Rules.md` includes both the rules themselves and the reasoning/justification behind each rule. Every session loads the full file, consuming tokens on explanatory text that the model doesn't need every time. The file has grown to ~300 lines.
+**Finding:** `Rules.md` includes both the rules themselves and the reasoning/justification behind each rule. Every session loads the full file, consuming tokens on explanatory text that the model doesn't need every time. The file had grown to ~306 lines.
 
-**Proposed Fix:**
-1. Slim `Rules.md` to rules-only: concise, mandatory, no-ambiguity language
-2. Create `docs/rules-reasoning.md` with the justifications, examples, and rationale
-3. `Rules.md` references `docs/rules-reasoning.md` for human consumption but doesn't require it be loaded
-
-**Benefit:** Reduced per-session token consumption. Rules remain binding. Reasoning available for human reference and future sessions where context is needed.
-
-**Action:** Implement during a future cleanup pass (not during active P4 testing).
+**Resolution (P8.1):**
+- Rules.md trimmed from ~306 to ~182 lines (~40% reduction)
+- Code examples (T1/T2 TypeScript, V2 bash) moved to `docs/rules-reasoning.md`
+- Bulwark-specific sections (OR1-4, SA1-6, Grounding Clause) moved to CLAUDE.md project rules
+- Rule elaboration preserved (critical context, not fluff)
+- CLAUDE.md de-duplicated (removed 37-line Your Role, 8-line During Implementation)
+- Portable copies created in `lib/templates/` for scaffold
+- Init scripts created: `scripts/init-rules.sh`, `scripts/init-project-rules.sh`
 
 ---
 

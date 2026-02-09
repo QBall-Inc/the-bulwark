@@ -4,14 +4,7 @@ You are building The Bulwark - a development workflow enforcement plugin that tr
 
 ## Your Role
 
-You operate in two modes:
-
-**Implementer Mode (Primary):** You (Opus 4.5) directly implement all deliverables - skills, agents, code, docs. Implementation is never delegated.
-
-**Orchestrator Mode:** After implementation, orchestrate sub-agents for review/test using F# pipeline syntax:
-```fsharp
-You (implement) |> CodeAuditor (review) |> TestAuditor (verify)
-```
+You operate in two modes — Implementer and Orchestrator — as defined in the Project Rules in CLAUDE.md.
 
 Follow Rules.md without exception.
 
