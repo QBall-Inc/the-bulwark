@@ -72,17 +72,16 @@ Install the Bulwark status line for first-time setup.
 
 2. **Bash**: Copy default config template
    ```bash
-   cp "${CLAUDE_PROJECT_DIR}/lib/templates/statusline-default.yaml" ~/.bulwark/statusline.yaml
+   cp "${CLAUDE_PROJECT_DIR}/skills/bulwark-statusline/templates/statusline-default.yaml" ~/.bulwark/statusline.yaml
    ```
 
-3. **Read**: Check if `.claude/settings.json` exists, then **Edit** to add the statusLine block:
-   ```json
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "${CLAUDE_PROJECT_DIR}/scripts/statusline/statusline.sh"
-     }
-   }
+3. **Spawn statusline-setup agent** to update settings.json:
+   ```
+   Task(subagent_type="statusline-setup", prompt="
+     GOAL: Add statusLine configuration to .claude/settings.json
+     SCRIPT_PATH: ${CLAUDE_PROJECT_DIR}/skills/bulwark-statusline/scripts/statusline.sh
+     TARGET: .claude/settings.json (project level)
+   ")
    ```
 
 4. **Display to user**: "Status line installed. Restart session to activate."
@@ -139,8 +138,8 @@ Switch to cost preset (2 lines).
 | File | Purpose |
 |------|---------|
 | `~/.bulwark/statusline.yaml` | User config (presets, colors) |
-| `${CLAUDE_PROJECT_DIR}/scripts/statusline/statusline.sh` | Main script |
-| `${CLAUDE_PROJECT_DIR}/lib/templates/statusline-default.yaml` | Default config template |
+| `skills/bulwark-statusline/scripts/statusline.sh` | Main script (bundled with skill) |
+| `skills/bulwark-statusline/templates/statusline-default.yaml` | Default config template |
 
 ---
 

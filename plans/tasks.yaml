@@ -693,6 +693,7 @@ phases:
         notes:
           - "Session 46: Moved from P5.6 to P7.1"
           - "Dependencies updated to reflect all P5 work must be complete first"
+          - "Session 48: PATH CANONICALIZATION REQUIRED — During plugin packaging, audit all skill/agent/script paths. Key decisions: (1) Plugin resolves skills from plugin-root skills/, agents from plugin-root agents/ — NOT .claude/ paths. (2) Skills that bundle scripts (e.g., bulwark-statusline/scripts/) must use plugin-relative paths. (3) Hook scripts in scripts/hooks/ are shared infrastructure — decide whether they ship at plugin root or get a hooks/ directory. (4) ${CLAUDE_PROJECT_DIR} may resolve differently for plugins vs project-local installs. (5) Reconcile dogfooding .claude/ copies with plugin-root originals (symlinks vs build step vs single source of truth)."
         estimated_sessions: 1
 
       - id: P7.2
