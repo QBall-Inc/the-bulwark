@@ -43,21 +43,29 @@ for skill in "${SKILLS[@]}"; do
   fi
 done
 
-# --- Statusline ecosystem (rebranded) ---
-echo "=== Syncing statusline ecosystem ==="
+# --- EZ Statusline ecosystem (rebranded, self-contained) ---
+echo "=== Syncing ez-statusline ecosystem ==="
 
-# Skill: bulwark-statusline -> statusline
+# Skill: bulwark-statusline -> ez-statusline
 if [ -d "$BULWARK_ROOT/skills/bulwark-statusline" ]; then
-  echo "  Syncing skills/bulwark-statusline/ -> skills/statusline/"
-  mkdir -p "$DEST/skills/statusline"
-  rsync -av --delete "$BULWARK_ROOT/skills/bulwark-statusline/" "$DEST/skills/statusline/"
+  echo "  Syncing skills/bulwark-statusline/ -> skills/ez-statusline/"
+  mkdir -p "$DEST/skills/ez-statusline"
+  rsync -av --delete "$BULWARK_ROOT/skills/bulwark-statusline/" "$DEST/skills/ez-statusline/"
 fi
 
 # Bundle config template inside skill directory
 if [ -f "$BULWARK_ROOT/lib/templates/statusline-default.yaml" ]; then
-  echo "  Bundling statusline-default.yaml into skills/statusline/templates/"
-  mkdir -p "$DEST/skills/statusline/templates"
-  cp "$BULWARK_ROOT/lib/templates/statusline-default.yaml" "$DEST/skills/statusline/templates/"
+  echo "  Bundling statusline-default.yaml into skills/ez-statusline/templates/"
+  mkdir -p "$DEST/skills/ez-statusline/templates"
+  cp "$BULWARK_ROOT/lib/templates/statusline-default.yaml" "$DEST/skills/ez-statusline/templates/"
+fi
+
+# Bundle statusline.sh inside skill directory (self-contained)
+if [ -f "$BULWARK_ROOT/scripts/statusline/statusline.sh" ]; then
+  echo "  Bundling statusline.sh into skills/ez-statusline/scripts/"
+  mkdir -p "$DEST/skills/ez-statusline/scripts"
+  cp "$BULWARK_ROOT/scripts/statusline/statusline.sh" "$DEST/skills/ez-statusline/scripts/statusline.sh"
+  chmod +x "$DEST/skills/ez-statusline/scripts/statusline.sh"
 fi
 
 # Agent: standards-reviewer (used by anthropic-validator)
@@ -74,18 +82,11 @@ if [ -f "$BULWARK_ROOT/agents/statusline-setup.md" ]; then
   cp "$BULWARK_ROOT/agents/statusline-setup.md" "$DEST/agents/statusline-setup.md"
 fi
 
-# Script: statusline.sh
-if [ -f "$BULWARK_ROOT/scripts/statusline/statusline.sh" ]; then
-  echo "  Syncing scripts/statusline/statusline.sh"
-  mkdir -p "$DEST/scripts/statusline"
-  cp "$BULWARK_ROOT/scripts/statusline/statusline.sh" "$DEST/scripts/statusline/statusline.sh"
-fi
-
 echo ""
 echo "=== Sync complete ==="
 echo "Destination: $DEST"
 echo ""
 echo "Next steps:"
 echo "  1. Review changes: cd $DEST && git status"
-echo "  2. Clean Bulwark references in standalone copies"
+echo "  2. Clean Bulwark references in standalone copies (bulwark -> ez-statusline, paths, etc.)"
 echo "  3. Commit: git add -A && git commit -m 'Sync from Bulwark'"
