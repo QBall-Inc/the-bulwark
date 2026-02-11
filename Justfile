@@ -44,6 +44,22 @@ ci: typecheck lint build test
     @echo "All quality checks passed"
 
 # ============================================================
+# Test Audit AST Recipes
+# ============================================================
+
+# Count verification lines in test file(s)
+verify-count *path:
+    @npx tsx skills/test-audit/scripts/verification-counter.ts {{path}}
+
+# Detect skipped/focused/todo test markers
+skip-detect *path:
+    @npx tsx skills/test-audit/scripts/skip-detector.ts {{path}}
+
+# Analyze data flow for T3+ broken integration chains (Phase 2)
+# ast-analyze *path:
+#     @npx tsx skills/test-audit/scripts/data-flow-analyzer.ts {{path}}
+
+# ============================================================
 # Bulwark Development Recipes
 # ============================================================
 
