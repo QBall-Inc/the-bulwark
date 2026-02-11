@@ -44,10 +44,10 @@
 project: the-bulwark
 version: 5.0.0
 created: 2026-01-04
-updated: 2026-02-08
+updated: 2026-02-11
 current_phase: P5
 current_task: P5.10
-current_task_status: "P8.2 completed (Session 48). Verified, ez-statusline rename, self-contained skill, executable bits fixed, agent prompt schema added. Moving to P5.10-12."
+current_task_status: "P5.10-12 research complete (Session 49). 8 agents (3 domain + 5 viewpoint). Task brief created. Justfile recipe approach agreed. Next: Phase 1 implementation (verification-counter + skip-detector)."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -669,6 +669,47 @@ phases:
           - "Two separate enforce-quality scripts maintain clean separation: project files vs generated scripts"
         estimated_sessions: 1
 
+      - id: P6.9
+        name: "Add persistent memory to sub-agents"
+        status: not_started
+        dependencies: []  # All target agents already exist and are validated
+        implementation_plan: "plans/task-briefs/P6.9-agent-persistent-memory.md"
+        deliverables:
+          - ".claude/agents/bulwark-implementer.md (updated: memory: project)"
+          - ".claude/agents/bulwark-issue-analyzer.md (updated: memory: project)"
+          - ".claude/agents/bulwark-fix-validator.md (updated: memory: project)"
+          - ".claude/agents/bulwark-standards-reviewer.md (updated: memory: project)"
+          - ".claude/agents/test-validator.md (updated: memory: project)"
+          - ".claude/agent-memory/bulwark-implementer/MEMORY.md (pre-seeded)"
+          - ".claude/agent-memory/bulwark-issue-analyzer/MEMORY.md (pre-seeded)"
+          - ".claude/agent-memory/bulwark-fix-validator/MEMORY.md (pre-seeded)"
+          - ".claude/agent-memory/bulwark-standards-reviewer/MEMORY.md (pre-seeded)"
+          - ".claude/agent-memory/test-validator/MEMORY.md (pre-seeded)"
+          - "lib/templates/agent-memory-seed.md (generic reusable template)"
+        acceptance_criteria:
+          - "All 5 pipeline sub-agents have memory: project in frontmatter"
+          - "Pre-seeded MEMORY.md for each agent contains: Role, Output Paths, Pipeline Context, Self-Maintenance Instructions"
+          - "Agent-specific log paths correct (implementer → logs/implementer-*, analyzer → logs/debug-reports/*, etc.)"
+          - "Generic template in lib/templates/ is self-contained and project-agnostic"
+          - "Agent memory directories NOT gitignored (institutional knowledge is version-controlled)"
+          - "Sub-agents can read their MEMORY.md on startup (first 200 lines auto-injected into system prompt)"
+          - "Sub-agents can write back to their memory (Patterns Learned section grows over time)"
+        verification:
+          - "Each agent frontmatter has memory: project"
+          - ".claude/agent-memory/<name>/MEMORY.md exists for all 5 agents"
+          - "Spawn bulwark-issue-analyzer and confirm it references its MEMORY.md content"
+          - "Verify agent can update its own Patterns Learned section after a run"
+          - "lib/templates/agent-memory-seed.md usable standalone in a new project"
+        notes:
+          - "Session 49 (2026-02-11): Identified after Claude Code 2.1.33 added memory frontmatter for sub-agents"
+          - "memory: project stores in .claude/agent-memory/<agent-name>/ — version-controllable"
+          - "First 200 lines of MEMORY.md auto-injected into sub-agent system prompt"
+          - "Read/Write/Edit tools auto-enabled when memory is set"
+          - "Pre-seeding gives agents baseline context; self-updates build institutional knowledge over time"
+          - "Generic template enables reuse across future projects"
+          - "Excluded agents: file-counter, code-analyzer (test/demo), statusline-setup (built-in)"
+        estimated_sessions: 1
+
   - id: P7
     name: "Launch Activities"
     description: "Plugin packaging and rollout documentation — done after all P5+P6 work is complete"
@@ -817,7 +858,7 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 42  # Added P5.13, P7.1, P7.2, P8.1, P8.2; descoped P5.1; moved P5.6/P5.7 to P7
+  total_tasks: 43  # +P6.9 (agent persistent memory, Session 49)
   completed_phases: "P0, P1, P2, P3, P4 (see tasks_completed.yaml for P0-P3)"
   skipped_tasks:
     - id: P1.1
@@ -843,7 +884,7 @@ summary:
     P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
     P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - COMPLETED (P4.3 DESCOPED)
     P5: 9 tasks (Test Audit Hardening, Evolution Tools, Plan Creation, Test Protocol) - P5.1 DESCOPED, P5.2 SKIPPED, P5.9 COMPLETED
-    P6: 8 tasks (Optional Enhancements) - Post-completion polish
+    P6: 9 tasks (Optional Enhancements) - Post-completion polish
     P7: 2 tasks (Launch Activities - Plugin Manifest, Rollout Docs) - After all P5+P6
     P8: 2 tasks (Immediate Improvements - Rules.md, Essential Skills Repo) - Execute first
   architecture_notes:
