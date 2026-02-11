@@ -45,9 +45,9 @@ project: the-bulwark
 version: 5.0.0
 created: 2026-01-04
 updated: 2026-02-08
-current_phase: P8
-current_task: P8.2
-current_task_status: "P8.2 in progress (Session 47). Repo created, skills synced, READMEs written. Awaiting user verification."
+current_phase: P5
+current_task: P5.10
+current_task_status: "P8.2 completed (Session 48). Verified, ez-statusline rename, self-contained skill, executable bits fixed, agent prompt schema added. Moving to P5.10-12."
 
 # For completed phases P0-P3, see: plans/tasks_completed.yaml
 
@@ -549,15 +549,19 @@ phases:
           - "Flags table with descriptions"
           - "Examples showing real invocations"
           - "Claude can extract and present usage info when asked"
+          - "Flagship skills (code-review, test-audit) include Mermaid flow diagrams showing full pipeline"
+          - "Mermaid charts cover: invocation entry points, pipeline stages, sub-agent spawning, output artifacts"
         verification:
           - "Ask 'what flags does /skill-name support?' for each user-invocable skill"
           - "Verify Claude accurately extracts and formats usage information"
+          - "Mermaid charts render correctly on GitHub (standalone repo READMEs)"
         notes:
           - "Session 33 (2026-02-01): Identified during P4.1 testing"
           - "Reference: tests/manual-test-protocol-P4.md#OBS-002"
           - "code-review skill serves as reference implementation"
           - "Skills double as commands; self-describing docs enable built-in help"
-        estimated_sessions: 1
+          - "Session 48: User requested Mermaid flow diagrams for flagship skills (code-review, test-audit) to showcase full pipeline flow and usage patterns. Apply to both Bulwark and standalone repo READMEs."
+        estimated_sessions: 2
 
       - id: P6.5
         name: "Add usage documentation validation to anthropic-validator"
@@ -781,8 +785,8 @@ phases:
 
       - id: P8.2
         name: "Essential Agents & Skills repository setup"
-        status: in_progress
-        completion_notes: "Session 47. Repo created, 12 skills + 2 agents + statusline script synced. READMEs written with humanizer pass. Pushed to GitHub. Awaiting user verification (clone into fresh project, test skill loading)."
+        status: completed
+        completion_notes: "Sessions 47-48. Repo created, 12 skills + 2 agents synced. Session 48: ez-statusline rename (name collision fix), self-contained skill (scripts bundled inside skill dir), executable bits fixed for non-WSL clones, agent prompt includes exact JSON schema. Verified by user."
         dependencies: []
         implementation_plan: "plans/task-briefs/P8.2-essential-skills-repo.md"
         deliverables:
