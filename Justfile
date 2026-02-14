@@ -55,9 +55,9 @@ verify-count *path:
 skip-detect *path:
     @npx tsx skills/test-audit/scripts/skip-detector.ts {{path}}
 
-# Analyze data flow for T3+ broken integration chains (Phase 2)
-# ast-analyze *path:
-#     @npx tsx skills/test-audit/scripts/data-flow-analyzer.ts {{path}}
+# Analyze data flow for T3+ broken integration chains
+ast-analyze *path:
+    @npx tsx skills/test-audit/scripts/data-flow-analyzer.ts {{path}}
 
 # ============================================================
 # Bulwark Development Recipes
