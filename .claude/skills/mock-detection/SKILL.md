@@ -70,6 +70,10 @@ Analyze flagged test files for T1-T4 violations using mock appropriateness rubri
 
 **Violation scope tracking:** See "Violation Scope Tracking" section below
 
+**Extended stub/fake patterns:** See `references/stub-patterns.md` — Meszaros taxonomy, class hierarchy detection, factory function classification
+
+**False positive prevention:** See `references/false-positive-prevention.md` — Two-tier allowlist (Universal Safe / Context-Dependent) and decision tree. Consult BEFORE flagging borderline patterns.
+
 ### OUTPUT
 
 Write violations to: `logs/mock-detection-{YYYYMMDD-HHMMSS}.yaml`
@@ -146,6 +150,12 @@ A mock is inappropriate when it **defeats the purpose of the test**:
 - `mockData` used where real function output should flow
 - Data manually constructed instead of flowing from upstream function
 - Integration test with hardcoded intermediate values
+- Property access on manually-constructed objects used in downstream calls (e.g., `mockOrder.id` passed into new objects)
+
+**Class hierarchy signals** (see `references/stub-patterns.md` for full taxonomy):
+- Classes named Fake*/Stub*/Mock*/InMemory*/Test* that implement interfaces or extend base classes
+- Manual stub objects without naming conventions (all methods are no-ops or return hardcoded values)
+- Factory functions prefixed with `buildMock*` or `createFake*`
 
 **Call graph check:** Trace data flow. If Component A should output to Component B, but test injects `mockAOutput` into B, the chain is broken.
 
@@ -468,6 +478,13 @@ Task(subagent_type="general-purpose", model="sonnet", prompt=batch2_prompt, run_
 Read all outputs after completion, then merge.
 
 ---
+
+## References
+
+| Document | Purpose |
+|----------|---------|
+| `references/stub-patterns.md` | Meszaros test double taxonomy, class hierarchy detection, factory function classification |
+| `references/false-positive-prevention.md` | Two-tier allowlist (Universal Safe / Context-Dependent), decision tree for violation evaluation |
 
 ## Related Skills
 
