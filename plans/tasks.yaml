@@ -22,8 +22,8 @@ version: 5.1.0
 created: 2026-01-04
 updated: 2026-02-15
 current_phase: P5
-current_task: P5.3
-current_task_status: "P5.10-12 COMPLETE (Session 56). P8 COMPLETE (Session 58, rsync overhaul). Next: P5.3-5 Evolution Tools (continuous-feedback, skill-creator, agent-creator)."
+current_task: P5.14
+current_task_status: "P5.14 created (Session 58). research-brainstorm skill drafted but needs Bulwark convention alignment (F# pipelines, pipeline-templates, diagnostics). Prerequisite for P5.3-5 research sessions."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -168,6 +168,39 @@ phases:
           - "Standalone brief, not bundled with P5.3-5"
         estimated_sessions: 2
 
+      - id: P5.14
+        name: "Create research-brainstorm skill (production-grade)"
+        status: not_started
+        dependencies: []  # Prerequisite for P5.3-5 research methodology
+        implementation_plan: "plans/task-briefs/P5.14-research-brainstorm.md"
+        deliverables:
+          - "skills/research-brainstorm/SKILL.md (refined)"
+          - "skills/research-brainstorm/references/phase-1-viewpoints.md (refined)"
+          - "skills/research-brainstorm/references/phase-2-roles.md (refined)"
+          - "skills/research-brainstorm/references/synthesis-protocol.md (refined)"
+          - "skills/pipeline-templates/references/research-brainstorm.md (new pipeline)"
+          - ".claude/skills/research-brainstorm/ (dogfood copy)"
+        acceptance_criteria:
+          - "F# pipeline syntax for sub-agent orchestration (OR4 compliance)"
+          - "Pipeline template added to pipeline-templates skill"
+          - "Follows code-review/test-audit skill conventions (frontmatter, structure, diagnostics)"
+          - "Prompt templates use subagent-prompting 4-part format"
+          - "Output format uses subagent-output-templating conventions"
+          - "Diagnostic output section present"
+          - "Passes anthropic-validator"
+          - "Synced to .claude/skills/ for dogfooding"
+          - "Added to sync-essential-skills.sh for standalone repo"
+        verification:
+          - "Run /research-brainstorm research [test-topic] — 5 agents spawn correctly"
+          - "Verify F# pipeline notation in skill doc"
+          - "Verify pipeline-templates references updated"
+          - "Run /anthropic-validator on the skill"
+        notes:
+          - "Session 58: Draft created with correct methodology but non-standard conventions"
+          - "Must align with Bulwark patterns before use in P5.3-5 research sessions"
+          - "Prerequisite for Sessions 59-67 (P5.3-5 research & brainstorm)"
+        estimated_sessions: 1
+
   - id: P6
     name: "Optional Enhancements"
     description: "Post-completion enhancements that improve consistency but are not required for core functionality"
@@ -309,7 +342,7 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 43
+  total_tasks: 44  # +P5.14 (research-brainstorm skill, Session 58)
   completed_phases: "P0, P1, P2, P3, P4, P8 (see tasks_completed.yaml)"
   skipped_tasks:
     - { id: P1.1, reason: "Redundant - Main Context Orchestration pattern" }
@@ -319,7 +352,8 @@ summary:
     - { id: P5.1, reason: "Redundant - /test-audit already user-invocable" }
   execution_order:
     completed: "P8.1-2 → P5.10-12"
-    next: "P5.3-5 (Evolution Tools)"
+    next: "P5.14 (research-brainstorm skill)"
+    then_research: "P5.3-5 research & brainstorm (8 sessions using /research-brainstorm)"
     after: "P5.13 (Plan Creation)"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
@@ -329,7 +363,7 @@ summary:
     P2: "3 tasks - COMPLETED"
     P3: "5 tasks - COMPLETED"
     P4: "5 tasks - COMPLETED (P4.3 DESCOPED)"
-    P5: "9 tasks - P5.1 DESCOPED, P5.2 SKIPPED, P5.9-12 COMPLETED, P5.3-5/P5.8/P5.13 remaining"
+    P5: "10 tasks - P5.1 DESCOPED, P5.2 SKIPPED, P5.9-12 COMPLETED, P5.14/P5.3-5/P5.8/P5.13 remaining"
     P6: "9 tasks - Not started"
     P7: "2 tasks - After all P5+P6"
     P8: "2 tasks - COMPLETED"
