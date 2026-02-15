@@ -3,240 +3,55 @@
 # Each task has an implementation plan in plans/task-briefs/P{phase}.{task}-{name}.md
 # Tasks are designed to be self-contained or explicitly dependent
 #
-# NOTE: Completed phases (P0-P3) archived to tasks_completed.yaml (Session 29)
+# NOTE: Completed phases (P0-P4, P8) and completed/descoped P5 tasks archived
+# to tasks_completed.yaml (Session 29 for P0-P3, Session 58 for P4/P5/P8)
 #
 # SCHEDULE RATIONALE:
-# - P0: Foundation skills + Test Audit skills (T1-T4 rules encoded here) - COMPLETED
-# - P1: Early Agents (custom sub-agents for pipeline stages) - COMPLETED
-# - P2: Verification Scripts - COMPLETED
-# - P3: Enforcement Infrastructure (hooks with once: true, just) - COMPLETED
-# - P4: Review Skills + Standalone Auditor/Implementer agents - COMPLETED
+# - P0-P4: COMPLETED (archived)
 # - P5: Test Audit Hardening, Evolution Tools, Testing Protocol
 # - P6: Optional Enhancements
 # - P7: Launch Activities (plugin manifest, rollout docs) - after all P5+P6 work
-# - P8: Immediate Improvements (Rules.md slimming, Essential Agent Skills repo)
+# - P8: COMPLETED (archived)
 #
 # EXECUTION ORDER (Session 46 brainstorm):
-# P8.1-2 (immediate) → P5.10-12 (test audit hardening) → P5.3-5 (evolution tools)
+# P8.1-2 (DONE) → P5.10-12 (DONE) → P5.3-5 (evolution tools)
 # → P5.13 (plan creation) → P5.8 (test protocol) → P6.x → P7.1-2 (launch)
-#
-# CLAUDE CODE 2.1.1 UPDATES:
-# - Custom sub-agents defined as markdown files in tests/agents/ or skills/
-# - Pipeline stages use general-purpose agents with role-based prompts + skill references
-# - Skills use flat directory structure (no atomic/composite nesting)
-# - User-invocable: false for internal skills
-# - agent: haiku/sonnet for model selection
-# - once: true for SessionStart hooks
-# - Diagnostic output REQUIRED for ALL skills (validated 2026-01-10)
-# - Ralph Wiggum loops for iterative creation
-#
-# ARCHITECTURE CLARIFICATION (Updated 2026-01-16):
-# - Pipelines orchestrate general-purpose sub-agents with specific roles
-# - Each pipeline stage loads relevant skill via frontmatter (skills: skill-name)
-# - Custom sub-agents (e.g., bulwark-issue-analyzer) encapsulate stage behavior
-# - Standalone agents (e.g., bulwark-code-auditor) for ad-hoc use outside pipelines
-#
-# DIAGNOSTIC OUTPUT REQUIREMENT (Added 2026-01-10):
-# All skills MUST include a Diagnostic Output section that writes to:
-#   logs/diagnostics/{skill-name}-{timestamp}.yaml
-# Format: See plans/task-briefs/P0.1-subagent-prompting.md Section 3.2
 
 project: the-bulwark
-version: 5.0.0
+version: 5.1.0
 created: 2026-01-04
-updated: 2026-02-11
+updated: 2026-02-15
 current_phase: P5
-current_task: P5.10
-current_task_status: "P5.10-12 Phase 2 COMPLETE (Session 51). data-flow-analyzer.ts (~330 lines, 34 tests) implemented, user-validated. Property-access tracing added after validation caught false negatives. 83/83 total AST script tests. Next: Phase 3 (stub-patterns.md, false-positive-prevention.md) and Phase 4 (dual-mode)."
+current_task: P5.3
+current_task_status: "P5.10-12 COMPLETE (Session 56). P8 COMPLETE (Session 58, rsync overhaul). Next: P5.3-5 Evolution Tools (continuous-feedback, skill-creator, agent-creator)."
 
-# For completed phases P0-P3, see: plans/tasks_completed.yaml
+# For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
 phases:
+  # P4: COMPLETED — archived to tasks_completed.yaml (Session 58)
   - id: P4
     name: "Review Skills & Standalone Agents"
-    description: "Unified code-review skill with sections + standalone agents for ad-hoc use"
     status: completed
-    completion_notes: "Sessions 29-45. P4.1 code-review, P4.2 bug-magnet-data, P4.3 descoped, P4.4 implementer agent, P4.5 pipeline-templates. All validated via manual testing and anthropic-validator."
+    completion_notes: "Sessions 29-45. See tasks_completed.yaml for full details."
     tasks:
-      - id: P4.1
-        name: "Create code-review skill (unified with sections)"
-        status: completed
-        completion_notes: "Sessions 29-35. Validated via anthropic-validator and manual testing."
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
-        deliverables:
-          - "skills/code-review/SKILL.md"
-        acceptance_criteria:
-          - "Section: Security (OWASP patterns, injection checks, auth/authz)"
-          - "Section: Type Safety (any detection, null handling, unsafe assertions)"
-          - "Section: Linting (code style, formatting, complexity)"
-          - "Section: Coding Standards (naming, documentation, patterns)"
-          - "Each section independently referenceable by role-based agents"
-          - "Structured review output format"
-          - "Severity categorization (critical/high/medium/low)"
-          - "Frontmatter: user-invocable: true"
-        verification:
-          - "Apply security section to code with SQL injection"
-          - "Apply type-safety section to code with any"
-          - "Verify each section works independently"
-          - "Verify skill appears in / menu"
-        notes:
-          - "Consolidates previous P4.1 (security-heuristics) and P4.2 (type-safety)"
-          - "Adds linting and coding-standards sections"
-          - "Pipeline uses role-based general-purpose agents referencing sections"
-          - "Two-phase flow: static tools (just typecheck/lint) first, then LLM judgment"
-        estimated_sessions: 1
-
-      - id: P4.2
-        name: "Create bug-magnet-data skill"
-        status: completed
-        completion_notes: "Sessions 35-38. Consumers updated, validated via manual testing."
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
-        deliverables:
-          - "skills/bug-magnet-data/SKILL.md"
-          - "skills/bug-magnet-data/data/heuristics.json"
-        acceptance_criteria:
-          - "String edge cases (unicode, emoji, injection)"
-          - "Number edge cases (0, negative, MAX_INT)"
-          - "Date edge cases (leap year, timezone)"
-          - "Frontmatter: agent: haiku (data retrieval)"
-          - "Frontmatter: user-invocable: false"
-        verification:
-          - "Pull edge case data for test"
-        notes:
-          - "Renumbered from P4.3"
-          - "Consumers (test-audit, bulwark-verify, fix-validator) updated after implementation"
-        estimated_sessions: 1
-
-      - id: P4.3
-        name: "Create bulwark-code-auditor agent (standalone)"
-        status: descoped
-        descope_reason: >
-          Session 39 (2026-02-06): Determined redundant after analysis.
-          /code-review skill already provides direct user invocation (all sections by default).
-          Code Review Pipeline provides bias-free isolated review via 4 parallel agents.
-          Sub-agents spawned by Task tool already run in isolated context windows.
-          Single-agent all-sections review is susceptible to Anthropic-documented security bias.
-          Pipeline's separation of concerns (one agent per section) is architecturally superior.
-          See docs/p4.3-4-research.md Section 7.3 and pipeline coexistence analysis.
-        dependencies: [P4.1, P0.1]
-        implementation_plan: "N/A - descoped"
-        deliverables: []
-        acceptance_criteria: []
-        verification: []
-        notes:
-          - "Renumbered from P4.5"
-          - "DESCOPED: Redundant with /code-review skill + Code Review Pipeline"
-          - "Pipeline 4-agent pattern is superior due to security bias prevention"
-          - "Sub-agents already have isolated context windows (no author bias)"
-        estimated_sessions: 0
-
-      - id: P4.4
-        name: "Create bulwark-implementer agent"
-        status: completed
-        completion_notes: "Sessions 40-45. Validated via anthropic-validator and manual testing (P4.4-1 through P4.4-6)."
-        dependencies: [P0.1]
-        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
-        deliverables:
-          - "agents/bulwark-implementer.md"
-          - "scripts/hooks/implementer-quality.sh"
-        acceptance_criteria:
-          - "Custom sub-agent definition (markdown file)"
-          - "Frontmatter: model: opus"
-          - "Frontmatter: skills: [subagent-prompting, subagent-output-templating, component-patterns]"
-          - "Frontmatter: NO hooks: section (agent-scoped hooks broken, bug #18392)"
-          - "Agent calls implementer-quality.sh directly via Bash after each Write/Edit"
-          - "Pipeline suggestions logged to report and returned in summary with MANDATORY language (SA6)"
-          - "Quality failure handling: max 3 retries, then escalate to orchestrator"
-          - "Input structure specified for fixes (debug report) and features (design doc)"
-          - "Follows Bulwark standards"
-          - "Produces code + tests"
-          - "Output to logs/implementer-{id}-{timestamp}.yaml"
-          - "Diagnostic output to logs/diagnostics/"
-          - "Pre-Flight Gate with MANDATORY language (DEF-P4-005 prevention)"
-          - "Explicit output paths (DEF-P4-006 prevention)"
-        verification:
-          - "Invoke via Task tool with subagent_type=bulwark-implementer"
-          - "Verify output quality"
-          - "Verify agent calls implementer-quality.sh after Write/Edit"
-          - "Verify quality failure triggers self-correction"
-          - "Verify pipeline suggestions in summary with MANDATORY language"
-          - "Verify SubagentStop hook verifies log output (track-pipeline-stop.sh)"
-        notes:
-          - "Renumbered from P4.6"
-          - "Model corrected from sonnet to opus (Session 39) per subagent-prompting: Write → Opus"
-          - "component-patterns required (not optional) for test scaffolding consistency"
-          - "Addresses ENH-P4-003 (unguarded code-writing path)"
-          - "Session 42: Design finalized with implementer-quality.sh, SA6 pipeline suggestions"
-        estimated_sessions: 1
-
-      - id: P4.5
-        name: "Update pipeline-templates for parallel execution and P4.4 integration"
-        status: completed
-        completion_notes: "Sessions 43-45. Validated via anthropic-validator and manual testing (P4.5-1 through P4.5-7)."
-        dependencies: [P4.4]
-        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
-        deliverables:
-          - "skills/pipeline-templates/SKILL.md (updated)"
-          - "skills/pipeline-templates/references/code-review.md (updated)"
-          - "skills/pipeline-templates/references/fix-validation.md (updated)"
-          - "skills/pipeline-templates/references/new-feature.md (updated)"
-        acceptance_criteria:
-          - "F# pipeline syntax updated with parallel execution notation"
-          - "Code Review Pipeline documents parallel agent spawning"
-          - "Fix Validation Stage 2 updated from Orchestrator to bulwark-implementer"
-          - "New Feature Stage 3 updated from generic Opus to bulwark-implementer"
-          - "Pipeline coexistence documented (skill vs pipeline invocation paths)"
-          - "Removed standalone code-auditor references from code-review.md"
-        verification:
-          - "Parallel notation renders correctly in pipeline docs"
-          - "Fix Validation references bulwark-implementer for Stage 2"
-          - "New Feature references bulwark-implementer for Stage 3"
-          - "No stale references to bulwark-code-auditor"
-        notes:
-          - "Session 39 (2026-02-06): Created after P4.3 descoped"
-          - "Parallel execution update addresses user feedback on F# syntax"
-          - "Pipeline updates are estimated 70% of effort (Contrarian analysis)"
-        estimated_sessions: 1
+      - { id: P4.1, name: "Create code-review skill", status: completed }
+      - { id: P4.2, name: "Create bug-magnet-data skill", status: completed }
+      - { id: P4.3, name: "Create bulwark-code-auditor agent", status: descoped }
+      - { id: P4.4, name: "Create bulwark-implementer agent", status: completed }
+      - { id: P4.5, name: "Update pipeline-templates", status: completed }
 
   - id: P5
     name: "Test Audit Hardening, Evolution Tools, and Testing Protocol"
     description: "Test audit production hardening, evolution tools with Ralph loops, plan creation skill, and consolidated test protocol"
     status: in_progress
     tasks:
-      - id: P5.1
-        name: "Create audit command"
-        status: descoped
-        descope_reason: >
-          Session 46 (2026-02-08): Redundant after skills/commands merge in Claude Code 2.1.x.
-          test-audit skill is already user-invocable: true with path arguments (/test-audit [path]),
-          batching support (>20 files classification, >10 files detection), and full 3-stage pipeline.
-          A separate audit command adds no value over /test-audit.
-        dependencies: [P0.8]
-        implementation_plan: "N/A - descoped"
-        deliverables: []
-        acceptance_criteria: []
-        verification: []
-        estimated_sessions: 0
-
-      - id: P5.2
-        name: "Create verify command"
-        status: skipped
-        skip_reason: "Redundant - Skills and commands merged in Claude Code 2.1.x. /bulwark-verify skill (P2.3) serves as both skill and command."
-        dependencies: [P2.3]
-        implementation_plan: "N/A - skipped"
-        deliverables: []
-        acceptance_criteria: []
-        verification: []
-        decision_notes:
-          - "Session 20 (2026-01-24): Reviewed necessity after skills/commands merge"
-          - "ARCHITECTURAL CHANGE: Claude Code 2.1.x merged skills and commands"
-          - "Skills with user-invocable: true can be invoked via /skill-name [args]"
-          - "P2.3 bulwark-verify is user-invocable and accepts arguments"
-          - "Separate command wrapper provides no additional value"
-          - "SOLUTION: /bulwark-verify [path] works directly as skill invocation"
-        estimated_sessions: 0
+      # Archived tasks (full details in tasks_completed.yaml)
+      - { id: P5.1, name: "Create audit command", status: descoped }
+      - { id: P5.2, name: "Create verify command", status: skipped }
+      - { id: P5.9, name: "Create customizable status line", status: completed }
+      - { id: P5.10, name: "Test audit AST scripts", status: completed }
+      - { id: P5.11, name: "Test audit dual-mode", status: completed }
+      - { id: P5.12, name: "Test audit advanced patterns", status: completed }
 
       # Bundled: P5.3 + P5.4 + P5.5 share one task brief
       - id: P5.3
@@ -330,105 +145,6 @@ phases:
           - "Creates single reference document for regression testing"
         estimated_sessions: 1
 
-      - id: P5.9
-        name: "Create customizable status line"
-        status: completed
-        completion_notes: "Session 18: Multi-line confirmed, RGB colors, /bulwark-statusline skill validated"
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P5.9-statusline.md"
-        deliverables:
-          - "scripts/statusline/statusline.sh"
-          - "lib/templates/statusline-default.yaml"
-          - "skills/bulwark-statusline/SKILL.md"
-          - "agents/statusline-setup.md"
-        acceptance_criteria:
-          - "Multi-line status display (model, gauge, file, git)"
-          - "Color-coded gauge bar (<60% green, 60-70% yellow, >70% red)"
-          - "Model name with background colors (Opus=purple, Sonnet=blue, Haiku=teal)"
-          - "Git display: repo-name/branch (N files pending commit)"
-          - "Presets: minimal, developer, cost, custom"
-          - "Interactive custom segment selection"
-          - "YAML config at ~/.bulwark/statusline.yaml"
-          - "Pastel color palette by default"
-        verification:
-          - "Run /bulwark:statusline-init"
-          - "Verify status line appears in Claude Code"
-          - "Test preset switching via /bulwark:statusline [preset]"
-          - "Test custom segment selection"
-          - "Verify gauge colors change at thresholds"
-        notes:
-          - "Nice-to-have feature for improved UX"
-          - "Multi-line supported via sequential output"
-        estimated_sessions: 1
-
-      # Bundled: P5.10 + P5.11 + P5.12 share one task brief (Test Audit Hardening)
-      - id: P5.10
-        name: "Test audit AST scripts"
-        status: not_started
-        dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
-        deliverables:
-          - "skills/test-audit/scripts/data-flow-analyzer.ts"
-          - "skills/test-audit/scripts/verification-counter.ts"
-          - "skills/test-audit/scripts/skip-detector.ts"
-        acceptance_criteria:
-          - "data-flow-analyzer: AST-based T3+ detection via data flow tracing"
-          - "verification-counter: Precise line counting (not heuristic)"
-          - "skip-detector: T4 detection (.skip, .only, .todo markers)"
-          - "All scripts integrate with test-audit skill"
-        verification:
-          - "Run data-flow-analyzer on T3+ fixture"
-          - "Verify accurate line counts vs heuristic counts"
-          - "Detect skipped tests in fixture"
-        notes:
-          - "Deferred from P0.6-8 Option B+ (Session 11)"
-          - "Bundled with P5.11 and P5.12 into single task brief (Session 46)"
-          - "Addresses T3+ detection fragility and line counting approximation"
-        estimated_sessions: 2
-
-      - id: P5.11
-        name: "Test audit dual-mode"
-        status: not_started
-        dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
-        deliverables:
-          - "skills/test-audit/SKILL.md (updated)"
-        acceptance_criteria:
-          - "Mode detection based on file count"
-          - "Deep mode (<=5 files): Skip classification, full analysis on all"
-          - "Scale mode (>5 files): Full pipeline with batching"
-          - "Automatic mode selection"
-        verification:
-          - "Run on 3 files, verify deep mode used"
-          - "Run on 50 files, verify scale mode used"
-        notes:
-          - "Deferred from P0.6-8 Option B+ (Session 11)"
-          - "Bundled with P5.10 and P5.12 into single task brief (Session 46)"
-          - "Optimizes for small vs large test suites"
-        estimated_sessions: 1
-
-      - id: P5.12
-        name: "Test audit advanced patterns"
-        status: not_started
-        dependencies: [P0.8]
-        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
-        deliverables:
-          - "skills/test-audit/references/stub-patterns.md"
-          - "skills/test-audit/references/false-positive-prevention.md"
-          - "skills/mock-detection/SKILL.md (updated)"
-        acceptance_criteria:
-          - "Manual stub class detection (StubX, FakeX, MockX)"
-          - "Reference docs for false positive prevention"
-          - "T3+ patterns beyond mock* naming conventions"
-        verification:
-          - "Detect StubSharedContext pattern in fixture"
-          - "Verify false positive rate reduced"
-        notes:
-          - "Deferred from P0.6-8 Option B+ (Session 11)"
-          - "Bundled with P5.10 and P5.11 into single task brief (Session 46)"
-          - "Addresses manual stub pattern detection gap"
-        estimated_sessions: 1
-
       - id: P5.13
         name: "Create plan-creation skill (agent teams research)"
         status: not_started
@@ -460,254 +176,96 @@ phases:
       - id: P6.1
         name: "Add subagent-prompting dependency to orchestration skills"
         status: not_started
-        dependencies: [P7.1]  # After plugin manifest finalized
+        dependencies: [P7.1]
         implementation_plan: "plans/task-briefs/P6.1-subagent-prompting-dependency.md"
         deliverables:
           - "skills/bulwark-verify/SKILL.md (updated)"
           - "skills/anthropic-validator/SKILL.md (updated)"
           - "skills/test-audit/SKILL.md (updated)"
-        acceptance_criteria:
-          - "All skills that spawn sub-agents include subagent-prompting in skills array"
-          - "4-part prompt template available regardless of invocation path"
-          - "Model selection rubric accessible without suggest-pipeline.sh chain"
-        verification:
-          - "Invoke /bulwark-verify directly, confirm subagent-prompting loaded"
-          - "Invoke /anthropic-validator directly, confirm subagent-prompting loaded"
-          - "Invoke /test-audit directly, confirm subagent-prompting loaded"
-        notes:
-          - "Session 22 (2026-01-25): Identified gap in skill dependency chain"
-          - "Current workaround: suggest-pipeline.sh injects instructions, but only fires on Write|Edit"
-          - "Direct skill invocation (e.g., /bulwark-verify src/cli.ts) bypasses this chain"
-          - "Fix ensures consistent access to 4-part prompt template and model selection rubric"
         estimated_sessions: 1
 
       - id: P6.2
         name: "Framework-specific Justfile templates"
         status: not_started
-        dependencies: [P3.2]  # After scaffold command complete
+        dependencies: [P3.2]
         implementation_plan: "plans/task-briefs/P6.2-framework-detection.md"
         deliverables:
-          - "lib/templates/justfile-astro.just"
-          - "lib/templates/justfile-nextjs.just"
-          - "lib/templates/justfile-sveltekit.just"
-          - "lib/templates/justfile-vue.just"
-          - "lib/templates/justfile-angular.just"
+          - "lib/templates/justfile-*.just (5 frameworks)"
           - "skills/bulwark-scaffold/SKILL.md (updated)"
-        acceptance_criteria:
-          - "Detect framework from package.json dependencies"
-          - "Framework detection after base language detection (Node → Astro/Next/etc.)"
-          - "Framework-specific typecheck commands (astro check, svelte-check, etc.)"
-          - "Framework-specific lint commands where applicable (next lint)"
-          - "Fallback to Node template if framework not recognized"
-        verification:
-          - "Scaffold Astro project, verify astro check in typecheck recipe"
-          - "Scaffold Next.js project, verify next lint in lint recipe"
-          - "Scaffold unknown framework, verify Node template used"
-        notes:
-          - "Session 23 (2026-01-26): Identified during P3.1-3 brief review"
-          - "Framework detection is enhancement, not core requirement"
-          - "Base Node template works for all frameworks, just less optimal"
-          - "Detection order: package.json deps → astro|next|svelte|nuxt|vue|angular"
         estimated_sessions: 1
 
       - id: P6.3
         name: "Create bug-magnet-update helper skill"
         status: not_started
-        dependencies: [P4.2]  # After bug-magnet-data implemented
+        dependencies: [P4.2]
         implementation_plan: "plans/task-briefs/P6.3-bug-magnet-update.md"
         deliverables:
           - "skills/bug-magnet-update/SKILL.md"
-        acceptance_criteria:
-          - "Fetches latest from BLNS/OWASP URLs"
-          - "Diffs against local bug-magnet-data"
-          - "Suggests additions (does not auto-modify)"
-          - "User reviews and approves changes"
-          - "Frontmatter: user-invocable: true"
-          - "Frontmatter: agent: sonnet"
-        verification:
-          - "Run /bug-magnet-update"
-          - "Verify fetches external list URLs"
-          - "Verify shows diff of new patterns"
-          - "Verify does not auto-modify data files"
-        notes:
-          - "Session 30 (2026-01-30): Identified during P4.2 brainstorming"
-          - "Enables checking for new edge case patterns without blocking P4.2"
-          - "Core bug-magnet-data skill remains simple; this is optional enhancement"
-          - "Data files have version/last_updated/source_urls metadata for tracking"
         estimated_sessions: 1
 
       - id: P6.4
         name: "Standardize self-describing usage patterns across skills"
         status: not_started
-        dependencies: [P7.1]  # After plugin manifest finalized
+        dependencies: [P7.1]
         implementation_plan: "plans/task-briefs/P6.4-skill-usage-patterns.md"
         deliverables:
           - "All user-invocable skills with Usage section updated"
-        acceptance_criteria:
-          - "All user-invocable skills have consistent Usage section structure"
-          - "Arguments table with descriptions"
-          - "Flags table with descriptions"
-          - "Examples showing real invocations"
-          - "Claude can extract and present usage info when asked"
-          - "Flagship skills (code-review, test-audit) include Mermaid flow diagrams showing full pipeline"
-          - "Mermaid charts cover: invocation entry points, pipeline stages, sub-agent spawning, output artifacts"
-        verification:
-          - "Ask 'what flags does /skill-name support?' for each user-invocable skill"
-          - "Verify Claude accurately extracts and formats usage information"
-          - "Mermaid charts render correctly on GitHub (standalone repo READMEs)"
         notes:
-          - "Session 33 (2026-02-01): Identified during P4.1 testing"
-          - "Reference: tests/manual-test-protocol-P4.md#OBS-002"
-          - "code-review skill serves as reference implementation"
-          - "Skills double as commands; self-describing docs enable built-in help"
-          - "Session 48: User requested Mermaid flow diagrams for flagship skills (code-review, test-audit) to showcase full pipeline flow and usage patterns. Apply to both Bulwark and standalone repo READMEs."
+          - "Session 48: Mermaid flow diagrams for flagship skills (code-review, test-audit)"
         estimated_sessions: 2
 
       - id: P6.5
         name: "Add usage documentation validation to anthropic-validator"
         status: not_started
-        dependencies: [P6.4]  # After usage pattern standardized
+        dependencies: [P6.4]
         implementation_plan: "plans/task-briefs/P6.5-validator-usage-check.md"
         deliverables:
           - "skills/anthropic-validator/SKILL.md (updated)"
           - "skills/anthropic-validator/references/skills-checklist.md (updated)"
-        acceptance_criteria:
-          - "Validator checks user-invocable skills for Usage section"
-          - "Validates Arguments/Flags tables present when skill accepts args"
-          - "Validates Examples section present"
-          - "Medium severity finding if usage documentation missing"
-        verification:
-          - "Run anthropic-validator on skill with good usage docs"
-          - "Run anthropic-validator on skill missing usage docs"
-          - "Verify appropriate findings generated"
-        notes:
-          - "Session 33 (2026-02-01): Identified during P4.1 testing"
-          - "Reference: tests/manual-test-protocol-P4.md#OBS-002"
-          - "Ensures all command-style skills have self-describing documentation"
         estimated_sessions: 1
 
       - id: P6.6
         name: "Enhance pipeline routing for review+fix scenarios"
         status: not_started
-        dependencies: [P4.1]  # After code-review skill complete
+        dependencies: [P4.1]
         implementation_plan: "plans/task-briefs/P6.6-pipeline-routing.md"
         deliverables:
           - "skills/pipeline-templates/SKILL.md (updated)"
           - "skills/pipeline-templates/references/code-review.md (updated)"
           - "skills/pipeline-templates/references/fix-validation.md (updated)"
-        acceptance_criteria:
-          - "Clear trigger language for Code Review → FixWriter pipeline"
-          - "Clear trigger language for Fix Validation pipeline"
-          - "Routing guidance for 'review + fix' prompts"
-        verification:
-          - "Prompt 'review and fix issues' routes to appropriate pipeline"
-          - "Prompt 'review code for issues' routes to Code Review"
-          - "Prompt 'fix this bug' routes to Fix Validation"
-        notes:
-          - "Session 33 (2026-02-01): Identified during P4.1-11 testing"
-          - "Reference: tests/manual-test-protocol-P4.md#OBS-003"
-          - "OBS-003-A and OBS-003-C action items"
         estimated_sessions: 1
 
       - id: P6.7
         name: "Update Fix Validation Stage 5 to use code-review skill"
         status: not_started
-        dependencies: [P4.1]  # After code-review skill complete
+        dependencies: [P4.1]
         implementation_plan: "plans/task-briefs/P6.7-fix-validation-code-review.md"
         deliverables:
           - "skills/pipeline-templates/references/fix-validation.md (updated)"
-        acceptance_criteria:
-          - "Stage 5 (CodeReviewer) loads code-review skill"
-          - "Runs all 4 sections on fixed code"
-          - "Structured findings with severity tiers"
-          - "OWASP patterns checked for security fixes"
-        verification:
-          - "Run Fix Validation pipeline"
-          - "Verify Stage 5 uses code-review skill"
-          - "Verify diagnostic log from code-review written"
-        notes:
-          - "Session 33 (2026-02-01): Identified during P4.1-11 testing"
-          - "Reference: tests/manual-test-protocol-P4.md#OBS-003"
-          - "OBS-003-B action item"
         estimated_sessions: 1
 
       - id: P6.8
         name: "Agent-scoped quality enforcement for bulwark-verify script generation"
         status: not_started
-        dependencies: [P2.3]  # After bulwark-verify skill exists (already complete)
+        dependencies: [P2.3]
         implementation_plan: "plans/task-briefs/P6.8-verify-scriptgen-agent.md"
         deliverables:
           - "agents/bulwark-verify-scriptgen.md"
           - "scripts/hooks/enforce-quality-tmp.sh"
           - "skills/bulwark-verify/SKILL.md (updated Step 4)"
-        acceptance_criteria:
-          - "Custom agent definition with agent: sonnet in frontmatter"
-          - "Agent frontmatter includes PostToolUse hook (matcher: Write|Edit) referencing enforce-quality-tmp.sh"
-          - "Agent frontmatter includes skills: [assertion-patterns, component-patterns, bug-magnet-data]"
-          - "enforce-quality-tmp.sh is a clone of enforce-quality.sh scoped ONLY to tmp/ folder"
-          - "enforce-quality-tmp.sh runs just typecheck, just lint, just build via Justfile"
-          - "enforce-quality-tmp.sh does NOT chain to suggest-pipeline.sh"
-          - "enforce-quality-tmp.sh rejects files outside tmp/ (safety boundary)"
-          - "enforce-quality-tmp.sh exit 2 on failure (blocks sub-agent Write, forces self-correction)"
-          - "bulwark-verify Step 4 changed from subagent_type=general-purpose to subagent_type=bulwark-verify-scriptgen"
-          - "tsconfig.json evaluated for tmp/verification/**/*.ts inclusion (required for typecheck)"
-        verification:
-          - "Invoke /bulwark-verify on a source component"
-          - "Verify bulwark-verify-scriptgen agent spawned (not general-purpose)"
-          - "Verify PostToolUse hook fires when agent writes to tmp/verification/"
-          - "Verify just typecheck and just lint run on generated script"
-          - "Verify exit 2 blocks a Write with type errors and agent self-corrects"
-          - "Verify enforce-quality-tmp.sh does NOT fire for files outside tmp/"
-          - "Verify existing enforce-quality.sh still skips tmp/ (no regression)"
-        notes:
-          - "Session 38 (2026-02-06): Identified during P4.2 hook investigation"
-          - "Reference: docs/P4-defects.md#ENH-P4-003"
-          - "bulwark-verify is the only code-writing path that bypasses quality enforcement"
-          - "PostToolUse hooks do not fire for sub-agent tool calls - only agent-scoped hooks work"
-          - "General-purpose sub-agents have no agent markdown file, so cannot define hooks"
-          - "Custom agent provides the mechanism to attach PostToolUse hooks to sub-agent writes"
-          - "Two separate enforce-quality scripts maintain clean separation: project files vs generated scripts"
         estimated_sessions: 1
 
       - id: P6.9
         name: "Add persistent memory to sub-agents"
         status: not_started
-        dependencies: []  # All target agents already exist and are validated
+        dependencies: []
         implementation_plan: "plans/task-briefs/P6.9-agent-persistent-memory.md"
         deliverables:
-          - ".claude/agents/bulwark-implementer.md (updated: memory: project)"
-          - ".claude/agents/bulwark-issue-analyzer.md (updated: memory: project)"
-          - ".claude/agents/bulwark-fix-validator.md (updated: memory: project)"
-          - ".claude/agents/bulwark-standards-reviewer.md (updated: memory: project)"
-          - ".claude/agents/test-validator.md (updated: memory: project)"
-          - ".claude/agent-memory/bulwark-implementer/MEMORY.md (pre-seeded)"
-          - ".claude/agent-memory/bulwark-issue-analyzer/MEMORY.md (pre-seeded)"
-          - ".claude/agent-memory/bulwark-fix-validator/MEMORY.md (pre-seeded)"
-          - ".claude/agent-memory/bulwark-standards-reviewer/MEMORY.md (pre-seeded)"
-          - ".claude/agent-memory/test-validator/MEMORY.md (pre-seeded)"
-          - "lib/templates/agent-memory-seed.md (generic reusable template)"
-        acceptance_criteria:
-          - "All 5 pipeline sub-agents have memory: project in frontmatter"
-          - "Pre-seeded MEMORY.md for each agent contains: Role, Output Paths, Pipeline Context, Self-Maintenance Instructions"
-          - "Agent-specific log paths correct (implementer → logs/implementer-*, analyzer → logs/debug-reports/*, etc.)"
-          - "Generic template in lib/templates/ is self-contained and project-agnostic"
-          - "Agent memory directories NOT gitignored (institutional knowledge is version-controlled)"
-          - "Sub-agents can read their MEMORY.md on startup (first 200 lines auto-injected into system prompt)"
-          - "Sub-agents can write back to their memory (Patterns Learned section grows over time)"
-        verification:
-          - "Each agent frontmatter has memory: project"
-          - ".claude/agent-memory/<name>/MEMORY.md exists for all 5 agents"
-          - "Spawn bulwark-issue-analyzer and confirm it references its MEMORY.md content"
-          - "Verify agent can update its own Patterns Learned section after a run"
-          - "lib/templates/agent-memory-seed.md usable standalone in a new project"
+          - ".claude/agents/*.md (5 agents updated: memory: project)"
+          - ".claude/agent-memory/*/MEMORY.md (5 pre-seeded)"
+          - "lib/templates/agent-memory-seed.md"
         notes:
-          - "Session 49 (2026-02-11): Identified after Claude Code 2.1.33 added memory frontmatter for sub-agents"
-          - "memory: project stores in .claude/agent-memory/<agent-name>/ — version-controllable"
-          - "First 200 lines of MEMORY.md auto-injected into sub-agent system prompt"
-          - "Read/Write/Edit tools auto-enabled when memory is set"
-          - "Pre-seeding gives agents baseline context; self-updates build institutional knowledge over time"
-          - "Generic template enables reuse across future projects"
-          - "Excluded agents: file-counter, code-analyzer (test/demo), statusline-setup (built-in)"
+          - "Session 49: Claude Code 2.1.33 added memory frontmatter for sub-agents"
         estimated_sessions: 1
 
   - id: P7
@@ -722,23 +280,12 @@ phases:
       - id: P7.1
         name: "Finalize plugin manifest"
         status: not_started
-        dependencies: [P5.13, P5.8]  # After all P5 work complete
+        dependencies: [P5.13, P5.8]
         implementation_plan: "plans/task-briefs/P7.1-plugin-manifest.md"
         deliverables:
           - ".claude-plugin/plugin.json"
-        acceptance_criteria:
-          - "All commands registered"
-          - "All skills discoverable (flat structure)"
-          - "Global hooks configured (hooks.json)"
-          - "No agents/ directory (agents are skills)"
-        verification:
-          - "Install plugin in test project"
-          - "Verify all components accessible"
-          - "Verify skills appear correctly in / menu"
         notes:
-          - "Session 46: Moved from P5.6 to P7.1"
-          - "Dependencies updated to reflect all P5 work must be complete first"
-          - "Session 48: PATH CANONICALIZATION REQUIRED — During plugin packaging, audit all skill/agent/script paths. Key decisions: (1) Plugin resolves skills from plugin-root skills/, agents from plugin-root agents/ — NOT .claude/ paths. (2) Skills that bundle scripts (e.g., bulwark-statusline/scripts/) must use plugin-relative paths. (3) Hook scripts in scripts/hooks/ are shared infrastructure — decide whether they ship at plugin root or get a hooks/ directory. (4) ${CLAUDE_PROJECT_DIR} may resolve differently for plugins vs project-local installs. (5) Reconcile dogfooding .claude/ copies with plugin-root originals (symlinks vs build step vs single source of truth)."
+          - "Session 48: PATH CANONICALIZATION REQUIRED — audit all skill/agent/script paths during packaging"
         estimated_sessions: 1
 
       - id: P7.2
@@ -749,163 +296,45 @@ phases:
         deliverables:
           - "docs/rollout-guide.md"
           - "docs/quickstart.md"
-        acceptance_criteria:
-          - "Installation instructions"
-          - "Phased rollout guide"
-          - "2.1.1 features documented"
-          - "Troubleshooting section"
-        verification:
-          - "Follow quickstart in new project"
-          - "Verify all steps work"
-        notes:
-          - "Session 46: Moved from P5.7 to P7.2"
         estimated_sessions: 1
 
+  # P8: COMPLETED — archived to tasks_completed.yaml (Session 58)
   - id: P8
     name: "Immediate Improvements"
-    description: "Cross-cutting improvements to execute before P5 feature work. Not phase-sequential — done first."
-    status: in_progress
-    notes:
-      - "Session 46: Created for items that should be done immediately but don't fit P5"
-      - "Execution order: P8.1 → P8.2 → then resume P5.10-12"
+    status: completed
+    completion_notes: "Sessions 46-48, 58. See tasks_completed.yaml for full details."
     tasks:
-      - id: P8.1
-        name: "Rules.md slimming, framework independence, and init scripts"
-        status: completed
-        completion_notes: "Session 46. Rules.md trimmed 305→198 lines (35% reduction). OR/SA moved to CLAUDE.md project rules. Init scripts, scaffold templates, reasoning doc created. All verification passed."
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P8.1-rules-slimming.md"
-        deliverables:
-          - "Rules.md (judicious trim ~306→~185 lines, framework-independent)"
-          - "CLAUDE.md (restructured: Mandatory Rules section with project rules, slimmed Your Role)"
-          - "docs/rules-reasoning.md (preserved code examples and URLs)"
-          - "lib/templates/rules.md (portable copy for scaffold)"
-          - "lib/templates/claudemd-injection.md (Binding Contract + Mandatory Rules for scaffold)"
-          - "lib/templates/project-rules-bulwark.md (OR/SA/Conventions/Grounding)"
-          - "lib/templates/project-rules-template.md (blank template for non-Bulwark projects)"
-          - "scripts/init-rules.sh (copies lib/templates/rules.md to target project)"
-          - "scripts/init-project-rules.sh (injects claudemd-injection.md into CLAUDE.md)"
-          - "governance-protocol/SKILL.md (updated references)"
-        acceptance_criteria:
-          - "Rules.md < 200 lines (from ~306) — ~40% reduction, all rule substance preserved"
-          - "Framework-independent: zero Bulwark-specific references in Rules.md"
-          - "OR1-4 (reworked), SA1-6, Task Conventions, Grounding in CLAUDE.md Mandatory Rules"
-          - "OR1 reflects Opus-class model (not 'never delegated'), OR4 supports parallel"
-          - "No model version numbers in OR rules (Opus/Sonnet/Haiku only)"
-          - "CLAUDE.md zero duplication with Rules.md (Your Role slimmed, During Implementation removed)"
-          - "Universal rule IDs preserved (CS1-4, T1-4, V1-4, ID1-3, SC1-3, TR1-3, SR1-4)"
-          - "T4 amended: 'Write tests WITH implementation, not after'"
-          - "lib/templates/rules.md matches project root Rules.md"
-          - "lib/templates/claudemd-injection.md contains Binding Contract + Mandatory Rules"
-          - "Init scripts runnable standalone, idempotent"
-          - "Diff of old vs new Rules.md and CLAUDE.md reviewed by user"
-          - "Governance protocol updated and functional"
-        verification:
-          - "wc -l Rules.md before/after (target: ~185 from ~306)"
-          - "All universal rule IDs present in new Rules.md"
-          - "OR1-4, SA1-6, Task Conventions, Grounding in CLAUDE.md Mandatory Rules"
-          - "diff old vs new Rules.md — every change reviewed"
-          - "diff old vs new CLAUDE.md — every change reviewed"
-          - "Rules.md standalone (no Bulwark-specific references)"
-          - "lib/templates/rules.md matches project root Rules.md"
-          - "init-rules.sh copies Rules.md to test directory"
-          - "init-project-rules.sh injects Mandatory Rules into CLAUDE.md"
-          - "init-project-rules.sh is idempotent (no duplicate sections)"
-          - "New session: governance protocol activates correctly"
-        notes:
-          - "Session 46: Elevated from FW-OBS-004 to dedicated task"
-          - "Session 46: Task brief revised — judicious trim (not aggressive), rule elaboration preserved"
-          - "Key insight: rule elaboration is critical context, not fluff (CS1 three bullets = three constraints)"
-          - "Real savings from CLAUDE.md de-duplication, not Rules.md gutting"
-          - "Portable copies: lib/templates/rules.md and claudemd-injection.md for scaffold"
-          - "Project root Rules.md/CLAUDE.md are for Bulwark development; templates are for scaffold"
-          - "OR1 reworked: 'always Opus-class' replaces 'never delegated' (reflects bulwark-implementer)"
-          - "OR4 reworked: parallel execution supported per pipeline-templates"
-          - "Init scripts created here; packaging into bulwark-scaffold deferred to P7"
-        estimated_sessions: 1
-
-      - id: P8.2
-        name: "Essential Agents & Skills repository setup"
-        status: completed
-        completion_notes: "Sessions 47-48. Repo created, 12 skills + 2 agents synced. Session 48: ez-statusline rename (name collision fix), self-contained skill (scripts bundled inside skill dir), executable bits fixed for non-WSL clones, agent prompt includes exact JSON schema. Verified by user."
-        dependencies: []
-        implementation_plan: "plans/task-briefs/P8.2-essential-skills-repo.md"
-        deliverables:
-          - "essential-agents-skills repo on GitHub (https://github.com/ashaykubal/essential-agents-skills)"
-          - "scripts/sync-essential-skills.sh (rsync-based selective sync)"
-          - "README.md with skill catalog, dependency map, installation methods"
-          - "Per-skill README.md files (12 skills)"
-          - "MIT LICENSE"
-        acceptance_criteria:
-          - "Standalone repo with 12 skills + 2 agents extracted from Bulwark"
-          - "Sync script copies selected skills (not all) to standalone repo"
-          - "Each skill folder has README.md for GitHub rendering"
-          - "README catalogs all skills with one-line descriptions"
-          - "No Bulwark references except intentional Origin links"
-          - "Statusline ecosystem rebranded (bulwark-statusline -> statusline)"
-          - "standards-reviewer agent included (required by anthropic-validator)"
-          - "Future path: GitHub Actions for automated sync"
-        verification:
-          - "Clone standalone repo, verify skills are complete and self-contained"
-          - "grep -ri bulwark returns only Origin links"
-          - "Skills work when installed in a fresh project"
-        notes:
-          - "Session 46: New task — fork independent skills for standalone distribution"
-          - "Session 47: Renamed to Essential Agents & Skills. Added statusline ecosystem (rebranded), standards-reviewer agent. Used rsync approach (not git subtree). Per-skill READMEs with humanizer pass."
-          - "Candidate skills expanded: 11 original + statusline = 12 skills, 2 agents"
-          - "Phase 1: rsync sync script. Phase 2: GitHub Actions automation."
-        estimated_sessions: 1
+      - { id: P8.1, name: "Rules.md slimming and init scripts", status: completed }
+      - { id: P8.2, name: "Essential Agents & Skills repository setup", status: completed }
 
 # Summary
 summary:
-  total_tasks: 43  # +P6.9 (agent persistent memory, Session 49)
-  completed_phases: "P0, P1, P2, P3, P4 (see tasks_completed.yaml for P0-P3)"
+  total_tasks: 43
+  completed_phases: "P0, P1, P2, P3, P4, P8 (see tasks_completed.yaml)"
   skipped_tasks:
-    - id: P1.1
-      reason: "Redundant - Main Context Orchestration pattern handles test-audit without wrapper agent"
-    - id: P5.2
-      reason: "Redundant - Skills/commands merged in Claude Code 2.1.x, /bulwark-verify serves as both"
+    - { id: P1.1, reason: "Redundant - Main Context Orchestration pattern" }
+    - { id: P5.2, reason: "Redundant - Skills/commands merged in Claude Code 2.1.x" }
   descoped_tasks:
-    - id: P4.3
-      reason: "Redundant - /code-review skill + Code Review Pipeline cover all use cases. Single-agent review susceptible to security bias."
-    - id: P5.1
-      reason: "Redundant - test-audit skill is already user-invocable with arguments, batching, and full pipeline."
+    - { id: P4.3, reason: "Redundant - /code-review + Code Review Pipeline" }
+    - { id: P5.1, reason: "Redundant - /test-audit already user-invocable" }
   execution_order:
-    immediate: "P8.1 (Rules.md) → P8.2 (Essential Skills repo)"
-    next: "P5.10-12 (Test Audit Hardening)"
-    then: "P5.3-5 (Evolution Tools)"
+    completed: "P8.1-2 → P5.10-12"
+    next: "P5.3-5 (Evolution Tools)"
     after: "P5.13 (Plan Creation)"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
   phases:
-    P0: 8 tasks (Foundation & Test Audit Skills) - COMPLETED
-    P1: 2 tasks (Pipeline Stage Agents - IssueAnalyzer, FixValidator) - P1.1 SKIPPED, P1.2-3 COMPLETED
-    P2: 3 tasks (Verification Scripts) - COMPLETED
-    P3: 5 tasks (Enforcement Infrastructure with once: true) - COMPLETED
-    P4: 5 tasks (Review Skills, Implementer Agent, Pipeline Updates) - COMPLETED (P4.3 DESCOPED)
-    P5: 9 tasks (Test Audit Hardening, Evolution Tools, Plan Creation, Test Protocol) - P5.1 DESCOPED, P5.2 SKIPPED, P5.9 COMPLETED
-    P6: 9 tasks (Optional Enhancements) - Post-completion polish
-    P7: 2 tasks (Launch Activities - Plugin Manifest, Rollout Docs) - After all P5+P6
-    P8: 2 tasks (Immediate Improvements - Rules.md, Essential Skills Repo) - Execute first
-  architecture_notes:
-    pipelines: "Orchestrate general-purpose sub-agents with role-based prompts, support parallel execution"
-    skills_in_pipelines: "Agents load skills via frontmatter, reference specific sections"
-    implementer_agent: "bulwark-implementer for code-writing with mandatory quality hooks"
-    custom_sub_agents: "bulwark-issue-analyzer, bulwark-fix-validator for pipeline stages"
-    main_context_orchestration: "test-audit uses Main Context Orchestration - orchestrator loads skill and spawns sub-agents directly"
-    code_review_paths: "/code-review skill for direct invocation, Code Review Pipeline (4 parallel agents) for bias-free review"
-  claude_code_2_1_1_features:
-    - "Custom sub-agents defined as markdown files"
-    - "agent: haiku/sonnet for model selection"
-    - "user-invocable: true/false for menu visibility"
-    - "once: true for SessionStart hooks"
-    - "Flat skills/ directory (no nesting)"
-    - "Ralph Wiggum loops for iterative creation"
-    - "Diagnostic output for behavioral testing"
+    P0: "8 tasks - COMPLETED"
+    P1: "2 tasks - COMPLETED (P1.1 SKIPPED)"
+    P2: "3 tasks - COMPLETED"
+    P3: "5 tasks - COMPLETED"
+    P4: "5 tasks - COMPLETED (P4.3 DESCOPED)"
+    P5: "9 tasks - P5.1 DESCOPED, P5.2 SKIPPED, P5.9-12 COMPLETED, P5.3-5/P5.8/P5.13 remaining"
+    P6: "9 tasks - Not started"
+    P7: "2 tasks - After all P5+P6"
+    P8: "2 tasks - COMPLETED"
   bundled_task_briefs:
     - brief: "plans/task-briefs/P5.3-5-evolution-tools.md"
       tasks: [P5.3, P5.4, P5.5]
-      rationale: "Shared research on Ralph loops, feedback patterns. P5.3 informs P5.4 and P5.5."
     - brief: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
       tasks: [P5.10, P5.11, P5.12]
-      rationale: "All address test-audit Known Limitations. Shared context on AST analysis and skill updates."

@@ -1,9 +1,9 @@
 # The Bulwark - Completed Tasks Archive
 #
-# This file contains completed phases (P0-P3) for reference.
+# This file contains completed phases (P0-P4) and completed/descoped P5/P8 tasks.
 # Active tasks are in tasks.yaml
 #
-# Archived: 2026-01-29 (Session 29)
+# Archived: 2026-01-29 (Session 29), updated 2026-02-15 (Session 58)
 
 phases:
   - id: P0
@@ -506,4 +506,162 @@ phases:
           - "Start session, verify protocol visible"
           - "Force reload, verify protocol does NOT re-inject"
           - "Verify hooks.log shows exactly one SessionStart entry"
+        estimated_sessions: 1
+
+  - id: P4
+    name: "Review Skills & Standalone Agents"
+    description: "Unified code-review skill with sections + standalone agents for ad-hoc use"
+    status: completed
+    completion_notes: "Sessions 29-45. P4.1 code-review, P4.2 bug-magnet-data, P4.3 descoped, P4.4 implementer agent, P4.5 pipeline-templates. All validated via manual testing and anthropic-validator."
+    tasks:
+      - id: P4.1
+        name: "Create code-review skill (unified with sections)"
+        status: completed
+        completion_notes: "Sessions 29-35. Validated via anthropic-validator and manual testing."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
+        deliverables:
+          - "skills/code-review/SKILL.md"
+        estimated_sessions: 1
+
+      - id: P4.2
+        name: "Create bug-magnet-data skill"
+        status: completed
+        completion_notes: "Sessions 35-38. Consumers updated, validated via manual testing."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P4.1-2-review-skills.md"
+        deliverables:
+          - "skills/bug-magnet-data/SKILL.md"
+          - "skills/bug-magnet-data/data/heuristics.json"
+        estimated_sessions: 1
+
+      - id: P4.3
+        name: "Create bulwark-code-auditor agent (standalone)"
+        status: descoped
+        descope_reason: "Session 39: Redundant. /code-review + Code Review Pipeline cover all cases. Single-agent review susceptible to security bias."
+        dependencies: [P4.1, P0.1]
+        estimated_sessions: 0
+
+      - id: P4.4
+        name: "Create bulwark-implementer agent"
+        status: completed
+        completion_notes: "Sessions 40-45. Validated via anthropic-validator and manual testing (P4.4-1 through P4.4-6)."
+        dependencies: [P0.1]
+        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
+        deliverables:
+          - "agents/bulwark-implementer.md"
+          - "scripts/hooks/implementer-quality.sh"
+        estimated_sessions: 1
+
+      - id: P4.5
+        name: "Update pipeline-templates for parallel execution and P4.4 integration"
+        status: completed
+        completion_notes: "Sessions 43-45. Validated via anthropic-validator and manual testing (P4.5-1 through P4.5-7)."
+        dependencies: [P4.4]
+        implementation_plan: "plans/task-briefs/P4.4-5-implementer-and-pipelines.md"
+        deliverables:
+          - "skills/pipeline-templates/SKILL.md (updated)"
+          - "skills/pipeline-templates/references/code-review.md (updated)"
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+          - "skills/pipeline-templates/references/new-feature.md (updated)"
+        estimated_sessions: 1
+
+  # P5 completed/descoped tasks (active P5 tasks remain in tasks.yaml)
+  - id: P5-archived
+    name: "Test Audit Hardening — completed/descoped tasks"
+    description: "Archived from P5. Active tasks (P5.3-5, P5.8, P5.13) remain in tasks.yaml."
+    tasks:
+      - id: P5.1
+        name: "Create audit command"
+        status: descoped
+        descope_reason: "Session 46: Redundant after skills/commands merge in Claude Code 2.1.x."
+        estimated_sessions: 0
+
+      - id: P5.2
+        name: "Create verify command"
+        status: skipped
+        skip_reason: "Redundant - Skills/commands merged in Claude Code 2.1.x. /bulwark-verify serves as both."
+        estimated_sessions: 0
+
+      - id: P5.9
+        name: "Create customizable status line"
+        status: completed
+        completion_notes: "Session 18: Multi-line confirmed, RGB colors, /bulwark-statusline skill validated."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P5.9-statusline.md"
+        deliverables:
+          - "scripts/statusline/statusline.sh"
+          - "lib/templates/statusline-default.yaml"
+          - "skills/bulwark-statusline/SKILL.md"
+          - "agents/statusline-setup.md"
+        estimated_sessions: 1
+
+      - id: P5.10
+        name: "Test audit AST scripts"
+        status: completed
+        completion_notes: "Sessions 49-56. 4 AST scripts (verification-counter, skip-detector, data-flow-analyzer, integration-mock-detector). 115 total tests. Directory arg support."
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
+        deliverables:
+          - "skills/test-audit/scripts/data-flow-analyzer.ts"
+          - "skills/test-audit/scripts/verification-counter.ts"
+          - "skills/test-audit/scripts/skip-detector.ts"
+          - "skills/test-audit/scripts/integration-mock-detector.ts"
+        estimated_sessions: 2
+
+      - id: P5.11
+        name: "Test audit dual-mode"
+        status: completed
+        completion_notes: "Sessions 52-53. Deep mode (<=5 files) and Scale mode (>5 files). 7 reference files updated."
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
+        deliverables:
+          - "skills/test-audit/SKILL.md (updated)"
+        estimated_sessions: 1
+
+      - id: P5.12
+        name: "Test audit advanced patterns"
+        status: completed
+        completion_notes: "Sessions 52-56. stub-patterns.md, false-positive-prevention.md, integration-mock-detector. T-017 validated."
+        dependencies: [P0.8]
+        implementation_plan: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
+        deliverables:
+          - "skills/test-audit/references/stub-patterns.md"
+          - "skills/test-audit/references/false-positive-prevention.md"
+          - "skills/mock-detection/SKILL.md (updated)"
+          - "skills/test-audit/scripts/integration-mock-detector.ts"
+        estimated_sessions: 1
+
+  - id: P8
+    name: "Immediate Improvements"
+    description: "Cross-cutting improvements executed before P5 feature work."
+    status: completed
+    completion_notes: "Sessions 46-48, 58. P8.1 Rules.md slimming, P8.2 Essential Skills repo with rsync overhaul."
+    tasks:
+      - id: P8.1
+        name: "Rules.md slimming, framework independence, and init scripts"
+        status: completed
+        completion_notes: "Session 46. Rules.md trimmed 305→198 lines (35% reduction). OR/SA moved to CLAUDE.md project rules."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P8.1-rules-slimming.md"
+        deliverables:
+          - "Rules.md (trimmed, framework-independent)"
+          - "CLAUDE.md (restructured)"
+          - "docs/rules-reasoning.md"
+          - "lib/templates/rules.md, claudemd-injection.md, project-rules-*.md"
+          - "scripts/init-rules.sh, scripts/init-project-rules.sh"
+          - "governance-protocol/SKILL.md (updated)"
+        estimated_sessions: 1
+
+      - id: P8.2
+        name: "Essential Agents & Skills repository setup"
+        status: completed
+        completion_notes: "Sessions 47-48, 58. 12 skills + 2 agents. Rsync overhaul with excludes, test layout, 5 transform categories."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P8.2-essential-skills-repo.md"
+        deliverables:
+          - "essential-agents-skills repo (https://github.com/ashaykubal/essential-agents-skills)"
+          - "scripts/sync-essential-skills.sh (rsync with transforms)"
+          - "Standalone tests/ infrastructure"
+          - ".gitignore, README.md"
         estimated_sessions: 1
