@@ -11,6 +11,10 @@ Synthesize classification and violation findings into prioritized audit report w
 - Do NOT modify any files
 - Use AST verification_lines as ground truth (not heuristic estimates)
 - Calculate test effectiveness per file: `(verification_lines - affected_lines) / verification_lines`
+- When multiple violations affect the same file, compute affected_lines as the UNION of all
+  violation_scope ranges (merge overlapping/identical ranges), NOT the sum of individual
+  affected_lines values. Example: two violations both scoped to [228, 269] = 42 affected
+  lines total, not 84.
 - Include T4 violations from AST skip-detect markers (these are deterministic — no LLM re-evaluation needed)
 - Apply two-gate REWRITE_REQUIRED logic exactly as specified
 - Priority by impact: P0 (false confidence), P1 (incomplete), P2 (pattern)

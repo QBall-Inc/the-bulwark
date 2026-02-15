@@ -338,6 +338,58 @@ expect(component).toMatchInlineSnapshot(`
 
 ---
 
+## Worked Example: Mixed-Type File
+
+A single test file may contain both unit and integration sections. The **same mock pattern** can be safe or a violation depending on which section it appears in.
+
+### Scenario
+
+`error-handler.test.ts` contains:
+- **Lines 1-100**: Unit tests for `categorizeError`, `calculateBackoff`, `withRetry`, `ErrorHandlerService`
+- **Lines 105-150**: Integration tests under `describe('Error Handling Integration', ...)`
+
+### The Pattern: `jest.fn().mockResolvedValue()`
+
+**In the unit section (SAFE — no violation):**
+```typescript
+describe('Retry Mechanism', () => {
+  it('should succeed on first attempt', async () => {
+    const operation = jest.fn().mockResolvedValue('success');
+    const result = await withRetry(operation, { maxAttempts: 3 });
+    expect(result).toBe('success');
+  });
+});
+```
+- `operation` is an **injected dependency** (callback parameter to `withRetry`)
+- The SUT is `withRetry`, not `operation`
+- Mocking injected deps in unit tests is appropriate
+- **Verdict: SAFE** (Tier 1 Universal Safe — injected dependency in unit test)
+
+**In the integration section (T3 VIOLATION):**
+```typescript
+describe('Error Handling Integration', () => {
+  it('should handle transient errors with retry and recovery', async () => {
+    const operation = jest.fn()
+      .mockRejectedValueOnce(new Error('ECONNRESET'))
+      .mockResolvedValue({ data: 'recovered' });
+    const result = await service.executeWithRetry(operation, { maxAttempts: 3 });
+    expect(result).toEqual({ data: 'recovered' });
+  });
+});
+```
+- `operation` is the **integration boundary** — the external system call
+- Integration tests exist to verify real system interactions
+- Mocking the boundary defeats the purpose of the integration test
+- **Verdict: T3 VIOLATION** (Mock at integration boundary)
+
+### Key Takeaway
+
+Never classify an entire file as one test type. Evaluate each describe block independently against the rubric for **its** test type.
+
+If AST integration-mock metadata is available (from `just integration-mocks`), it provides ground truth for section boundaries and mock locations within integration/e2e blocks.
+
+---
+
 ## Summary for LLM Agent
 
 When evaluating a potential violation:

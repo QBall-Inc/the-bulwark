@@ -59,6 +59,10 @@ skip-detect *path:
 ast-analyze *path:
     @npx tsx skills/test-audit/scripts/data-flow-analyzer.ts {{path}}
 
+# Detect mock usage in integration/e2e test sections (T3 leads)
+integration-mocks *path:
+    @npx tsx skills/test-audit/scripts/integration-mock-detector.ts {{path}}
+
 # ============================================================
 # Bulwark Development Recipes
 # ============================================================

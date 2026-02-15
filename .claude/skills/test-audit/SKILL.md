@@ -183,12 +183,13 @@ ELSE:
 
 1. Generate timestamp: `YYYYMMDD-HHMMSS`
 2. Count test files in target (glob `**/*.test.{ts,tsx,js,jsx}` + `**/*.spec.{ts,tsx,js,jsx}`)
-3. Run all three AST scripts via Justfile recipes:
+3. Run all four AST scripts via Justfile recipes:
 
 ```bash
 just verify-count {target} > /tmp/claude/ast-verify-count.json
 just skip-detect {target} > /tmp/claude/ast-skip-detect.json
 just ast-analyze {target} > /tmp/claude/ast-data-flow.json
+just integration-mocks {target} > /tmp/claude/ast-integration-mocks.json
 ```
 
 4. Read each output file and verify valid JSON
@@ -205,6 +206,9 @@ just ast-analyze {target} > /tmp/claude/ast-data-flow.json
 
 // ast-analyze output (per file)
 { "file": "tests/workflow.integration.ts", "violations": [{ "line": 42, "type": "T3+", "confidence": "high", "variable": "orderData", "source": "object_literal", "message": "Variable 'orderData' is manually constructed", "suggestion": "Replace with factory function or upstream function output" }] }
+
+// integration-mocks output (per file)
+{ "file": "tests/error-handler.test.ts", "sections": [{ "name": "Error Handler Integration", "type": "integration", "signal": "keyword_in_name", "line_start": 559, "line_end": 628 }], "leads": [{ "line": 562, "type": "T3", "confidence": "high", "mock_pattern": "jest.fn().mockImplementation()", "enclosing_block": "Error Handler Integration", "block_type": "integration", "message": "Mock call in integration test block", "suggestion": "Replace mock with actual implementation" }], "summary": { "sections_found": 1, "integration_sections": 1, "e2e_sections": 0, "leads_count": 1, "mock_calls_in_integration": 1, "mock_calls_in_e2e": 0 } }
 ```
 
 ### Step 3: Mode Selection
@@ -426,7 +430,7 @@ ELSE:
 
 ## Deep Mode Detection Prompt
 
-Read `references/prompts/deep-mode-detection.md` and use as the Task() prompt for the Sonnet detection sub-agent in Deep mode. Inject per-file AST metadata into the prompt's CONTEXT placeholders (verification_lines, skip_markers, data_flow_leads from Stage 0 output).
+Read `references/prompts/deep-mode-detection.md` and use as the Task() prompt for the Sonnet detection sub-agent in Deep mode. Inject per-file AST metadata into the prompt's CONTEXT placeholders (verification_lines, skip_markers, data_flow_leads, integration_mock_leads from Stage 0 output).
 
 ---
 

@@ -94,6 +94,21 @@ Determine whether mocks are appropriate based on test type:
 | **Integration** | Unrelated systems only | Mocking integration boundaries (T3), broken chain (T3+) |
 | **E2E** | Almost never | Any mock breaking end-to-end flow |
 
+### Mixed-Type Files (MANDATORY)
+
+Test files commonly contain multiple test types in different describe blocks (e.g., unit tests at top, integration tests at bottom). You MUST evaluate mock appropriateness **per describe block/section**, not per file. A `jest.fn()` that is safe in a unit test section is a T3 violation in an integration test section of the same file.
+
+Classification signals (language-agnostic — apply to TypeScript, Python, Java, Go, Ruby, etc.):
+- Block/suite name containing keywords: `integration`, `e2e`, `end-to-end`, `acceptance`, `system`
+- Preceding comments or section headers: `// INTEGRATION TESTS`, `# E2E`, `/* system tests */`
+- Setup patterns within the block (real DB connections = integration, browser launch = e2e)
+
+If AST integration-mock metadata is available (from `just integration-mocks`), use it as ground truth for section boundaries and mock locations. Validate AST leads and add any the AST missed.
+
+**BINDING: AST classification is final.** When the AST script classifies a section as integration or e2e, that classification is NOT subject to LLM override. You MUST evaluate mocks in that section against integration/e2e rules — even if you believe the section is "actually" a unit test. Dismissing an AST T3 lead by re-classifying the section as a different test type is a rule violation. If you believe the section is mislabeled, note it as advisory — but still flag T3 violations against the classified type.
+
+See `references/false-positive-prevention.md` § "Worked Example: Mixed-Type File" for a concrete demonstration.
+
 ### Key Principle
 
 A mock is inappropriate when it **defeats the purpose of the test**:
@@ -326,6 +341,9 @@ totals:
   total_affected_lines: 154
 
 file_summaries:
+  # For each file, compute affected_lines as the UNION of all violation_scope ranges
+  # (merge overlapping/identical ranges). Do NOT sum individual affected_lines values.
+  # Example: two violations both scoped to [228, 269] = 42 affected lines, not 84.
   - file: tests/proxy.test.ts
     verification_lines: 95
     affected_lines: 80

@@ -1,5 +1,6 @@
 import { Project, Node, CallExpression, SourceFile, Block, SyntaxKind } from 'ts-morph';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // --- Types ---
 
@@ -479,11 +480,22 @@ function main(): void {
     },
   });
 
+  // Expand directory args to individual test files
+  const filePaths: string[] = [];
+  for (const arg of args) {
+    const resolved = path.resolve(arg);
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+      const entries = fs.readdirSync(resolved).filter(f => /\.(test|spec)\.[tj]sx?$/.test(f));
+      filePaths.push(...entries.map(f => path.join(resolved, f)));
+    } else {
+      filePaths.push(resolved);
+    }
+  }
+
   const results: (FileResult | ErrorOutput)[] = [];
 
-  for (const filePath of args) {
-    const resolved = path.resolve(filePath);
-    const result = analyzeFile(resolved, project);
+  for (const filePath of filePaths) {
+    const result = analyzeFile(filePath, project);
     results.push(result);
   }
 

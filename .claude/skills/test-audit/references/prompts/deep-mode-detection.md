@@ -33,13 +33,29 @@ Analyze ALL provided test files for T1-T4 violations using mock appropriateness 
   framework: {metrics.framework_detected}
   skip_markers: {markers from skip-detect, or "none"}
   data_flow_leads: {violations from ast-analyze, or "none"}
+  integration_mock_leads: {leads from just integration-mocks, or "none"}
 ```
 
-**Self-classification instructions:**
-For each file, determine before analysis:
-1. **Test type**: unit / integration / e2e (infer from file name, directory, imports, setup patterns)
-2. **Mock indicators**: list jest.mock/vi.mock/sinon calls found
-3. **Complexity assessment**: simple (few mocks) / complex (many mocks, deep chains)
+**Self-classification instructions (MANDATORY — per-section, not per-file):**
+
+Files commonly contain multiple test types in different sections. You MUST classify each top-level describe/test block independently. DO NOT assign a single test type to the entire file.
+
+For each top-level describe block or section:
+1. **Test type**: unit / integration / e2e — determine from:
+   - Block/suite name (e.g., "Integration Tests", "E2E: checkout flow")
+   - Preceding comments or section headers (e.g., `// INTEGRATION TESTS`, `# E2E`, `/* system tests */`)
+   - Setup patterns within the block (real DB connections = integration, browser launch = e2e)
+   - These signals are language-agnostic — apply regardless of whether the file is TypeScript, Python, Java, Go, Ruby, etc.
+2. **Mock indicators within that block**: list mock/stub/spy framework calls found
+3. **Evaluate each block against the rubric for ITS test type** — not the file's majority type
+
+If AST integration-mock metadata is available (from `just integration-mocks`), use it as ground truth for section classification and mock locations. Validate AST leads and add any the AST missed.
+
+**BINDING: AST classification is final.** When the AST script classifies a section as integration or e2e, that classification is NOT subject to LLM override. You MUST evaluate mocks in that section against integration/e2e rules — even if you believe the section is "actually" a unit test. Your role is to evaluate mock appropriateness within the classified type, not to re-classify sections.
+
+- If the test author labeled a block "Integration" and the AST confirmed it, both the author's intent and the deterministic signal agree. Do NOT introduce personal judgment to override them.
+- If you believe a section is mislabeled, you MAY note "Advisory: consider renaming this section" — but you MUST still flag T3 violations against the integration/e2e rubric.
+- Dismissing an AST T3 lead by re-classifying the section as "actually unit" is a rule violation.
 
 **Mock appropriateness rubric:** See mock-detection skill's "Mock Appropriateness Rubric" section
 

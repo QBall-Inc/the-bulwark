@@ -54,7 +54,8 @@ Classify all test files in `{target}` by type and flag files needing deep analys
 - Classify every test file found
 - Use filename-first classification (content validates)
 - Flag mock+integration mismatches for deep analysis
-- Count verification lines per file (excluding boilerplate)
+- Use AST verification_lines as ground truth when provided in context (do NOT re-count).
+  Only fall back to manual counting if AST data is unavailable.
 - Complete within 30 tool calls
 
 ### CONTEXT
@@ -68,6 +69,9 @@ Classify all test files in `{target}` by type and flag files needing deep analys
 **Deep analysis triggers:** See "needs_deep_analysis Triggers" section below
 
 **Line counting rules:** See "Verification Line Counting" section below
+
+**AST verification_lines (MANDATORY when available):**
+If the orchestrator provides `ast_verification_lines` per file, use that value directly as `verification_lines` in the output. Do NOT override with your own count. The AST value is deterministic and precise; heuristic counting at scale is error-prone.
 
 ### OUTPUT
 
@@ -168,7 +172,7 @@ files:
   - path: tests/proxy.test.ts
     category: unit
     total_lines: 150
-    verification_lines: 95
+    verification_lines: 95   # Use ast_verification_lines if provided; only count manually if unavailable
     mock_indicators:
       - "jest.spyOn(child_process, 'spawn')"
     needs_deep_analysis: true
