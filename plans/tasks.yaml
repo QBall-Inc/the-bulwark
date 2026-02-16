@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-15
 current_phase: P5
 current_task: P5.14
-current_task_status: "P5.14 created (Session 58). research-brainstorm skill drafted but needs Bulwark convention alignment (F# pipelines, pipeline-templates, diagnostics). Prerequisite for P5.3-5 research sessions."
+current_task_status: "P5.14 implementation complete (Session 59). Both skills created, validated, dogfooded, rsync'd. Draft skill removed. Awaiting live validation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -169,37 +169,39 @@ phases:
         estimated_sessions: 2
 
       - id: P5.14
-        name: "Create research-brainstorm skill (production-grade)"
-        status: not_started
+        name: "Create bulwark-research and bulwark-brainstorm skills (production-grade)"
+        status: in_progress
         dependencies: []  # Prerequisite for P5.3-5 research methodology
         implementation_plan: "plans/task-briefs/P5.14-research-brainstorm.md"
         deliverables:
-          - "skills/research-brainstorm/SKILL.md (refined)"
-          - "skills/research-brainstorm/references/phase-1-viewpoints.md (refined)"
-          - "skills/research-brainstorm/references/phase-2-roles.md (refined)"
-          - "skills/research-brainstorm/references/synthesis-protocol.md (refined)"
-          - "skills/pipeline-templates/references/research-brainstorm.md (new pipeline)"
-          - ".claude/skills/research-brainstorm/ (dogfood copy)"
+          - "skills/bulwark-research/SKILL.md + references/ (5 viewpoint docs) + templates/ (3: viewpoint-output, synthesis-output, diagnostic-output)"
+          - "skills/bulwark-brainstorm/SKILL.md + references/ (5 role docs) + templates/ (4: role-output, critic-output, synthesis-output, diagnostic-output)"
+          - "skills/pipeline-templates/references/research-brainstorm.md (cross-skill pipeline)"
+          - ".claude/skills/bulwark-research/ (dogfood copy)"
+          - ".claude/skills/bulwark-brainstorm/ (dogfood copy)"
         acceptance_criteria:
-          - "F# pipeline syntax for sub-agent orchestration (OR4 compliance)"
-          - "Pipeline template added to pipeline-templates skill"
-          - "Follows code-review/test-audit skill conventions (frontmatter, structure, diagnostics)"
-          - "Prompt templates use subagent-prompting 4-part format"
-          - "Output format uses subagent-output-templating conventions"
-          - "Diagnostic output section present"
+          - "Two separate skills: bulwark-research (5 Sonnet parallel) and bulwark-brainstorm (5 Opus sequenced)"
+          - "F# pipeline syntax per-skill and cross-skill in pipeline-templates (OR4)"
+          - "Follows code-review conventions (stages, sections, diagnostics, checklists)"
+          - "Custom output templates per skill (not subagent-output-templating)"
+          - "SME agent explores codebase autonomously (no hardcoded document paths)"
+          - "AskUserQuestion iterative interviews: 2-3 questions per round, repeat until clarity"
+          - "Proactive token budget checking at defined thresholds"
+          - "Synthesis = template + enforcement language (not reasoning logic)"
           - "Passes anthropic-validator"
-          - "Synced to .claude/skills/ for dogfooding"
-          - "Added to sync-essential-skills.sh for standalone repo"
+          - "Synced to .claude/skills/ and standalone repo"
         verification:
-          - "Run /research-brainstorm research [test-topic] — 5 agents spawn correctly"
-          - "Verify F# pipeline notation in skill doc"
-          - "Verify pipeline-templates references updated"
-          - "Run /anthropic-validator on the skill"
+          - "Run /bulwark-research [test-topic] — 5 Sonnet agents spawn in parallel"
+          - "Run /bulwark-brainstorm [test-topic] — SME first, 3 parallel, Critic last (all Opus)"
+          - "Verify AskUserQuestion invoked before spawning and after synthesis"
+          - "Verify diagnostic YAML written to logs/diagnostics/"
+          - "Run /anthropic-validator on both skills"
         notes:
-          - "Session 58: Draft created with correct methodology but non-standard conventions"
-          - "Must align with Bulwark patterns before use in P5.3-5 research sessions"
-          - "Prerequisite for Sessions 59-67 (P5.3-5 research & brainstorm)"
-        estimated_sessions: 1
+          - "Session 58: Draft skills/research-brainstorm/ created (superseded)"
+          - "Session 59: Split into two skills, implemented, validated, draft removed"
+          - "Task brief: plans/task-briefs/P5.14-research-brainstorm.md"
+          - "Prerequisite for P5.3-5 research sessions"
+        estimated_sessions: 2
 
   - id: P6
     name: "Optional Enhancements"
@@ -352,8 +354,8 @@ summary:
     - { id: P5.1, reason: "Redundant - /test-audit already user-invocable" }
   execution_order:
     completed: "P8.1-2 → P5.10-12"
-    next: "P5.14 (research-brainstorm skill)"
-    then_research: "P5.3-5 research & brainstorm (8 sessions using /research-brainstorm)"
+    next: "P5.14 (bulwark-research + bulwark-brainstorm skills)"
+    then_research: "P5.3-5 research & brainstorm (8 sessions using /bulwark-research + /bulwark-brainstorm)"
     after: "P5.13 (Plan Creation)"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"

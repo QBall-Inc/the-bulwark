@@ -79,6 +79,38 @@ if [ -f "$BULWARK_ROOT/scripts/statusline/statusline.sh" ]; then
 fi
 
 # ============================================================
+# 2b. Sync bulwark-* skills (rebranded, strip prefix)
+# ============================================================
+echo "=== Syncing bulwark-prefixed skills (stripped) ==="
+
+BULWARK_SKILLS=(
+  bulwark-research:research
+  bulwark-brainstorm:brainstorm
+)
+
+for mapping in "${BULWARK_SKILLS[@]}"; do
+  src="${mapping%%:*}"
+  dest_name="${mapping#*:}"
+  if [ -d "$BULWARK_ROOT/skills/$src" ]; then
+    echo "  Syncing skills/$src/ -> skills/$dest_name/"
+    mkdir -p "$DEST/skills/$dest_name"
+    rsync -av --delete \
+      --exclude 'node_modules' \
+      --exclude '__tests__' \
+      --exclude 'package-lock.json' \
+      --exclude 'jest.config.ts' \
+      "$BULWARK_ROOT/skills/$src/" "$DEST/skills/$dest_name/"
+    # Rebrand: bulwark-{name} → {name} in SKILL.md
+    if [ -f "$DEST/skills/$dest_name/SKILL.md" ]; then
+      sed -i "s|bulwark-$dest_name|$dest_name|g" "$DEST/skills/$dest_name/SKILL.md"
+      echo "  [rebrand] $dest_name SKILL.md: bulwark-$dest_name → $dest_name"
+    fi
+  else
+    echo "  WARNING: skills/$src/ not found in Bulwark"
+  fi
+done
+
+# ============================================================
 # 3. Sync agents
 # ============================================================
 
