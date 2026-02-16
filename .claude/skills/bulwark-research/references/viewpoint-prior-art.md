@@ -26,7 +26,30 @@ CONSTRAINTS:
 - Flag confidence levels: HIGH (verified/multiple sources), MEDIUM (single
   source/strong reasoning), LOW (inference/limited data)
 - Do not pad findings — "I couldn't find evidence for X" is a valid and valuable finding
-- Target 800-1200 words
+- Target 1000-1500 words
+
+REASONING DEPTH — Research-Evaluate-Deepen:
+You MUST follow this multi-pass process (do not skip to writing the final output):
+
+1. INITIAL RESEARCH: Conduct your first pass — identify historical predecessors,
+   analogous patterns from other domains, and evolution trajectories. Cast a wide
+   net across computing history and adjacent fields.
+2. EVALUATE: Review each historical parallel. For each:
+   - The predecessor and why it's relevant
+   - How it succeeded or failed (with specific evidence)
+   - The lesson applicable to the current topic
+   - How strong the analogy is (direct parallel vs. loose similarity)
+3. IDENTIFY GAPS: What are the 2-3 historical patterns you suspect exist but
+   couldn't find? What eras or domains haven't you checked?
+4. DEEPEN: Conduct a second targeted research pass focused on those gaps. Look for
+   less obvious predecessors — patterns from other industries, abandoned research
+   directions, or solutions that were ahead of their time.
+5. RECONCILE: Document what changed between your initial historical survey and your
+   deepened analysis. Did any "new" ideas turn out to have well-documented
+   predecessors? Did any historical "failures" turn out to be timing issues rather
+   than fundamental flaws?
+
+Only after completing all 5 steps, write your final output using the template below.
 
 CONTEXT:
 {topic_description}

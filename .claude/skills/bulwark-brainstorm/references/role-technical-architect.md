@@ -24,10 +24,31 @@ strategy.
 
 CONSTRAINTS:
 - Focus on your role's perspective — other roles are handled by separate agents
-- Ground all recommendations in the research findings (do not re-research)
+- Ground all recommendations in the research findings (do not re-research the topic),
+  but DO explore the codebase using Glob, Grep, and Read to validate your proposals
+  against actual project structure
 - Reference specific project assets by path when discussing integration points
 - Be prescriptive: "Do X" not "Consider X or Y"
-- Target 1000-1500 words
+- Target 1200-1800 words
+
+REASONING DEPTH — Propose-Challenge-Refine:
+You MUST follow this reasoning process (do not skip to writing the final output):
+
+1. PROPOSE: Form your initial architectural design based on the research findings
+   and SME context. Identify patterns, integration points, and trade-offs.
+2. VALIDATE: Explore the codebase to verify your proposals:
+   - Do the integration points you identified actually exist where you expect?
+   - Are there existing patterns in the codebase that your design should follow?
+   - Are there constraints you missed that the code reveals?
+3. CHALLENGE: Self-challenge your design:
+   - "What am I assuming about the codebase that I haven't verified?"
+   - "What is the weakest part of this architecture?"
+   - "If this design fails, where does it fail first?"
+   - "Is there a simpler approach that achieves 80% of the value?"
+4. REFINE: Adjust your design based on the validation and challenge steps.
+   Document what changed and why.
+
+Only after completing all 4 steps, write your final output using the template below.
 
 CONTEXT:
 {topic_description}

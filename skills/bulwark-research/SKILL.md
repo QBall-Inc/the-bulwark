@@ -121,10 +121,49 @@ Stage 3: Synthesis
 ├── Load templates/synthesis-output.md
 ├── Write synthesis to logs/research/{topic-slug}/synthesis.md
 ├── AskUserQuestion for user on open questions (iterative, 2-3 per round)
+├── Critical Evaluation Gate (see below)
 └── Token budget check (must be <65% after synthesis)
 ```
 
 **Enforcement**: Do NOT begin writing synthesis until ALL available agent outputs have been read. The orchestrator must reference every agent's output at least once in the synthesis.
+
+#### Critical Evaluation Gate (Post-User Q&A)
+
+After each AskUserQuestion round, do NOT blindly incorporate user responses. Instead:
+
+**Step 1 — Classify each user response:**
+
+| Classification | Definition | Action |
+|---------------|------------|--------|
+| **Factual** | Known, verifiable information (e.g., "We use PostgreSQL") | Incorporate directly into synthesis |
+| **Opinion** | Preference or priority (e.g., "I'd prefer approach A") | Incorporate directly with attribution: "User preference: ..." |
+| **Speculative** | Unvalidated claim or proposed solution (e.g., "I think library X can do this", "What if we used approach Y?") | **Do NOT incorporate.** Trigger Step 2. |
+
+**Step 2 — For Speculative responses, present to user:**
+
+> "Your suggestion about [X] is unvalidated. I recommend a targeted follow-up research phase with 2 focused agents (Direct Investigation + Contrarian) to verify feasibility and surface risks before incorporating this into the synthesis.
+>
+> This will spawn 2 Sonnet agents and consume additional token budget.
+>
+> [Run follow-up research / Incorporate as-is with LOW confidence caveat]"
+
+**Step 3 — If follow-up research approved:**
+
+1. Spawn 2 Sonnet agents in parallel (single message, 2 Task tool calls):
+   - **Direct Investigation** — focused on validating the specific claim/solution
+   - **Contrarian** — focused on finding failure modes and alternatives for the specific claim/solution
+2. Use the same 4-part prompt template (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)
+3. Include the REASONING DEPTH instructions from the viewpoint reference docs
+4. Output to: `logs/research/{topic-slug}/followup-{NN}-direct-investigation.md` and `followup-{NN}-contrarian.md`
+5. Read both outputs, then update synthesis with validated findings
+6. Tag follow-up findings in synthesis with: `[Follow-up: validated]` or `[Follow-up: refuted]` or `[Follow-up: mixed — see details]`
+
+**Step 4 — If user declines follow-up:**
+
+Incorporate the user's suggestion into synthesis with an explicit caveat:
+> **[Unvalidated — user suggestion, not research-backed]**: {suggestion}
+
+**Repeat**: After updating synthesis, ask if user has additional questions or input. Apply the same classification gate to each round. There is no limit on follow-up rounds, but each round with Speculative input that triggers research consumes ~10-15% token budget — warn user if approaching 60%.
 
 ### Stage 4: Diagnostics (REQUIRED)
 
@@ -251,6 +290,8 @@ Write to: `logs/diagnostics/bulwark-research-{YYYYMMDD-HHMMSS}.yaml`
 - [ ] Stage 3: ALL 5 outputs read before writing synthesis
 - [ ] Stage 3: Synthesis written using `templates/synthesis-output.md`
 - [ ] Stage 3: AskUserQuestion used for post-synthesis review
+- [ ] Stage 3: Critical Evaluation Gate applied to all user responses (classified as Factual/Opinion/Speculative)
+- [ ] Stage 3: Follow-up research spawned for Speculative responses (or user declined with caveat added)
 - [ ] Stage 4: Diagnostic YAML written to `logs/diagnostics/`
 
 **Do NOT return to user until all checkboxes can be marked complete.**

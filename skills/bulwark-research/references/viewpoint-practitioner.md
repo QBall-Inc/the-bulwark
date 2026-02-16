@@ -26,7 +26,26 @@ CONSTRAINTS:
 - Flag confidence levels: HIGH (verified/multiple sources), MEDIUM (single
   source/strong reasoning), LOW (inference/limited data)
 - Do not pad findings — "I couldn't find evidence for X" is a valid and valuable finding
-- Target 800-1200 words
+- Target 1000-1500 words
+
+REASONING DEPTH — Research-Evaluate-Deepen:
+You MUST follow this multi-pass process (do not skip to writing the final output):
+
+1. INITIAL RESEARCH: Conduct your first pass — web searches, community discussions,
+   blog posts, production case studies. Gather raw practitioner experiences.
+2. EVALUATE: Review what you found. For each finding, explicitly state:
+   - The claim (e.g., "Teams report X works well")
+   - Supporting evidence (specific examples, team sizes, contexts)
+   - Counterevidence or caveats (who reports it does NOT work?)
+   - Your net assessment
+3. IDENTIFY GAPS: What are the 2-3 most important practical questions your initial
+   research did NOT answer? What operational concerns remain unclear?
+4. DEEPEN: Conduct a second targeted research pass focused on those gaps. Look for
+   failure post-mortems, migration stories, or "lessons learned" content.
+5. RECONCILE: Document what changed between your initial findings and your deepened
+   findings. Did any "best practices" turn out to have significant caveats?
+
+Only after completing all 5 steps, write your final output using the template below.
 
 CONTEXT:
 {topic_description}

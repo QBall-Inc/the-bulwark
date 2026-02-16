@@ -177,10 +177,54 @@ Stage 5: Synthesis
 ├── Load templates/synthesis-output.md
 ├── Write synthesis to logs/brainstorm/{topic-slug}/synthesis.md
 ├── AskUserQuestion for user on open questions (iterative, 2-3 per round)
+├── Critical Evaluation Gate (see below)
 └── Token budget check (must be <65% after synthesis)
 ```
 
 **Enforcement**: Do NOT begin writing synthesis until ALL available agent outputs have been read. The orchestrator must reference every agent's output at least once in the synthesis.
+
+#### Critical Evaluation Gate (Post-User Q&A)
+
+After each AskUserQuestion round, do NOT blindly incorporate user responses. Instead:
+
+**Step 1 — Classify each user response:**
+
+| Classification | Definition | Action |
+|---------------|------------|--------|
+| **Preference** | Scope, priority, or UX choice (e.g., "I'd prefer v1 to focus on X", "Let's defer Y") | Incorporate directly. These are user decisions — no validation needed. |
+| **Technical Claim** | Assertion about a technology, library, or API (e.g., "Library X supports this", "That API has rate limits") | **Do NOT incorporate.** Trigger Step 2. |
+| **Architectural Suggestion** | Proposed structural approach (e.g., "What if we structure it as a plugin?", "We could use event sourcing") | **Do NOT incorporate.** Trigger Step 2. |
+
+**Step 2 — For Technical Claims and Architectural Suggestions, present to user:**
+
+> "Your suggestion about [X] involves a technical claim / architectural approach that hasn't been validated against the codebase and research. I recommend a targeted follow-up with 2 focused agents (Technical Architect + Critical Analyst) to verify feasibility and stress-test the approach.
+>
+> This will spawn 2 Opus agents and consume additional token budget.
+>
+> [Run follow-up validation / Incorporate as-is with LOW confidence caveat]"
+
+**Step 3 — If follow-up validation approved:**
+
+1. Spawn 2 Opus agents in parallel (single message, 2 Task tool calls):
+   - **Technical Architect** — validates the suggestion against the codebase and research:
+     GOAL: Validate whether [{user_suggestion}] is technically feasible for this project.
+     Include the Propose-Challenge-Refine reasoning depth instructions.
+     Agent has access to Glob, Grep, Read for codebase exploration.
+   - **Critical Analyst** — stress-tests the suggestion:
+     GOAL: Challenge [{user_suggestion}]. Is this the simplest approach? What assumptions does it introduce? What would change the verdict?
+     Include the Highest-Risk Assumption Focus reasoning depth instructions.
+2. Use the same 4-part prompt template (GOAL/CONSTRAINTS/CONTEXT/OUTPUT)
+3. Provide both agents with: original research synthesis, SME output, and the specific user suggestion
+4. Output to: `logs/brainstorm/{topic-slug}/followup-{NN}-architect.md` and `followup-{NN}-critic.md`
+5. Read both outputs, then update synthesis with validated findings
+6. Tag follow-up findings in synthesis with: `[Follow-up: validated]` or `[Follow-up: refuted]` or `[Follow-up: mixed — see details]`
+
+**Step 4 — If user declines follow-up:**
+
+Incorporate the user's suggestion into synthesis with an explicit caveat:
+> **[Unvalidated — user suggestion, not verified against codebase or research]**: {suggestion}
+
+**Repeat**: After updating synthesis, ask if user has additional questions or input. Apply the same classification gate to each round. There is no limit on follow-up rounds, but each round with Technical Claim / Architectural Suggestion input that triggers validation consumes ~15-20% token budget (2 Opus agents) — warn user if approaching 55%.
 
 ### Stage 6: Diagnostics (REQUIRED)
 
@@ -339,6 +383,8 @@ Write to: `logs/diagnostics/bulwark-brainstorm-{YYYYMMDD-HHMMSS}.yaml`
 - [ ] Stage 5: ALL 5 outputs read before writing synthesis
 - [ ] Stage 5: Synthesis written using `templates/synthesis-output.md`
 - [ ] Stage 5: AskUserQuestion used for post-synthesis review
+- [ ] Stage 5: Critical Evaluation Gate applied to all user responses (classified as Preference/Technical Claim/Architectural Suggestion)
+- [ ] Stage 5: Follow-up validation spawned for Technical Claims/Architectural Suggestions (or user declined with caveat added)
 - [ ] Stage 6: Diagnostic YAML written to `logs/diagnostics/`
 
 **Do NOT return to user until all checkboxes can be marked complete.**

@@ -29,7 +29,29 @@ CONSTRAINTS:
 - Be genuinely critical, not performatively contrarian — ground challenges in evidence
 - Propose specific conditions under which your verdict would change
 - Be prescriptive: "Do X" not "Consider X or Y"
-- Target 1000-1500 words
+- Target 1200-1800 words
+
+REASONING DEPTH — Highest-Risk Assumption Focus:
+You MUST follow this reasoning process (do not skip to writing the final output):
+
+1. CATALOG: List every assumption made across ALL 4 prior outputs (SME, PM,
+   Architect, Dev Lead). Be exhaustive — assumptions hide in scope boundaries,
+   effort estimates, integration points, and "obvious" claims.
+2. RANK: Rank assumptions by risk (probability of being wrong × impact if wrong).
+   Identify the SINGLE highest-risk assumption across all proposals.
+3. STRESS-TEST: For the top 3 highest-risk assumptions, reason through:
+   - What evidence supports this assumption?
+   - What evidence contradicts it?
+   - What would happen to the entire proposal if this assumption is wrong?
+   - What would it cost to validate this assumption before proceeding?
+4. FOCAL POINT: In your output, explicitly call out:
+   > **Highest-Risk Assumption**: {assumption}
+   > **If wrong**: {consequence}
+   > **To validate**: {what would need to be checked}
+
+This gives the synthesis a clear focal point for the post-synthesis evaluation gate.
+
+Only after completing all 4 steps, write your final output using the template below.
 
 CONTEXT:
 {topic_description}
