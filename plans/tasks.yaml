@@ -22,8 +22,8 @@ version: 5.1.0
 created: 2026-01-04
 updated: 2026-02-15
 current_phase: P5
-current_task: P5.14
-current_task_status: "P5.14 implementation complete (Session 59). Both skills created, validated, dogfooded, rsync'd. Draft skill removed. Awaiting live validation."
+current_task: P5.3
+current_task_status: "P5.14 completed (Session 60). P5.3-5 research phase begins next session — Ralph Wiggum Loops research first."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -170,7 +170,7 @@ phases:
 
       - id: P5.14
         name: "Create bulwark-research and bulwark-brainstorm skills (production-grade)"
-        status: in_progress
+        status: completed
         dependencies: []  # Prerequisite for P5.3-5 research methodology
         implementation_plan: "plans/task-briefs/P5.14-research-brainstorm.md"
         deliverables:
@@ -354,7 +354,7 @@ summary:
     - { id: P5.1, reason: "Redundant - /test-audit already user-invocable" }
   execution_order:
     completed: "P8.1-2 → P5.10-12"
-    next: "P5.14 (bulwark-research + bulwark-brainstorm skills)"
+    next: "P5.3-5 research phase (Ralph Wiggum Loops, Agent Teams, Feedback Patterns)"
     then_research: "P5.3-5 research & brainstorm (8 sessions using /bulwark-research + /bulwark-brainstorm)"
     after: "P5.13 (Plan Creation)"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
