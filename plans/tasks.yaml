@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-16
 current_phase: P5
 current_task: P5.3
-current_task_status: "P5.3-5 research phase complete. Ralph Loops descoped, Agent Teams scoped to P5.13 + P5.15. Next: P5.3 brainstorm (Session 63)."
+current_task_status: "P5.3 brainstorm complete (Session 63). Task brief created. Next: P5.4/P5.5 research (Session 64)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -61,38 +61,49 @@ phases:
         name: "Create continuous-feedback skill"
         status: not_started
         dependencies: [P0.2]
-        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
+        implementation_plan: "plans/task-briefs/P5.3-continuous-feedback.md"
         deliverables:
           - "skills/continuous-feedback/SKILL.md"
+          - "skills/continuous-feedback/references/collect-instructions.md"
+          - "skills/continuous-feedback/references/specialize-test-audit.md"
+          - "skills/continuous-feedback/references/specialize-code-review.md"
+          - "skills/continuous-feedback/references/specialize-general.md"
+          - "skills/continuous-feedback/templates/collect-output.md"
+          - "skills/continuous-feedback/templates/proposal-output.md"
+          - "skills/continuous-feedback/templates/diagnostic-output.yaml"
         acceptance_criteria:
-          - "General-purpose skill applicable to any codebase (not Bulwark-specific)"
-          - "4-stage pipeline: Collect (parse session handoffs) → Analyze (identify improvement targets) → Act (propose/apply changes) → Validate (anthropic-validator, test suites)"
-          - "Per-skill-type specialization in Analyze and Act stages:"
-          - "  - code-review: external security pattern feeds, review lens updates"
-          - "  - test-audit: AST script gap analysis, detection pattern updates, AST test suite validation"
-          - "  - bug-magnet-data: external edge case sources, new dataset categories"
-          - "  - General skills: pattern extraction, incremental skill updates"
-          - "Act stage supports parallel sub-agents for incremental updates"
-          - "Frontmatter: user-invocable: true"
+          - "General-purpose skill applicable to any Claude Code project (not Bulwark-specific)"
+          - "4-stage pipeline: Collect → Analyze → Act → Validate with 4 Sonnet sub-agents"
+          - "Pass-through schema: Collector preserves full learning content, LLM-classified skill_relevance"
+          - "3 specializations in v1: test-audit + code-review + general"
+          - "Dynamic Analyzer count (1-3) based on detected skill types in collected learnings"
+          - "Act stage produces proposal-only output (no direct file mods) with mandatory fields"
+          - "Proposals must be copy-paste ready (target_file, change_type, section, proposed_content, rationale)"
+          - "Input scoping: --since flag (default last 10 sessions), --sources for custom paths"
+          - "Pre-Flight Gate: ≥5 session handoffs required"
+          - "Frontmatter: user-invocable: true, skills: [subagent-prompting]"
           - "Uses Task tool sub-agents (NOT Agent Teams — Session 62 decision)"
         verification:
-          - "Run on Bulwark's own skills using accumulated session handoffs"
-          - "Verify per-skill specialization produces relevant improvement targets"
-          - "Verify Act stage proposes concrete, actionable changes"
-          - "Verify improvements pass anthropic-validator"
+          - "Run on Bulwark's test-audit skill using accumulated session handoffs (first test)"
+          - "Verify Collector extracts learning items with source attribution"
+          - "Verify Proposer produces ≥3 concrete, copy-paste-ready proposals"
+          - "Verify pipeline completes within single-session token budget"
+          - "Portability test on non-Bulwark project (only general Analyzer runs)"
+          - "Pass /anthropic-validator with 0 critical, 0 high"
         notes:
-          - "Bundled with P5.4 and P5.5 into single task brief (Session 46)"
-          - "Session 62: Ralph Loops descoped, Agent Teams not applicable, Task tool confirmed"
-          - "Session 62: User identified pain points — identifying what to improve + proposing concrete changes are hardest"
-          - "Session 62: Scope changed from Bulwark-specific to general-purpose"
-          - "Pre-implementation: /bulwark-brainstorm --scoped (Session 63)"
+          - "Session 46: Originally bundled with P5.4/P5.5 into single task brief"
+          - "Session 63: Split to standalone task brief (P5.4/P5.5 needs separate research cycle)"
+          - "Session 63: Brainstorm complete — 5 Opus agents, all succeeded, synthesis finalized"
+          - "Session 63 decisions: full pipeline directly (no v0), 3 specializations, pass-through schema"
+          - "Brainstorm outputs: logs/brainstorm/continuous-feedback/"
+          - "Kill criteria: <3 proposals from 62 sessions, <40% acceptance, >60K tokens per run"
         estimated_sessions: 1
 
       - id: P5.4
         name: "Create skill-creator skill"
         status: not_started
         dependencies: [P5.3]
-        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
+        implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
           - "skills/skill-creator/SKILL.md"
         acceptance_criteria:
@@ -119,7 +130,7 @@ phases:
         name: "Create agent-creator skill"
         status: not_started
         dependencies: [P5.3]
-        implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
+        implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
           - "skills/agent-creator/SKILL.md"
         acceptance_criteria:
@@ -438,7 +449,7 @@ summary:
     P7: "2 tasks - After all P5+P6"
     P8: "2 tasks - COMPLETED"
   bundled_task_briefs:
-    - brief: "plans/task-briefs/P5.3-5-evolution-tools.md"
-      tasks: [P5.3, P5.4, P5.5]
+    - brief: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
+      tasks: [P5.4, P5.5]
     - brief: "plans/task-briefs/P5.10-12-test-audit-hardening.md"
       tasks: [P5.10, P5.11, P5.12]
