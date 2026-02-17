@@ -18,12 +18,12 @@
 # → P5.13 (plan creation) → P5.8 (test protocol) → P6.x → P7.1-2 (launch)
 
 project: the-bulwark
-version: 5.1.0
+version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-16
 current_phase: P5
 current_task: P5.3
-current_task_status: "P5.3-5 research phase in progress. Session 61: Ralph Loops research complete — near-zero applicability for Bulwark. Next: Agent Teams research (Session 62)."
+current_task_status: "P5.3-5 research phase complete. Ralph Loops descoped, Agent Teams scoped to P5.13 + P5.15. Next: P5.3 brainstorm (Session 63)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -42,7 +42,7 @@ phases:
 
   - id: P5
     name: "Test Audit Hardening, Evolution Tools, and Testing Protocol"
-    description: "Test audit production hardening, evolution tools with Ralph loops, plan creation skill, and consolidated test protocol"
+    description: "Test audit production hardening, evolution tools, plan creation skill, brainstorm exploratory mode, and consolidated test protocol"
     status: in_progress
     tasks:
       # Archived tasks (full details in tasks_completed.yaml)
@@ -53,7 +53,10 @@ phases:
       - { id: P5.11, name: "Test audit dual-mode", status: completed }
       - { id: P5.12, name: "Test audit advanced patterns", status: completed }
 
-      # Bundled: P5.3 + P5.4 + P5.5 share one task brief
+      # P5.3-5: Evolution Tools
+      # Research complete: Ralph Loops descoped (Session 61-62), Agent Teams scoped to P5.13+P5.15 only
+      # Schedule: P5.3 brainstorm → P5.4/P5.5 research → P5.13 brainstorm → P5.15 brainstorm
+      # Decision reference: Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md
       - id: P5.3
         name: "Create continuous-feedback skill"
         status: not_started
@@ -62,56 +65,72 @@ phases:
         deliverables:
           - "skills/continuous-feedback/SKILL.md"
         acceptance_criteria:
-          - "Learning capture procedure defined"
-          - "Skill enhancement workflow documented"
-          - "Backup and restore pattern included"
-          - "Frontmatter: user-invocable: false"
+          - "General-purpose skill applicable to any codebase (not Bulwark-specific)"
+          - "4-stage pipeline: Collect (parse session handoffs) → Analyze (identify improvement targets) → Act (propose/apply changes) → Validate (anthropic-validator, test suites)"
+          - "Per-skill-type specialization in Analyze and Act stages:"
+          - "  - code-review: external security pattern feeds, review lens updates"
+          - "  - test-audit: AST script gap analysis, detection pattern updates, AST test suite validation"
+          - "  - bug-magnet-data: external edge case sources, new dataset categories"
+          - "  - General skills: pattern extraction, incremental skill updates"
+          - "Act stage supports parallel sub-agents for incremental updates"
+          - "Frontmatter: user-invocable: true"
+          - "Uses Task tool sub-agents (NOT Agent Teams — Session 62 decision)"
         verification:
-          - "Capture sample learning"
-          - "Propose enhancement to existing skill"
+          - "Run on Bulwark's own skills using accumulated session handoffs"
+          - "Verify per-skill specialization produces relevant improvement targets"
+          - "Verify Act stage proposes concrete, actionable changes"
+          - "Verify improvements pass anthropic-validator"
         notes:
           - "Bundled with P5.4 and P5.5 into single task brief (Session 46)"
-          - "Requires research on Ralph Wiggum loops, agent teams, feedback patterns"
+          - "Session 62: Ralph Loops descoped, Agent Teams not applicable, Task tool confirmed"
+          - "Session 62: User identified pain points — identifying what to improve + proposing concrete changes are hardest"
+          - "Session 62: Scope changed from Bulwark-specific to general-purpose"
+          - "Pre-implementation: /bulwark-brainstorm --scoped (Session 63)"
         estimated_sessions: 1
 
       - id: P5.4
-        name: "Create skill-creator skill (with Ralph loop)"
+        name: "Create skill-creator skill"
         status: not_started
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
         deliverables:
           - "skills/skill-creator/SKILL.md"
         acceptance_criteria:
-          - "Follows Bulwark skill patterns (2.1.1)"
-          - "4-iteration Ralph loop guidance included"
+          - "Follows Bulwark skill patterns"
+          - "Meta-skill framework: decides whether new skill needs scripts, sequential sub-agents, parallel sub-agents, or Agent Teams"
+          - "Accounts for diverse skill types (AST scripts like test-audit, pipeline skills like code-review, research skills like bulwark-research)"
           - "Includes anthropic-validator validation step"
           - "Generates skills with correct frontmatter"
           - "Frontmatter: agent: sonnet"
           - "Frontmatter: user-invocable: true"
+          - "Uses Task tool for generation + iterative validation (NOT Ralph Loops — Session 62 decision)"
         verification:
           - "Create new skill using creator"
           - "Verify passes anthropic-validator"
-          - "Verify 4-iteration guidance followed"
+          - "Verify generated skill has correct structure for its type"
           - "Verify skill appears in / menu"
         notes:
           - "Bundled with P5.3 and P5.5 into single task brief (Session 46)"
+          - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
+          - "Pre-implementation: /bulwark-research on meta-skill design patterns (Session 64)"
         estimated_sessions: 1
 
       - id: P5.5
-        name: "Create agent-creator skill (context: fork + Ralph loop)"
+        name: "Create agent-creator skill"
         status: not_started
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.3-5-evolution-tools.md"
         deliverables:
           - "skills/agent-creator/SKILL.md"
         acceptance_criteria:
-          - "Generates agents as skills with context: fork (2.1.1)"
-          - "4-iteration Ralph loop guidance included"
-          - "Includes 4-part template usage"
+          - "Generates agents as skills with context: fork"
+          - "Meta-skill framework: decides agent architecture (single-agent, pipeline, Agent Teams) based on use case"
+          - "Includes 4-part template usage (SA1)"
           - "Generates Stop hook configuration"
           - "Generates diagnostic output section"
           - "Frontmatter: agent: sonnet"
           - "Frontmatter: user-invocable: true"
+          - "Uses Task tool for generation + iterative validation (NOT Ralph Loops — Session 62 decision)"
         verification:
           - "Create new agent using creator"
           - "Verify passes anthropic-validator"
@@ -119,6 +138,8 @@ phases:
           - "Verify skill appears in / menu"
         notes:
           - "Bundled with P5.3 and P5.4 into single task brief (Session 46)"
+          - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
+          - "Pre-implementation: /bulwark-research on meta-skill design patterns (Session 64, shared with P5.4)"
         estimated_sessions: 1
 
       - id: P5.8
@@ -146,26 +167,67 @@ phases:
         estimated_sessions: 1
 
       - id: P5.13
-        name: "Create plan-creation skill (agent teams research)"
+        name: "Create plan-creation skill (Agent Teams dual-mode)"
         status: not_started
-        dependencies: [P5.3]  # Inherits Ralph loop and feedback research from P5.3
+        dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.13-plan-creation.md"
         deliverables:
           - "skills/plan-creation/SKILL.md"
         acceptance_criteria:
-          - "Multi-agent research orchestration using agent teams"
+          - "Dual-mode implementation: Task tool (default) + Agent Teams (optional)"
+          - "Task tool mode: orchestrator spawns parallel researcher sub-agents, synthesizes plan"
+          - "Agent Teams mode: delegate-mode lead, 5 specialist researcher teammates with peer debate prompts"
           - "High-level plan input → detailed implementation plan output"
-          - "Integrates with task-briefs workflow"
+          - "Integrates with task-briefs workflow (plans/task-briefs/ format)"
+          - "SA2 compliant: teammates write findings to logs/ AND send coordination summaries via mailbox"
+          - "Agent Teams mode gated on CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+          - "In-process display mode (WSL2 safe default, no tmux dependency)"
           - "Frontmatter: user-invocable: true"
         verification:
-          - "Create implementation plan from high-level description"
-          - "Verify agent team research spawning"
+          - "Create implementation plan from high-level description using Task tool mode"
+          - "Create implementation plan using Agent Teams mode (if experimental flag available)"
+          - "Verify peer debate produces richer plans than independent parallel analysis"
           - "Verify plan matches task-brief structure"
+          - "Verify SA2 compliance — all findings in logs/, mailbox used for coordination only"
         notes:
           - "Session 46: Added during P5 brainstorm"
-          - "Depends on P5.3 research (Ralph loops, feedback patterns)"
-          - "Agent teams feature launched with Opus 4.6 (2026-02-01) — needs independent research"
-          - "Standalone brief, not bundled with P5.3-5"
+          - "Session 62: Ralph Loops descoped. Agent Teams confirmed as dual-mode approach."
+          - "Session 62: User preference for dual implementation (Task tool + Agent Teams)"
+          - "Session 62: SA2 compliance — explicit logs for artifacts, mailbox for coordination/summaries"
+          - "Pre-implementation: /bulwark-brainstorm --scoped (Session 65)"
+          - "Decision reference: Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
+        estimated_sessions: 2
+
+      - id: P5.15
+        name: "Add exploratory mode to bulwark-brainstorm skill (Agent Teams)"
+        status: not_started
+        dependencies: [P5.14]  # Extends existing bulwark-brainstorm
+        implementation_plan: "plans/task-briefs/P5.15-brainstorm-exploratory.md"
+        deliverables:
+          - "skills/bulwark-brainstorm/SKILL.md (updated with --exploratory mode)"
+          - ".claude/skills/bulwark-brainstorm/ (dogfood copy updated)"
+        acceptance_criteria:
+          - "Two modes selectable via argument: --scoped (current, Task tool) and --exploratory (new, Agent Teams)"
+          - "--scoped mode: unchanged sequential role progression (SME→PM→Architect→Dev Lead→Critic)"
+          - "--exploratory mode: 5 personas as Agent Teams teammates debating collaboratively via peer messaging"
+          - "Usage guidance: --scoped when problem statement is well understood (focused implementation brainstorming); --exploratory to validate whether an idea has merit (problem framing uncertain)"
+          - "Agent Teams mode gated on CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+          - "In-process display mode (WSL2 safe default)"
+          - "SA2 compliant: personas write findings to logs/, mailbox for coordination"
+          - "Passes anthropic-validator"
+          - "Synced to .claude/skills/ and standalone repo"
+        verification:
+          - "Run /bulwark-brainstorm --scoped [topic] — verify unchanged sequential behavior"
+          - "Run /bulwark-brainstorm --exploratory [topic] — verify collaborative peer debate"
+          - "Verify --exploratory produces different output structure than --scoped (debate-driven vs sequential)"
+          - "Verify SA2 compliance in Agent Teams mode"
+          - "Run /anthropic-validator on updated skill"
+        notes:
+          - "Session 62: Identified during Agent Teams research post-synthesis discussion"
+          - "Session 62: User proposed --scoped/--exploratory naming over sequential/collaborative"
+          - "Session 62: 'Use scoped when problem statement is well understood. Use exploratory to validate an idea.'"
+          - "Pre-implementation: /bulwark-brainstorm --scoped (Session 66)"
+          - "Decision reference: Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
         estimated_sessions: 2
 
       - id: P5.14
@@ -344,7 +406,7 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 44  # +P5.14 (research-brainstorm skill, Session 58)
+  total_tasks: 45  # +P5.15 (brainstorm exploratory mode, Session 62)
   completed_phases: "P0, P1, P2, P3, P4, P8 (see tasks_completed.yaml)"
   skipped_tasks:
     - { id: P1.1, reason: "Redundant - Main Context Orchestration pattern" }
@@ -352,20 +414,26 @@ summary:
   descoped_tasks:
     - { id: P4.3, reason: "Redundant - /code-review + Code Review Pipeline" }
     - { id: P5.1, reason: "Redundant - /test-audit already user-invocable" }
+  descoped_patterns:
+    - pattern: "Ralph Loops"
+      reason: "Near-zero applicability for Bulwark (Sessions 61-62). No iterative autonomous implementation use case."
+      decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
-    completed: "P8.1-2 → P5.10-12"
-    next: "P5.3-5 research phase (Ralph Wiggum Loops, Agent Teams, Feedback Patterns)"
-    then_research: "P5.3-5 research & brainstorm (8 sessions using /bulwark-research + /bulwark-brainstorm)"
-    after: "P5.13 (Plan Creation)"
+    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams)"
+    next: "P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66)"
+    after: "P5.3-5 + P5.13 + P5.15 implementation"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
+  research_decisions:
+    session_61: "Ralph Loops research — near-zero applicability, descoped"
+    session_62: "Agent Teams research — scoped to P5.13 (dual-mode) + P5.15 (brainstorm --exploratory). Ralph Loops descoped. Cross-synthesis dropped (no overlap). Schedule compressed from 8 to 4 pre-implementation sessions."
   phases:
     P0: "8 tasks - COMPLETED"
     P1: "2 tasks - COMPLETED (P1.1 SKIPPED)"
     P2: "3 tasks - COMPLETED"
     P3: "5 tasks - COMPLETED"
     P4: "5 tasks - COMPLETED (P4.3 DESCOPED)"
-    P5: "10 tasks - P5.1 DESCOPED, P5.2 SKIPPED, P5.9-12 COMPLETED, P5.14/P5.3-5/P5.8/P5.13 remaining"
+    P5: "11 tasks - P5.1 DESCOPED, P5.2 SKIPPED, P5.9-12+P5.14 COMPLETED, P5.3-5/P5.8/P5.13/P5.15 remaining"
     P6: "9 tasks - Not started"
     P7: "2 tasks - After all P5+P6"
     P8: "2 tasks - COMPLETED"
