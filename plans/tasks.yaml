@@ -20,10 +20,10 @@
 project: the-bulwark
 version: 5.2.0
 created: 2026-01-04
-updated: 2026-02-16
+updated: 2026-02-17
 current_phase: P5
-current_task: P5.3
-current_task_status: "P5.3 brainstorm complete (Session 63). Task brief created. Next: P5.4/P5.5 research (Session 64)."
+current_task: P5.4
+current_task_status: "P5.4/P5.5 research complete (Session 64). Task brief created. Next: P5.13 brainstorm (Session 65)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -123,7 +123,10 @@ phases:
         notes:
           - "Bundled with P5.3 and P5.5 into single task brief (Session 46)"
           - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
-          - "Pre-implementation: /bulwark-research on meta-skill design patterns (Session 64)"
+          - "Session 64: /bulwark-research complete — 5 Sonnet agents, 12 HIGH-confidence findings"
+          - "Session 64: Task brief created (plans/task-briefs/P5.4-5-skill-agent-creators.md)"
+          - "Session 64 decisions: adopt+adapt Anthropic skill-creator, adaptive interview, 5 templates, content guidance"
+          - "Research outputs: logs/research/meta-skill-design/"
         estimated_sessions: 1
 
       - id: P5.5
@@ -150,7 +153,8 @@ phases:
         notes:
           - "Bundled with P5.3 and P5.4 into single task brief (Session 46)"
           - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
-          - "Pre-implementation: /bulwark-research on meta-skill design patterns (Session 64, shared with P5.4)"
+          - "Session 64: Research shared with P5.4 — task brief covers both skills"
+          - "Session 64: Key finding — system-prompt register (agents) vs task-instruction register (skills)"
         estimated_sessions: 1
 
       - id: P5.8
@@ -430,9 +434,9 @@ summary:
       reason: "Near-zero applicability for Bulwark (Sessions 61-62). No iterative autonomous implementation use case."
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
-    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams)"
-    next: "P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66)"
-    after: "P5.3-5 + P5.13 + P5.15 implementation"
+    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64)"
+    next: "P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66)"
+    after: "P5.3-5 + P5.13 + P5.15 implementation (Session 67+)"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
   research_decisions:
