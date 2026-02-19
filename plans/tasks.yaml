@@ -22,8 +22,8 @@ version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-17
 current_phase: P5
-current_task: P5.4
-current_task_status: "P5.4/P5.5 research complete (Session 64). Task brief created. Next: P5.13 brainstorm (Session 65)."
+current_task: P5.13
+current_task_status: "P5.13 brainstorm complete (Session 65). Task brief created. Next: P5.15 brainstorm (Session 66), then implementation (Session 67+)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -186,6 +186,7 @@ phases:
         status: not_started
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.13-plan-creation.md"
+        brainstorm_complete: true
         deliverables:
           - "skills/plan-creation/SKILL.md"
         acceptance_criteria:
