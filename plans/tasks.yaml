@@ -20,10 +20,10 @@
 project: the-bulwark
 version: 5.2.0
 created: 2026-01-04
-updated: 2026-02-17
+updated: 2026-02-19
 current_phase: P5
-current_task: P5.13
-current_task_status: "P5.13 brainstorm complete (Session 65). Task brief created. Next: P5.15 brainstorm (Session 66), then implementation (Session 67+)."
+current_task: P5.15
+current_task_status: "P5.15 brainstorm complete (Session 66). All 4 pre-implementation brainstorms/research done. Next: P5.3 implementation (Session 67)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -97,7 +97,7 @@ phases:
           - "Session 63 decisions: full pipeline directly (no v0), 3 specializations, pass-through schema"
           - "Brainstorm outputs: logs/brainstorm/continuous-feedback/"
           - "Kill criteria: <3 proposals from 62 sessions, <40% acceptance, >60K tokens per run"
-        estimated_sessions: 1
+        estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.4
         name: "Create skill-creator skill"
@@ -127,7 +127,7 @@ phases:
           - "Session 64: Task brief created (plans/task-briefs/P5.4-5-skill-agent-creators.md)"
           - "Session 64 decisions: adopt+adapt Anthropic skill-creator, adaptive interview, 5 templates, content guidance"
           - "Research outputs: logs/research/meta-skill-design/"
-        estimated_sessions: 1
+        estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.5
         name: "Create agent-creator skill"
@@ -155,7 +155,7 @@ phases:
           - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
           - "Session 64: Research shared with P5.4 — task brief covers both skills"
           - "Session 64: Key finding — system-prompt register (agents) vs task-instruction register (skills)"
-        estimated_sessions: 1
+        estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.8
         name: "Consolidated test protocol"
@@ -212,12 +212,13 @@ phases:
           - "Session 62: SA2 compliance — explicit logs for artifacts, mailbox for coordination/summaries"
           - "Pre-implementation: /bulwark-brainstorm --scoped (Session 65)"
           - "Decision reference: Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
-        estimated_sessions: 2
+        estimated_sessions: 3  # Session 1: Task tool mode + scaffolding. Session 2: AT mode. Session 3: user validation+fixes.
 
       - id: P5.15
         name: "Add exploratory mode to bulwark-brainstorm skill (Agent Teams)"
         status: not_started
-        dependencies: [P5.14]  # Extends existing bulwark-brainstorm
+        dependencies: [P5.14, P5.13]  # Extends existing bulwark-brainstorm; P5.13 validates AT patterns
+        brainstorm_complete: true
         implementation_plan: "plans/task-briefs/P5.15-brainstorm-exploratory.md"
         deliverables:
           - "skills/bulwark-brainstorm/SKILL.md (updated with --exploratory mode)"
@@ -244,7 +245,10 @@ phases:
           - "Session 62: 'Use scoped when problem statement is well understood. Use exploratory to validate an idea.'"
           - "Pre-implementation: /bulwark-brainstorm --scoped (Session 66)"
           - "Decision reference: Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
-        estimated_sessions: 2
+          - "Session 66: Brainstorm complete — 5 Opus agents, Critic MODIFY verdict (accepted selectively)"
+          - "Session 66 decisions: P5.13 sufficient validation (no separate AT test), Critic active from start, enhanced Critic for --scoped, Product & Delivery Lead naming"
+          - "Brainstorm outputs: logs/brainstorm/brainstorm-exploratory/"
+        estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.14
         name: "Create bulwark-research and bulwark-brainstorm skills (production-grade)"
@@ -435,11 +439,24 @@ summary:
       reason: "Near-zero applicability for Bulwark (Sessions 61-62). No iterative autonomous implementation use case."
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
-    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64)"
-    next: "P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66)"
-    after: "P5.3-5 + P5.13 + P5.15 implementation (Session 67+)"
+    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66)"
+    next: "P5.3 implementation (Session 67)"
+    after: "P5.4/P5.5 impl → P5.13 impl (Task tool + AT) → P5.15 impl"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
+    implementation_schedule:
+      - task: P5.3
+        sessions: "67-68 (impl + validation)"
+        estimate: 2
+      - task: "P5.4 + P5.5"
+        sessions: "69-72 (2 each: impl + validation)"
+        estimate: 4
+      - task: P5.13
+        sessions: "73-75 (Task tool + AT + validation)"
+        estimate: 3
+      - task: P5.15
+        sessions: "76-77 (impl + validation)"
+        estimate: 2
   research_decisions:
     session_61: "Ralph Loops research — near-zero applicability, descoped"
     session_62: "Agent Teams research — scoped to P5.13 (dual-mode) + P5.15 (brainstorm --exploratory). Ralph Loops descoped. Cross-synthesis dropped (no overlap). Schedule compressed from 8 to 4 pre-implementation sessions."
