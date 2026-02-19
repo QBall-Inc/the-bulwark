@@ -227,7 +227,21 @@ if [ -f "$EZFILE" ]; then
   echo "  [rebrand] ez-statusline SKILL.md: bulwark-statusline → ez-statusline"
 fi
 
-# --- 5e. Test file path transforms (standalone layout differs from Bulwark) ---
+# --- 5e. continuous-feedback: bulwark-* references + just commands ---
+CF_SKILL="$DEST/skills/continuous-feedback/SKILL.md"
+if [ -f "$CF_SKILL" ]; then
+  sed -i 's|`bulwark-research`|`research`|g' "$CF_SKILL"
+  sed -i 's|`bulwark-brainstorm`|`brainstorm`|g' "$CF_SKILL"
+  sed -i 's|just typecheck && just lint && just test|your project typecheck, lint, and test commands|g' "$CF_SKILL"
+  echo "  [rebrand+generic] continuous-feedback SKILL.md: bulwark-* → stripped, just → generic"
+fi
+CF_PROPOSAL="$DEST/skills/continuous-feedback/templates/proposal-output.md"
+if [ -f "$CF_PROPOSAL" ]; then
+  sed -i 's|just typecheck && just lint && just test|your project typecheck, lint, and test commands|g' "$CF_PROPOSAL"
+  echo "  [generic] continuous-feedback proposal-output.md: just → generic"
+fi
+
+# --- 5f. Test file path transforms (standalone layout differs from Bulwark) ---
 # In Bulwark: tests live at skills/test-audit/scripts/__tests__/
 # In standalone: tests live at tests/test-audit/
 # Each pattern is unique to its target line — no prefix collisions.
