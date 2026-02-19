@@ -32,6 +32,7 @@ SKILLS=(
   mock-detection
   assertion-patterns
   component-patterns
+  continuous-feedback
   session-handoff
   subagent-prompting
   subagent-output-templating
