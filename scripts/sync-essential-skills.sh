@@ -33,6 +33,7 @@ SKILLS=(
   assertion-patterns
   component-patterns
   continuous-feedback
+  skill-creator
   session-handoff
   subagent-prompting
   subagent-output-templating
@@ -241,7 +242,29 @@ if [ -f "$CF_PROPOSAL" ]; then
   echo "  [generic] continuous-feedback proposal-output.md: just → generic"
 fi
 
-# --- 5f. Test file path transforms (standalone layout differs from Bulwark) ---
+# --- 5f. skill-creator: strip Bulwark-specific rule IDs + project references ---
+SC_FILES=(
+  "$DEST/skills/skill-creator/references/content-guidance.md"
+  "$DEST/skills/skill-creator/references/template-pipeline.md"
+  "$DEST/skills/skill-creator/references/decision-framework.md"
+)
+for file in "${SC_FILES[@]}"; do
+  if [ -f "$file" ]; then
+    # Strip parenthetical defect IDs: " (DEF-P4-005)" → ""
+    sed -i 's| (DEF-P4-005)||g' "$file"
+    # SC1-SC2 rule reference → generic
+    sed -i 's|violates SC1-SC2|violates the skill'\''s instructions|g' "$file"
+    # SA2/SA4 compliance → generic
+    sed -i 's|(SA2/SA4 compliance)|(log-based handoff between stages)|g' "$file"
+    # Bulwark project name → generic
+    sed -i 's|Bulwark skills|Claude Code skills|g' "$file"
+    # Bulwark-specific stats → generic
+    sed -i 's|only 2 of 21 Bulwark skills use it|most skills work inline|g' "$file"
+    echo "  [generic] ${file##*/}: Bulwark references → generic"
+  fi
+done
+
+# --- 5g. Test file path transforms (standalone layout differs from Bulwark) ---
 # In Bulwark: tests live at skills/test-audit/scripts/__tests__/
 # In standalone: tests live at tests/test-audit/
 # Each pattern is unique to its target line — no prefix collisions.
