@@ -34,6 +34,7 @@ SKILLS=(
   component-patterns
   continuous-feedback
   create-skill
+  create-agent
   session-handoff
   subagent-prompting
   subagent-output-templating
@@ -260,6 +261,59 @@ for file in "${SC_FILES[@]}"; do
     sed -i 's|Bulwark skills|Claude Code skills|g' "$file"
     # Bulwark-specific stats → generic
     sed -i 's|only 2 of 21 Bulwark skills use it|most skills work inline|g' "$file"
+    echo "  [generic] ${file##*/}: Bulwark references → generic"
+  fi
+done
+
+# --- 5f2. create-agent: strip Bulwark-specific rule IDs + project references ---
+# All files in create-agent that may contain Bulwark-specific references
+CA_FILES=(
+  "$DEST/skills/create-agent/SKILL.md"
+  "$DEST/skills/create-agent/references/content-guidance.md"
+  "$DEST/skills/create-agent/references/agent-conventions.md"
+  "$DEST/skills/create-agent/references/decision-framework.md"
+  "$DEST/skills/create-agent/references/template-single-agent.md"
+  "$DEST/skills/create-agent/references/template-pipeline-agent.md"
+  "$DEST/skills/create-agent/references/template-teams-agent.md"
+)
+for file in "${CA_FILES[@]}"; do
+  if [ -f "$file" ]; then
+    # Strip parenthetical defect IDs: " (DEF-P4-005)" → "" and ", DEF-P4-005)" → ")"
+    sed -i 's| (DEF-P4-005)||g' "$file"
+    sed -i 's|, DEF-P4-005||g' "$file"
+    # SA rule references in parentheses → remove parens entirely
+    sed -i 's| (SA2)||g' "$file"
+    sed -i 's| (SA4)||g' "$file"
+    sed -i 's| (SA5)||g' "$file"
+    sed -i 's| (SA6)||g' "$file"
+    sed -i 's| (SA2/SA4 compliance)||g' "$file"
+    sed -i 's| (SA2/SA4)||g' "$file"
+    # SA rule references inline (not in parens) → generic
+    sed -i 's|SA1 4-part template|4-part prompt template|g' "$file"
+    sed -i 's|SA1 compliance|prompt template compliance|g' "$file"
+    sed -i 's|, SA1|, prompt template|g' "$file"
+    sed -i 's|SA2 compliant|log-compliant|g' "$file"
+    sed -i 's|SA2 compliance|log compliance|g' "$file"
+    sed -i 's| SA2)| log-based output)|g' "$file"
+    # SA references at end of line or followed by punctuation
+    sed -i 's|with MANDATORY language (SA6)||g' "$file"
+    sed -i 's|per SA6||g' "$file"
+    sed -i 's|pipeline suggestions (SA6)|pipeline suggestions|g' "$file"
+    # GitHub issue references → generic
+    sed -i 's| (GitHub feature request #10093, closed NOT_PLANNED Jan 2026)||g' "$file"
+    sed -i 's| (GitHub #18392/#19213)||g' "$file"
+    sed -i 's| (agent-scoped hooks are broken per GitHub #18392/#19213)||g' "$file"
+    sed -i 's| per GitHub #10093||g' "$file"
+    sed -i 's| (GitHub #9817/#4700)||g' "$file"
+    # Bulwark-specific references → generic
+    sed -i 's|Bulwark quality system|quality system|g' "$file"
+    sed -i 's|Bulwark standards|project standards|g' "$file"
+    sed -i 's|following Bulwark standards|following project standards|g' "$file"
+    # bulwark- prefix in template examples → plain {agent-name}
+    sed -i 's|"bulwark-{agent-name}"|"{agent-name}"|g' "$file"
+    # Section headers with SA references
+    sed -i 's|## SA1 Compliance|## Prompt Template Compliance|g' "$file"
+    sed -i 's|### Log Output (SA2)|### Log Output|g' "$file"
     echo "  [generic] ${file##*/}: Bulwark references → generic"
   fi
 done
