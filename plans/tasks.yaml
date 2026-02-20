@@ -22,8 +22,8 @@ version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
-current_task: P5.4
-current_task_status: "P5.4 implementation complete (Session 68). SKILL.md + 7 references + 1 template created. Anthropic-validator PASS. Rsync to standalone repo done. Awaiting user test execution in PM-Essentials (TC1-TC3). Next: P5.4 validation + P5.5 start (Session 69)."
+current_task: P5.5
+current_task_status: "P5.4 COMPLETE (Sessions 68-69). Renamed to create-skill to avoid Anthropic name collision. TC1 (research template) and TC2 (adaptive classification) both PASS. Next: P5.5 create-agent implementation (Session 70)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -100,12 +100,12 @@ phases:
         estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.4
-        name: "Create skill-creator skill"
-        status: in_progress
+        name: "Create create-skill skill"
+        status: completed
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
-          - "skills/skill-creator/SKILL.md"
+          - "skills/create-skill/SKILL.md"
         acceptance_criteria:
           - "Follows Bulwark skill patterns"
           - "Meta-skill framework: decides whether new skill needs scripts, sequential sub-agents, parallel sub-agents, or Agent Teams"
@@ -130,12 +130,12 @@ phases:
         estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.5
-        name: "Create agent-creator skill"
+        name: "Create create-agent skill"
         status: not_started
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
-          - "skills/agent-creator/SKILL.md"
+          - "skills/create-agent/SKILL.md"
         acceptance_criteria:
           - "Generates agents as skills with context: fork"
           - "Meta-skill framework: decides agent architecture (single-agent, pipeline, Agent Teams) based on use case"
@@ -439,8 +439,8 @@ summary:
       reason: "Near-zero applicability for Bulwark (Sessions 61-62). No iterative autonomous implementation use case."
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
-    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68)"
-    next: "P5.4 validation + P5.5 implementation (Session 69)"
+    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69)"
+    next: "P5.5 implementation (Session 70)"
     after: "P5.13 impl (Task tool + AT) → P5.15 impl"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"

@@ -33,7 +33,7 @@ SKILLS=(
   assertion-patterns
   component-patterns
   continuous-feedback
-  skill-creator
+  create-skill
   session-handoff
   subagent-prompting
   subagent-output-templating
@@ -242,11 +242,11 @@ if [ -f "$CF_PROPOSAL" ]; then
   echo "  [generic] continuous-feedback proposal-output.md: just → generic"
 fi
 
-# --- 5f. skill-creator: strip Bulwark-specific rule IDs + project references ---
+# --- 5f. create-skill: strip Bulwark-specific rule IDs + project references ---
 SC_FILES=(
-  "$DEST/skills/skill-creator/references/content-guidance.md"
-  "$DEST/skills/skill-creator/references/template-pipeline.md"
-  "$DEST/skills/skill-creator/references/decision-framework.md"
+  "$DEST/skills/create-skill/references/content-guidance.md"
+  "$DEST/skills/create-skill/references/template-pipeline.md"
+  "$DEST/skills/create-skill/references/decision-framework.md"
 )
 for file in "${SC_FILES[@]}"; do
   if [ -f "$file" ]; then

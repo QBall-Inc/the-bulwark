@@ -186,8 +186,8 @@ TestAuditor (classify)
 | Skill | Purpose | Model | User-Invocable |
 |-------|---------|-------|----------------|
 | `continuous-feedback` | Skill enhancement from learnings | - | `false` |
-| `skill-creator` | Create new skills following Bulwark patterns | `sonnet` | `true` |
-| `agent-creator` | Create new agents as skills with `context: fork` | `sonnet` | `true` |
+| `create-skill` | Create new skills following Bulwark patterns | `sonnet` | `true` |
+| `create-agent` | Create new agents as skills with `context: fork` | `sonnet` | `true` |
 
 ---
 
@@ -306,8 +306,8 @@ TestAuditor (classify)
 | P5.1 | `/bulwark:audit` command | P0.8 |
 | P5.2 | `/bulwark:verify` command | P2.3 |
 | P5.3 | `continuous-feedback` skill | P0.2 |
-| P5.4 | `skill-creator` skill | P5.3 |
-| P5.5 | `agent-creator` skill | P5.3 |
+| P5.4 | `create-skill` skill | P5.3 |
+| P5.5 | `create-agent` skill | P5.3 |
 | P5.6 | Plugin manifest finalization | All above |
 | P5.7 | Rollout documentation | All above |
 | P5.8 | Testing infrastructure | P1.x, P4.x |

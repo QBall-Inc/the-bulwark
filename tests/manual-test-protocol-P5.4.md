@@ -1,16 +1,16 @@
-# Manual Test Protocol: P5.4 — Skill Creator
+# Manual Test Protocol: P5.4 — Create Skill
 
 ## Test Environment
 
 - **Project**: PM-Essentials (`/mnt/c/projects/PM-Essentials`)
-- **Skill location**: `.claude/skills/skill-creator/` (copied from Bulwark)
-- **Why isolated**: skill-creator generates new skills — testing in Bulwark would pollute the project with test artifacts
+- **Skill location**: `.claude/skills/create-skill/` (copied from Bulwark)
+- **Why isolated**: create-skill generates new skills — testing in Bulwark would pollute the project with test artifacts
 
 ## Prerequisites
 
 1. PM-Essentials project exists at `/mnt/c/projects/PM-Essentials`
-2. `.claude/skills/skill-creator/` populated with SKILL.md + references/ + templates/
-3. `.claude/skills/subagent-prompting/` available (skill-creator depends on it)
+2. `.claude/skills/create-skill/` populated with SKILL.md + references/ + templates/
+3. `.claude/skills/subagent-prompting/` available (create-skill depends on it)
 4. Start a fresh Claude Code session in the PM-Essentials project
 
 ## Test Cases
@@ -23,7 +23,7 @@
 
 **Invocation**:
 ```
-/skill-creator a skill that takes a product idea, does deep research on the market landscape, competitive analysis, and returns a structured assessment with market sizing, competitor profiles, and opportunity gaps
+/create-skill a skill that takes a product idea, does deep research on the market landscape, competitive analysis, and returns a structured assessment with market sizing, competitor profiles, and opportunity gaps
 ```
 
 **Expected Classification**:
@@ -70,7 +70,7 @@
 
 **Invocation**:
 ```
-/skill-creator a skill that provides guidance and commands for effectively using git worktrees — creating, switching, cleaning up worktrees, and best practices for parallel development workflows
+/create-skill a skill that provides guidance and commands for effectively using git worktrees — creating, switching, cleaning up worktrees, and best practices for parallel development workflows
 ```
 
 **Expected Classification**:
@@ -116,7 +116,7 @@
 
 **Invocation**:
 ```
-/skill-creator a skill that audits project dependencies for security vulnerabilities, license compliance, and version staleness — runs three sequential checks and produces a consolidated report
+/create-skill a skill that audits project dependencies for security vulnerabilities, license compliance, and version staleness — runs three sequential checks and produces a consolidated report
 ```
 
 **Expected Classification**:
