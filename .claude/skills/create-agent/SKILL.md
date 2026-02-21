@@ -106,7 +106,7 @@ PreFlight(args)                              // Stage 0: Orchestrator — parse 
 |> Generate(classification, template, conventions) // Stage 2: Sonnet sub-agent — produce agent file
 |> Validate(generated_output)                // Stage 3: Orchestrator — run anthropic-validator
 |> Refine(validator_findings)                // Stage 4: Sonnet sub-agent (conditional, max 2 retries)
-|> Present(final_output, decisions_summary)  // Stage 5: Orchestrator — scaffold + post-generation summary
+|> DeployAndPresent(working_dir, target_dir)  // Stage 5: Orchestrator — deploy to target + post-generation summary
 |> Diagnostics()                             // Stage 6: Orchestrator — write YAML
 ```
 
@@ -143,6 +143,9 @@ Stage 0: Pre-Flight
 │       └── Q10: Which specific tools allowed/forbidden?
 ├── Determine agent name (from input or derived from description)
 │   └── Target: .claude/agents/{agent-name}.md
+├── Set working directory: tmp/create-agent/{agent-name}/
+│   └── All generation and refinement happens here to avoid .claude/ edit approval storms
+│       Files are deployed to the target directory only after validation passes (Stage 5)
 └── Token budget check (warn if >30% consumed)
 ```
 
@@ -212,22 +215,23 @@ Stage 2: Generate
 │   │   ├── Content guidance: references/content-guidance.md
 │   │   ├── Instruction: "Read 1-2 existing agents from the codebase for structural
 │   │   │   reference (use Glob to find .claude/agents/*.md)"
-│   │   └── Target output path: .claude/agents/{agent-name}.md
+│   │   ├── Target output path: .claude/agents/{agent-name}.md (final deployment location)
+│   │   └── Working directory: tmp/create-agent/{agent-name}/
 │   └── OUTPUT:
-│       ├── Write agent file to .claude/agents/{agent-name}.md
+│       ├── Write agent file to {working-directory}/{agent-name}.md
 │       └── Return summary: file path with line count
 ├── Spawn: Task(description="Generate agent file", subagent_type="general-purpose",
 │          model="sonnet", prompt=...)
 ├── Read generator output (file path + summary)
-└── Verify file was created (Read .claude/agents/{agent-name}.md)
+└── Verify file was created (Read {working-directory}/{agent-name}.md)
 ```
 
 ### Stage 3: Validate (Orchestrator)
 
 ```
 Stage 3: Validate
-├── Invoke /anthropic-validator on the generated agent file
-│   └── (Load the anthropic-validator skill and follow its workflow against .claude/agents/{agent-name}.md)
+├── Invoke /anthropic-validator on the working directory
+│   └── (Load the anthropic-validator skill and follow its workflow against {working-directory}/{agent-name}.md)
 ├── Read validator output
 ├── Check for critical/high findings:
 │   ├── 0 critical AND 0 high → proceed to Stage 5 (skip Stage 4)
@@ -252,9 +256,9 @@ Stage 4: Refine (attempt {N} of 2)
 │   │   └── Must remain in system-prompt register
 │   ├── CONTEXT:
 │   │   ├── Validator findings (critical and high items with descriptions)
-│   │   ├── Current generated file (read from .claude/agents/{agent-name}.md)
+│   │   ├── Current generated file (read from {working-directory}/{agent-name}.md)
 │   │   └── Agent conventions: references/agent-conventions.md
-│   └── OUTPUT: Edit file at .claude/agents/{agent-name}.md to fix findings
+│   └── OUTPUT: Edit file at {working-directory}/{agent-name}.md to fix findings
 ├── Spawn: Task(description="Fix validator findings", subagent_type="general-purpose",
 │          model="sonnet", prompt=...)
 ├── Re-run Stage 3 (validate)
@@ -263,11 +267,14 @@ Stage 4: Refine (attempt {N} of 2)
 └── Token budget check
 ```
 
-### Stage 5: Present (Orchestrator)
+### Stage 5: Deploy & Present (Orchestrator)
 
 ```
-Stage 5: Present
-├── Read generated agent file for summary
+Stage 5: Deploy & Present
+├── Deploy: Move {working-directory}/{agent-name}.md to .claude/agents/{agent-name}.md
+│   ├── This is the ONLY point where the file is written to .claude/
+│   └── Clean up: Remove {working-directory}/ after successful copy
+├── Read generated agent file from .claude/agents/{agent-name}.md for summary
 ├── Present to user:
 │   ├── "Generated agent at: .claude/agents/{agent-name}.md"
 │   ├── "Lines: {count}"
@@ -319,6 +326,7 @@ Stage 6: Diagnostics
 | User requests Agent Teams | Include experimental warning: "Agent Teams requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. This is an experimental feature." |
 | Token budget exceeded | Stop at current stage, present partial output with explanation. |
 | Agent file already exists at target path | AskUserQuestion: "Agent {name} already exists at .claude/agents/{name}.md. Overwrite / Choose different name / Cancel?" |
+| Working directory already exists | Silently remove and recreate tmp/create-agent/{agent-name}/ (working dirs are ephemeral) |
 | User rejects classification | Re-classify with user's feedback. Max 2 classification rounds. |
 | Generated agent uses task-instruction register | Stage 4 refine with specific instruction to rewrite in system-prompt register. |
 
@@ -344,10 +352,12 @@ Stage 6: Diagnostics
 - [ ] Stage 1: Three decisions made (architecture, tool permissions, configuration)
 - [ ] Stage 1: Classification presented to user and confirmed
 - [ ] Stage 2: Sonnet sub-agent spawned for generation
-- [ ] Stage 2: Generated agent file verified to exist at .claude/agents/{agent-name}.md
+- [ ] Stage 2: Generated agent file verified to exist in working directory
 - [ ] Stage 2: Agent uses system-prompt register (identity, not task steps)
 - [ ] Stage 3: anthropic-validator run on generated agent
 - [ ] Stage 4: Refinement attempted if validation found critical/high issues
+- [ ] Stage 5: Agent file deployed from working directory to .claude/agents/
+- [ ] Stage 5: Working directory cleaned up
 - [ ] Stage 5: Post-generation summary presented with architectural decisions
 - [ ] Stage 5: Permissions setup steps communicated
 - [ ] Stage 5: Next steps communicated (scaffold, not production-ready)

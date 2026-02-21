@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
 current_task: P5.5
-current_task_status: "P5.5 IMPLEMENTED (Session 70). create-agent skill: SKILL.md (357 lines) + 6 references + 1 template. anthropic-validator PASS (0 critical, 0 high). Dogfood + sync script updated. Awaiting user validation (TC1-TC2 in PM-Essentials)."
+current_task_status: "P5.5 TC1 PASS (Session 71). TC3 revealed architectural issue: pipeline agents infeasible as sub-agents. P5.5a revision: rename create-agent → create-subagent (single-purpose only) + enhance create-skill to generate pipeline sub-agent files. Task brief updated. Implementation: Session 72-73."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -130,32 +130,37 @@ phases:
         estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.5
-        name: "Create create-agent skill"
+        name: "Create create-subagent skill (renamed from create-agent)"
         status: in_progress
         dependencies: [P5.3]
         implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
-          - "skills/create-agent/SKILL.md"
+          - "skills/create-subagent/SKILL.md"
         acceptance_criteria:
-          - "Generates agents as skills with context: fork"
-          - "Meta-skill framework: decides agent architecture (single-agent, pipeline, Agent Teams) based on use case"
+          - "Generates single-purpose sub-agents invoked via Task tool"
+          - "Single-agent template only (pipeline/teams routed to create-skill)"
           - "Includes 4-part template usage (SA1)"
-          - "Generates Stop hook configuration"
           - "Generates diagnostic output section"
           - "Frontmatter: agent: sonnet"
           - "Frontmatter: user-invocable: true"
-          - "Uses Task tool for generation + iterative validation (NOT Ralph Loops — Session 62 decision)"
+          - "Pipeline/teams requests redirect to create-skill with clear guidance"
+          - "Uses Task tool for generation + iterative validation"
         verification:
-          - "Create new agent using creator"
+          - "Create single-purpose sub-agent — verify system-prompt register, permissions setup"
+          - "Invoke with pipeline description — verify redirect to create-skill"
           - "Verify passes anthropic-validator"
-          - "Verify generated agent has context: fork"
           - "Verify skill appears in / menu"
         notes:
           - "Bundled with P5.3 and P5.4 into single task brief (Session 46)"
           - "Session 62: Ralph Loops descoped, iterative dev via Task tool sufficient"
           - "Session 64: Research shared with P5.4 — task brief covers both skills"
           - "Session 64: Key finding — system-prompt register (agents) vs task-instruction register (skills)"
-        estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
+          - "Session 70: Implemented as create-agent (SKILL.md + 6 references + 3 templates)"
+          - "Session 71: TC1 PASS (12/12), TC3 revealed pipeline agent infeasibility"
+          - "Session 71: P5.5a revision — rename create-agent → create-subagent, single-template only"
+          - "Session 71: create-skill to be enhanced for pipeline sub-agent file generation"
+          - "Session 71: Also added tmp/ working directory pattern + anthropic-validator known conventions"
+        estimated_sessions: 4  # Sessions 68-69 (original impl), 70 (TC1), 72-73 (P5.5a rename + create-skill enhancement + validation)
 
       - id: P5.8
         name: "Consolidated test protocol"
@@ -439,8 +444,8 @@ summary:
       reason: "Near-zero applicability for Bulwark (Sessions 61-62). No iterative autonomous implementation use case."
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
-    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69) → P5.5 implementation (Session 70)"
-    next: "P5.5 validation (Session 71)"
+    completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69) → P5.5 implementation (Session 70) → P5.5 TC1 PASS + P5.5a revision (Session 71)"
+    next: "P5.5a rename + create-skill enhancement (Sessions 72-73)"
     after: "P5.13 impl (Task tool + AT) → P5.15 impl"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
@@ -450,8 +455,8 @@ summary:
         estimate: 1
         actual: 1
       - task: "P5.4 + P5.5"
-        sessions: "68-71 (2 each: impl + validation)"
-        estimate: 4
+        sessions: "68-73 (P5.4: 68-69, P5.5: 70-71, P5.5a: 72-73)"
+        estimate: 6
       - task: P5.13
         sessions: "73-75 (Task tool + AT + validation)"
         estimate: 3

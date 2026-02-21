@@ -103,7 +103,7 @@ PreFlight(args)                              // Stage 0: Orchestrator — parse 
 |> Generate(classification, template, examples) // Stage 2: Sonnet sub-agent — produce skill files
 |> Validate(generated_output)                // Stage 3: Orchestrator — run anthropic-validator
 |> Refine(validator_findings)                // Stage 4: Sonnet sub-agent (conditional, max 2 retries)
-|> Present(final_output, decisions_summary)  // Stage 5: Orchestrator — scaffold + post-generation summary
+|> DeployAndPresent(working_dir, target_dir)  // Stage 5: Orchestrator — deploy to target + post-generation summary
 |> Diagnostics()                             // Stage 6: Orchestrator — write YAML
 ```
 
@@ -138,6 +138,9 @@ Stage 0: Pre-Flight
 │       └── Q9-Q10: Context-specific follow-ups
 ├── Determine target directory for generated skill
 │   └── Default: skills/{skill-name}/ (or user-specified path)
+├── Set working directory: tmp/create-skill/{skill-name}/
+│   └── All generation and refinement happens here to avoid .claude/ edit approval storms
+│       Files are deployed to the target directory only after validation passes (Stage 5)
 └── Token budget check (warn if >30% consumed)
 ```
 
@@ -201,25 +204,26 @@ Stage 2: Generate
 │   │   ├── Content guidance: references/content-guidance.md
 │   │   ├── Instruction: "Read 1-2 existing skills of the same type from the
 │   │   │   codebase for structural reference (use Glob to find skills/*/SKILL.md)"
-│   │   └── Target output directory
+│   │   ├── Target output directory (final deployment location)
+│   │   └── Working directory: tmp/create-skill/{skill-name}/
 │   └── OUTPUT:
-│       ├── Write SKILL.md to {target-directory}/SKILL.md
-│       ├── Write reference files to {target-directory}/references/ (if applicable)
-│       ├── Write template files to {target-directory}/templates/ (if applicable)
-│       ├── Write script files to {target-directory}/scripts/ (if applicable)
+│       ├── Write SKILL.md to {working-directory}/SKILL.md
+│       ├── Write reference files to {working-directory}/references/ (if applicable)
+│       ├── Write template files to {working-directory}/templates/ (if applicable)
+│       ├── Write script files to {working-directory}/scripts/ (if applicable)
 │       └── Return summary: list of files created with line counts
 ├── Spawn: Task(description="Generate skill files", subagent_type="general-purpose",
 │          model="sonnet", prompt=...)
 ├── Read generator output (file list + summary)
-└── Verify files were created (Glob for {target-directory}/**)
+└── Verify files were created (Glob for {working-directory}/**)
 ```
 
 ### Stage 3: Validate (Orchestrator)
 
 ```
 Stage 3: Validate
-├── Invoke /anthropic-validator on the generated skill directory
-│   └── (Load the anthropic-validator skill and follow its workflow against {target-directory}/)
+├── Invoke /anthropic-validator on the working directory
+│   └── (Load the anthropic-validator skill and follow its workflow against {working-directory}/)
 ├── Read validator output
 ├── Check for critical/high findings:
 │   ├── 0 critical AND 0 high → proceed to Stage 5 (skip Stage 4)
@@ -242,9 +246,9 @@ Stage 4: Refine (attempt {N} of 2)
 │   │   └── Description must remain single-line
 │   ├── CONTEXT:
 │   │   ├── Validator findings (critical and high items with descriptions)
-│   │   ├── Current generated files (read from target directory)
+│   │   ├── Current generated files (read from working directory)
 │   │   └── Content guidance: references/content-guidance.md
-│   └── OUTPUT: Edit files in {target-directory}/ to fix findings
+│   └── OUTPUT: Edit files in {working-directory}/ to fix findings
 ├── Spawn: Task(description="Fix validator findings", subagent_type="general-purpose",
 │          model="sonnet", prompt=...)
 ├── Re-run Stage 3 (validate)
@@ -253,11 +257,15 @@ Stage 4: Refine (attempt {N} of 2)
 └── Token budget check
 ```
 
-### Stage 5: Present (Orchestrator)
+### Stage 5: Deploy & Present (Orchestrator)
 
 ```
-Stage 5: Present
-├── Read all generated files for summary
+Stage 5: Deploy & Present
+├── Deploy: Move all files from {working-directory}/ to {target-directory}/
+│   ├── Copy directory tree preserving structure (SKILL.md, references/, templates/, scripts/)
+│   ├── This is the ONLY point where files are written to the final location
+│   └── Clean up: Remove {working-directory}/ after successful copy
+├── Read all generated files from {target-directory}/ for summary
 ├── Present to user:
 │   ├── "Generated skill at: {target-directory}/"
 │   ├── "Files created:"
@@ -307,6 +315,7 @@ Stage 6: Diagnostics
 | User requests Agent Teams | Include experimental warning: "Agent Teams requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. This is an experimental feature." |
 | Token budget exceeded | Stop at current stage, present partial output with explanation. |
 | Target directory already exists | AskUserQuestion: "Directory {path} already exists. Overwrite / Choose different name / Cancel?" |
+| Working directory already exists | Silently remove and recreate tmp/create-skill/{skill-name}/ (working dirs are ephemeral) |
 | User rejects classification | Re-classify with user's feedback. Max 2 classification rounds. |
 
 ---
@@ -334,6 +343,8 @@ Stage 6: Diagnostics
 - [ ] Stage 2: Generated files verified to exist
 - [ ] Stage 3: anthropic-validator run on generated skill
 - [ ] Stage 4: Refinement attempted if validation found critical/high issues
+- [ ] Stage 5: Files deployed from working directory to target directory
+- [ ] Stage 5: Working directory cleaned up
 - [ ] Stage 5: Post-generation summary presented with architectural decisions
 - [ ] Stage 5: Next steps communicated (scaffold, not production-ready)
 - [ ] Stage 6: Diagnostic YAML written to `logs/diagnostics/`
