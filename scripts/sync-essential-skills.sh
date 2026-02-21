@@ -34,7 +34,7 @@ SKILLS=(
   component-patterns
   continuous-feedback
   create-skill
-  create-agent
+  create-subagent
   session-handoff
   subagent-prompting
   subagent-output-templating
@@ -248,6 +248,8 @@ SC_FILES=(
   "$DEST/skills/create-skill/references/content-guidance.md"
   "$DEST/skills/create-skill/references/template-pipeline.md"
   "$DEST/skills/create-skill/references/decision-framework.md"
+  "$DEST/skills/create-skill/references/agent-template.md"
+  "$DEST/skills/create-skill/references/agent-conventions.md"
 )
 for file in "${SC_FILES[@]}"; do
   if [ -f "$file" ]; then
@@ -265,16 +267,14 @@ for file in "${SC_FILES[@]}"; do
   fi
 done
 
-# --- 5f2. create-agent: strip Bulwark-specific rule IDs + project references ---
-# All files in create-agent that may contain Bulwark-specific references
+# --- 5f2. create-subagent: strip Bulwark-specific rule IDs + project references ---
+# All files in create-subagent that may contain Bulwark-specific references
 CA_FILES=(
-  "$DEST/skills/create-agent/SKILL.md"
-  "$DEST/skills/create-agent/references/content-guidance.md"
-  "$DEST/skills/create-agent/references/agent-conventions.md"
-  "$DEST/skills/create-agent/references/decision-framework.md"
-  "$DEST/skills/create-agent/references/template-single-agent.md"
-  "$DEST/skills/create-agent/references/template-pipeline-agent.md"
-  "$DEST/skills/create-agent/references/template-teams-agent.md"
+  "$DEST/skills/create-subagent/SKILL.md"
+  "$DEST/skills/create-subagent/references/content-guidance.md"
+  "$DEST/skills/create-subagent/references/agent-conventions.md"
+  "$DEST/skills/create-subagent/references/decision-framework.md"
+  "$DEST/skills/create-subagent/references/template-single-agent.md"
 )
 for file in "${CA_FILES[@]}"; do
   if [ -f "$file" ]; then

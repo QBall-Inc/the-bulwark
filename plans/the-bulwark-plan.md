@@ -187,7 +187,7 @@ TestAuditor (classify)
 |-------|---------|-------|----------------|
 | `continuous-feedback` | Skill enhancement from learnings | - | `false` |
 | `create-skill` | Create new skills following Bulwark patterns | `sonnet` | `true` |
-| `create-agent` | Create new agents as skills with `context: fork` | `sonnet` | `true` |
+| `create-subagent` | Generate single-purpose sub-agents for use via Task tool | `sonnet` | `true` |
 
 ---
 
@@ -307,7 +307,7 @@ TestAuditor (classify)
 | P5.2 | `/bulwark:verify` command | P2.3 |
 | P5.3 | `continuous-feedback` skill | P0.2 |
 | P5.4 | `create-skill` skill | P5.3 |
-| P5.5 | `create-agent` skill | P5.3 |
+| P5.5 | `create-subagent` skill | P5.3 |
 | P5.6 | Plugin manifest finalization | All above |
 | P5.7 | Rollout documentation | All above |
 | P5.8 | Testing infrastructure | P1.x, P4.x |

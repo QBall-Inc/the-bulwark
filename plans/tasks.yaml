@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
 current_task: P5.5
-current_task_status: "P5.5 TC1 PASS (Session 71). TC3 revealed architectural issue: pipeline agents infeasible as sub-agents. P5.5a revision: rename create-agent → create-subagent (single-purpose only) + enhance create-skill to generate pipeline sub-agent files. Task brief updated. Implementation: Session 72-73."
+current_task_status: "P5.5a implementation (Session 72). Rename create-agent → create-subagent complete. Create-skill enhanced with agent-template.md + agent-conventions.md + pipeline sub-agent generation. Dogfood updated. Sync script updated. Validation: Session 73."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -136,6 +136,14 @@ phases:
         implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
         deliverables:
           - "skills/create-subagent/SKILL.md"
+          - "skills/create-subagent/references/decision-framework.md"
+          - "skills/create-subagent/references/agent-conventions.md"
+          - "skills/create-subagent/references/content-guidance.md"
+          - "skills/create-subagent/references/template-single-agent.md"
+          - "skills/create-subagent/templates/diagnostic-output.yaml"
+          - "skills/create-skill/references/agent-template.md (new — replicated for self-containment)"
+          - "skills/create-skill/references/agent-conventions.md (new — replicated for self-containment)"
+          - "skills/create-skill/references/template-pipeline.md (enhanced — sub-agent file generation)"
         acceptance_criteria:
           - "Generates single-purpose sub-agents invoked via Task tool"
           - "Single-agent template only (pipeline/teams routed to create-skill)"
