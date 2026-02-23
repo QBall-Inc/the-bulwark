@@ -107,3 +107,33 @@ This fallback works but is manual - the orchestrator must detect the failure and
 **Impact:** Agents that follow V2 (`just test` not `npx jest`) will hit a failure on first attempt. Self-correcting agents recover by trying `npx jest`, but this is an unnecessary retry and violates the principle that `just` commands should work.
 
 **Action:** Configure the Justfile `test` recipe with a working jest backend. Ensure `just test` runs jest successfully without fallback.
+
+---
+
+### FW-OBS-006: Sub-agents can invoke agents via headless mode (`claude -p --agent`)
+
+**Identified:** Session 75 (2026-02-23)
+**Source:** Anthropic-validator parallel validation — 8 sub-agents independently discovered the pattern
+**Severity:** High (positive — architectural constraint workaround)
+**Status:** Confirmed, documented
+
+**Finding:** Sub-agents cannot use the Task tool to spawn other sub-agents (known constraint). However, sub-agents CAN invoke agents by running `claude -p --agent <name>` via the Bash tool in headless mode. The invoked agent runs as a separate process with full agent capabilities.
+
+**Evidence:** During Session 75, 8 parallel sub-agents were tasked with running anthropic-validator. The skill instructs spawning `bulwark-standards-reviewer` via Task tool. Since each executor was itself a sub-agent, they independently fell back to:
+
+```bash
+claude --print -p "..." --agent claude-code-guide 2>/dev/null
+cat <<'PROMPT' | claude -p --agent bulwark-standards-reviewer 2>/dev/null
+...
+PROMPT
+```
+
+All 8 invocations succeeded. The sub-agents were not instructed to use this pattern — they discovered it autonomously.
+
+**Trade-offs:** Headless mode lacks structured return (agent ID, summary) and token tracking. These are moot in the Bulwark architecture because: (1) sub-agents write structured output to logs via SA2, (2) sub-agents are never resumed, (3) the orchestrator reads logs not raw returns.
+
+**Impact:** Partially resolves the "pipeline agents infeasible as sub-agents" constraint (Session 71). Specifically enables:
+- **P6.7**: Fix-validation Stage 5 can invoke full code-review instead of lightweight substitute
+- **P6.8**: bulwark-verify script-generation sub-agent can invoke quality checks directly
+
+**Full documentation:** `docs/headless-agent-invocation.md`
