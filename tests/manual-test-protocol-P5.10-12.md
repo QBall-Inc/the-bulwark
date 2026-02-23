@@ -93,6 +93,8 @@
 **Prompt** (slash command):
 ```
 /test-audit /mnt/c/projects/clear-framework/tests/infrastructure/sync/e2e.test.ts /mnt/c/projects/clear-framework/tests/infrastructure/sync/session-sync.test.ts /mnt/c/projects/clear-framework/tests/infrastructure/sync/error-handler.test.ts
+
+/test-audit /mnt/c/projects/clear-framework/tests/infrastructure/sync/plan-propagate.test.ts /mnt/c/projects/clear-framework/tests/infrastructure/sync/sync-state-manager.test.ts /mnt/c/projects/clear-framework/tests/infrastructure/sync/error-handler.test.ts /mnt/c/projects/clear-framework/tests/infrastructure/sync/sync-lifecycle.test.ts
 ```
 
 **Expected Behavior**:
