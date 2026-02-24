@@ -192,6 +192,111 @@ A command-line URL shortener that stores mappings in a local file, generates sho
 
 ---
 
+## TC3: Plan Creation — Agent Teams Mode
+
+**Purpose**: Validate Stage 3B (AT mode) with the plan-creation skill. Tests AT confirmation flow, 3 mitigation patterns, shutdown gate, dual-output contract, plan versioning, and `plans/{slug}/plan_v1.md` output path. Also validates WP single-session sizing from updated Eng Lead agent.
+
+**Prerequisites**:
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` set in environment
+2. Plan-creation SKILL.md (with Stage 3B) synced to `.claude/skills/plan-creation/`
+3. 4 agents in `.claude/agents/`
+4. Fresh Claude Code session in Bulwark project
+
+**Invocation** (same topic as TC1 for comparability):
+```
+/plan-creation "Add a webhook notification system that fires on plan phase transitions and milestone completions, with configurable delivery targets (Slack, email, generic HTTP POST) and retry logic for failed deliveries"
+```
+
+When prompted for mode, select **Agent Teams**. When prompted for model class, select **Opus** (or Sonnet if you want to save tokens — both are valid).
+
+**Validation Checklist**:
+
+| # | Check | Pass/Fail | Notes |
+|---|-------|-----------|-------|
+| | **Pre-Flight + AT Confirmation (Stage 1)** | | |
+| 1 | Mode detection: AT env var detected, user offered AT choice | | |
+| 2 | RED warning banner displayed (ANSI #FF9A96 color) | | |
+| 3 | AskUserQuestion presents 3 options: Opus / Sonnet / Switch to Task tool | | |
+| 4 | User selects Opus or Sonnet — skill proceeds with selected model class | | |
+| | **Product Owner (Stage 2 — same as TC1)** | | |
+| 5 | PO spawned via Task tool (NOT as AT teammate) | | |
+| 6 | PO output written to `logs/plan-creation/{slug}/01-product-owner.md` | | |
+| | **Agent Teams Scrum Team (Stage 3B)** | | |
+| 7 | Orchestrator reads 3 agent files from `.claude/agents/plan-creation-*.md` | | |
+| 8 | Orchestrator enters delegate mode (coordination only, no analysis) | | |
+| 9 | Shared task list created with initial tasks for all 3 roles | | |
+| 10 | 3 teammates spawned: Architect, Eng Lead, QA/Critic | | |
+| 11 | Teammates use correct model class (user's selection from step 4) | | |
+| 12 | In-process display mode active (no tmux) | | |
+| | **Dual-Output Contract** | | |
+| 13 | Architect writes full analysis to `logs/plan-creation/{slug}/02-technical-architect.md` | | |
+| 14 | Eng Lead writes full analysis to `logs/plan-creation/{slug}/03-eng-delivery-lead.md` | | |
+| 15 | QA/Critic writes full analysis to `logs/plan-creation/{slug}/04-qa-critic.md` | | |
+| 16 | All 3 teammates sent coordination summaries to lead via mailbox | | |
+| | **AT Mitigation Patterns** | | |
+| 17 | CC-to-lead: Lead received at least 1 summary of a peer DM exchange | | |
+| 18 | Task list coordination: At least 1 peer-dispatched task visible in shared list | | |
+| 19 | QA/Critic challenged Architect or Eng Lead via peer DM (AT quality advantage) | | |
+| | **Shutdown Gate** | | |
+| 20 | Lead waited for WORK COMPLETE from all 3 teammates before shutdown | | |
+| 21 | No premature shutdown attempts observed | | |
+| 22 | All shared tasks in terminal state before shutdown | | |
+| | **AT Completion + Synthesis (Stage 5)** | | |
+| 23 | AMBER banner displayed after AT completion (ANSI #FFF4B0 color) | | |
+| 24 | Stage 4 (separate QA/Critic) was SKIPPED (Critic already in AT) | | |
+| 25 | ALL 4 log files read before synthesis | | |
+| 26 | Synthesis written to `logs/plan-creation/{slug}/synthesis.md` | | |
+| | **Plan Versioning + Output Path** | | |
+| 27 | Skill checked for existing `plans/{slug}/plan_v*.md` files | | |
+| 28 | Plan written to `plans/{slug}/plan_v1.md` (first plan for this topic) | | |
+| 29 | Plan has Markdown preamble + YAML body | | |
+| 30 | YAML `version` field is `"v1"` | | |
+| | **WP Single-Session Sizing (Eng Lead update)** | | |
+| 31 | Every WP has `estimated_sessions: 1` | | |
+| 32 | WPs have `confidence` field (high/medium/low) | | |
+| 33 | No WP description suggests multi-session scope | | |
+| | **Diagnostics (Stage 6)** | | |
+| 34 | Diagnostic YAML written to `logs/diagnostics/plan-creation-{timestamp}.yaml` | | |
+| 35 | Diagnostic includes `agent_teams` section with model_class, work_complete status | | |
+| 36 | Diagnostic includes `plan_version: "v1"` | | |
+
+**AT Mechanics Observations** (fill during testing):
+
+| Mechanic | Worked? | Notes |
+|----------|---------|-------|
+| Teammate spawning (in-process) | | |
+| Shared task list visible | | |
+| Mailbox: Architect ↔ Eng Lead | | |
+| Mailbox: QA/Critic → Architect | | |
+| Mailbox: QA/Critic → Eng Lead | | |
+| CC-to-lead summaries received | | |
+| WORK COMPLETE from all 3 | | |
+| Shutdown gate respected | | |
+| No stall/premature shutdown | | |
+
+**Quality Comparison (TC1 vs TC3)**:
+
+| Dimension | TC1 (Task tool) | TC3 (Agent Teams) |
+|-----------|-----------------|-------------------|
+| Critic independence | | |
+| Cross-role coherence | | |
+| Plan actionability | | |
+| Novel insights (not in TC1) | | |
+| Token cost | | |
+
+**Kill Criteria** (any = FAIL):
+- AT env var not detected when set
+- RED banner not displayed before AT confirmation
+- No model class choice offered
+- Teammates spawned but no peer messaging observed
+- QA/Critic only produces output at the end (same as Task tool — defeats AT purpose)
+- Premature shutdown (lead shuts down teammate mid-work)
+- Plan not written to `plans/{slug}/plan_v1.md`
+- Any of the 4 log files missing
+- Orchestrator performs analysis instead of delegating
+
+---
+
 ## Overall Assessment
 
 ### Per Test Case

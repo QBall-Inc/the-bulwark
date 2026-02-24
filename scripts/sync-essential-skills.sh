@@ -35,6 +35,7 @@ SKILLS=(
   continuous-feedback
   create-skill
   create-subagent
+  plan-creation
   session-handoff
   subagent-prompting
   subagent-output-templating
@@ -128,6 +129,21 @@ if [ -f "$BULWARK_ROOT/agents/statusline-setup.md" ]; then
   mkdir -p "$DEST/agents"
   cp "$BULWARK_ROOT/agents/statusline-setup.md" "$DEST/agents/statusline-setup.md"
 fi
+
+# plan-creation agents (4 role-specific agents)
+PLAN_AGENTS=(
+  plan-creation-po
+  plan-creation-architect
+  plan-creation-eng-lead
+  plan-creation-qa-critic
+)
+for agent in "${PLAN_AGENTS[@]}"; do
+  if [ -f "$BULWARK_ROOT/agents/$agent.md" ]; then
+    echo "  Syncing agents/$agent.md"
+    mkdir -p "$DEST/agents"
+    cp "$BULWARK_ROOT/agents/$agent.md" "$DEST/agents/$agent.md"
+  fi
+done
 
 # ============================================================
 # 4. Sync tests and fixtures (separate from skills)
