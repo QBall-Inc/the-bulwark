@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
 current_task: P5.15
-current_task_status: "P5.13 COMPLETE (Session 80). TC1 34/34, TC2 34/34, TC3 34/36 (2 PARTIAL cosmetic). AT value empirically validated. Next: P5.15 exploratory brainstorm mode."
+current_task_status: "P5.15 implementation complete (Session 81). SKILL.md dual-mode (563 lines), 7 references (incl. new at-teammate-prompts.md + role-product-delivery-lead.md), 4 templates updated. Anthropic-validator PASS (0 critical, 0 high after remediation). Test protocol created (76 checks). Awaiting TC1/TC2 validation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -229,7 +229,7 @@ phases:
 
       - id: P5.15
         name: "Add exploratory mode to bulwark-brainstorm skill (Agent Teams)"
-        status: not_started
+        status: in_progress
         dependencies: [P5.14, P5.13]  # Extends existing bulwark-brainstorm; P5.13 validates AT patterns
         brainstorm_complete: true
         implementation_plan: "plans/task-briefs/P5.15-brainstorm-exploratory.md"
@@ -261,6 +261,8 @@ phases:
           - "Session 66: Brainstorm complete — 5 Opus agents, Critic MODIFY verdict (accepted selectively)"
           - "Session 66 decisions: P5.13 sufficient validation (no separate AT test), Critic active from start, enhanced Critic for --scoped, Product & Delivery Lead naming"
           - "Brainstorm outputs: logs/brainstorm/brainstorm-exploratory/"
+          - "Session 81: Implementation complete — SKILL.md 563 lines (dual-mode), new references (at-teammate-prompts.md, role-product-delivery-lead.md), templates updated, anthropic-validator PASS, test protocol 76 checks (TC1 scoped + TC2 exploratory + TC3 degradation + TC4 comparison)"
+          - "Session 81: Extracted AT Teammate Prompt Structure to references/at-teammate-prompts.md (50 lines saved from SKILL.md), added $ARGUMENTS placeholder, added Problem Validation to Critic (FR5)"
         estimated_sessions: 2  # Session 1: impl+validator+fixtures+test protocol. Session 2: user validation+fixes.
 
       - id: P5.14
@@ -484,7 +486,7 @@ summary:
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
     completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69) → P5.5 implementation (Session 70) → P5.5 TC1 PASS + P5.5a revision (Session 71) → P5.5a rename + validation (Sessions 72-75) → P5.13 agents + templates + Task tool mode (Sessions 76-77) → P5.13 TC1 PASS + TC2 PASS + AT mode impl (Sessions 78-79) → P5.13 TC3 PASS + AT value validated (Session 80)"
-    next: "P5.15 impl (exploratory brainstorm AT mode)"
+    next: "P5.15 validation (TC1/TC2 in PM-Essentials) → P5.8 (Test Protocol) or P6.x"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
     implementation_schedule:
