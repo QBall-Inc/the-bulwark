@@ -53,6 +53,30 @@ Create structured implementation plans through a 4-role collaborative scrum team
 
 ---
 
+## Mandatory Execution Checklist (BINDING)
+
+**Every item below is mandatory. No deviations. No substitutions. No skipping.**
+
+This skill uses a multi-stage pipeline. You are the orchestrator. Follow every item in order. Do NOT return to the user until all applicable items are checked.
+
+- [ ] **Stage 1 — Pre-Flight**: Topic parsed (from argument, --doc, or AskUserQuestion)
+- [ ] **Stage 1 — Pre-Flight**: subagent-prompting skill loaded
+- [ ] **Stage 1 — Pre-Flight**: If topic is ambiguous or under-specified, AskUserQuestion interview conducted (2-3 questions per round)
+- [ ] **Stage 1 — Pre-Flight**: If --research not provided, user warned via displayed message AND asked to confirm proceeding
+- [ ] **Stage 1 — Mode Detection**: `$CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` env var checked — you MUST check this, no exceptions
+- [ ] **Stage 1 — Mode Detection**: If env var is SET, user offered choice via AskUserQuestion (Agent Teams vs Task tool) — you MUST NOT default silently
+- [ ] **Stage 1 — Mode Detection**: If user selects Agent Teams, AT Confirmation Flow executed (RED banner + model class choice)
+- [ ] **Stage 2 — Product Owner**: PO spawned via Task tool (`plan-creation-po`, Opus) and output read
+- [ ] **Stage 3A or 3B**: Correct mode executed based on user's Stage 1 choice
+- [ ] **Stage 3A (Task tool)**: Architect + Eng Lead spawned in parallel, then QA/Critic spawned with all 3 prior outputs
+- [ ] **Stage 3B (Agent Teams)**: Agent files read, delegate mode entered, 3 teammates spawned with correct model class
+- [ ] **Stage 5 — Synthesis**: ALL role outputs read, synthesis written, plan drafted using template
+- [ ] **Stage 5 — Approval**: Plan presented to user via AskUserQuestion — you MUST NOT write the final plan without user approval
+- [ ] **Stage 5 — Plan Written**: Final plan written to `plans/{slug}/plan_v{N}.md`
+- [ ] **Stage 6 — Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
+
+---
+
 ## Usage
 
 ```
@@ -396,7 +420,7 @@ Incorporate the user's suggestion into the plan with an explicit caveat:
 ```
 Stage 6: Diagnostics
 ├── Write diagnostic YAML to $PROJECT_DIR/logs/diagnostics/plan-creation-{YYYYMMDD-HHMMSS}.yaml
-└── Verify completion checklist
+└── Verify Mandatory Execution Checklist (top of skill)
 ```
 
 ---
@@ -469,47 +493,5 @@ Write to: `$PROJECT_DIR/logs/diagnostics/plan-creation-{YYYYMMDD-HHMMSS}.yaml`
 
 ---
 
-## Completion Checklist
-
-**IMPORTANT**: Before returning to the user, verify ALL items are complete:
-
-**Shared (both modes):**
-
-- [ ] Stage 1: Pre-flight complete (topic defined, directory created, skills loaded)
-- [ ] Stage 1: AskUserQuestion used if topic was ambiguous
-- [ ] Stage 1: User warned if --research not provided
-- [ ] Stage 1: Mode detected (Task tool or Agent Teams)
-- [ ] Stage 2: Product Owner spawned (`plan-creation-po`, Opus) and output read
-- [ ] Stage 2: PO explored codebase autonomously (no hardcoded paths)
-- [ ] Stage 5: ALL 4 outputs read before writing synthesis
-- [ ] Stage 5: Synthesis written using `templates/synthesis-output.md`
-- [ ] Stage 5: Plan draft composed using `templates/plan-output.md`
-- [ ] Stage 5: Plan version determined (Glob for existing `plans/{slug}/plan_v*.md`)
-- [ ] Stage 5: Plan presented to user via AskUserQuestion approval gate
-- [ ] Stage 5: Critical Evaluation Gate applied to all user responses
-- [ ] Stage 5: Final plan written to `plans/{slug}/plan_v{N}.md`
-- [ ] Stage 6: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
-
-**Task tool mode (Stage 3A + Stage 4):**
-
-- [ ] Stage 3A: Architect + Eng Lead spawned in parallel (single message, 2 Task tool calls)
-- [ ] Stage 3A: Both outputs written to `$PROJECT_DIR/logs/plan-creation/{slug}/`
-- [ ] Stage 4: QA/Critic spawned with ALL 3 prior outputs
-- [ ] Stage 4: Critic output read, verdict noted
-
-**Agent Teams mode (Stage 3B — skip Stage 4):**
-
-- [ ] Stage 1: AT Confirmation Flow executed (RED banner + model class choice)
-- [ ] Stage 3B: Agent files read from `.claude/agents/plan-creation-*.md`
-- [ ] Stage 3B: Delegate mode entered — orchestrator coordinates only
-- [ ] Stage 3B: Shared task list created with initial tasks
-- [ ] Stage 3B: 3 teammates spawned with correct model class (user's choice)
-- [ ] Stage 3B: All teammate prompts include dual-output contract
-- [ ] Stage 3B: All teammate prompts include CC-to-lead instruction
-- [ ] Stage 3B: All teammate prompts include task list coordination instruction
-- [ ] Stage 3B: All teammate prompts include rendezvous instruction
-- [ ] Stage 3B: Shutdown gate respected (WORK COMPLETE from ALL 3 + all tasks terminal)
-- [ ] Stage 3B: All 3 log files exist and are non-empty
-- [ ] Stage 3B: AMBER completion banner displayed after AT shutdown
 
 **Do NOT return to user until all applicable checkboxes can be marked complete.**

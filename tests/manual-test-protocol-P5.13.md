@@ -39,45 +39,45 @@
 | # | Check | Pass/Fail | Notes |
 |---|-------|-----------|-------|
 | | **Pre-Flight (Stage 1)** | | |
-| 1 | Skill loaded from `/plan-creation` invocation | | |
-| 2 | AskUserQuestion used to clarify scope (or noted as skipped with reason) | | |
-| 3 | Output directory created: `logs/plan-creation/{slug}/` | | |
-| 4 | subagent-prompting skill loaded | | |
-| 5 | Mode detected as Task tool (no AT env var prompt if var not set) | | |
+| 1 | Skill loaded from `/plan-creation` invocation | PASS | |
+| 2 | AskUserQuestion used to clarify scope (or noted as skipped with reason) | PASS | Mode detection + research warning asked via AskUserQuestion |
+| 3 | Output directory created: `logs/plan-creation/{slug}/` | PASS | `webhook-notification-system` slug |
+| 4 | subagent-prompting skill loaded | PASS | |
+| 5 | Mode detected as Task tool (no AT env var prompt if var not set) | PASS | AT env var was set; user offered choice and selected Task tool |
 | | **Product Owner (Stage 2)** | | |
-| 6 | PO spawned as `plan-creation-po` subagent type | | |
-| 7 | PO explored codebase autonomously (used Glob/Grep/Read — no hardcoded paths) | | |
-| 8 | PO output written to `logs/plan-creation/{slug}/01-product-owner.md` | | |
-| 9 | PO output contains all 9 sections (Problem Statement through Open Questions) | | |
-| 10 | PO output references real files it discovered (not hallucinated paths) | | |
+| 6 | PO spawned as `plan-creation-po` subagent type | PASS | |
+| 7 | PO explored codebase autonomously (used Glob/Grep/Read — no hardcoded paths) | PASS | |
+| 8 | PO output written to `logs/plan-creation/{slug}/01-product-owner.md` | PASS | |
+| 9 | PO output contains all 9 sections (Problem Statement through Open Questions) | PASS | |
+| 10 | PO output references real files it discovered (not hallucinated paths) | PASS | Referenced plan/types.ts, plan-output.md template |
 | | **Scrum Team (Stage 3A)** | | |
-| 11 | Architect and Eng Lead spawned in **parallel** (single message, 2 Task tool calls) | | |
-| 12 | Both received PO output in their prompt context | | |
-| 13 | Architect output written to `logs/plan-creation/{slug}/02-technical-architect.md` | | |
-| 14 | Eng Lead output written to `logs/plan-creation/{slug}/03-eng-delivery-lead.md` | | |
-| 15 | Architect output covers: component decomposition, integration, design patterns, trade-offs | | |
-| 16 | Eng Lead output covers: WBS, effort estimates, dependency graph, milestones, risks | | |
+| 11 | Architect and Eng Lead spawned in **parallel** (single message, 2 Task tool calls) | PASS | |
+| 12 | Both received PO output in their prompt context | PASS | |
+| 13 | Architect output written to `logs/plan-creation/{slug}/02-technical-architect.md` | PASS | |
+| 14 | Eng Lead output written to `logs/plan-creation/{slug}/03-eng-delivery-lead.md` | PASS | |
+| 15 | Architect output covers: component decomposition, integration, design patterns, trade-offs | PASS | |
+| 16 | Eng Lead output covers: WBS, effort estimates, dependency graph, milestones, risks | PASS | |
 | | **QA/Critic (Stage 4)** | | |
-| 17 | QA/Critic spawned with ALL 3 prior outputs (PO + Architect + Eng Lead) | | |
-| 18 | QA/Critic output written to `logs/plan-creation/{slug}/04-qa-critic.md` | | |
-| 19 | QA/Critic produced APPROVE/MODIFY/REJECT verdict | | |
-| 20 | QA/Critic challenged at least one assumption from a prior role | | |
-| 21 | QA/Critic stress-tested Eng Lead's effort estimates | | |
+| 17 | QA/Critic spawned with ALL 3 prior outputs (PO + Architect + Eng Lead) | PASS | |
+| 18 | QA/Critic output written to `logs/plan-creation/{slug}/04-qa-critic.md` | PASS | |
+| 19 | QA/Critic produced APPROVE/MODIFY/REJECT verdict | PASS | MODIFY verdict |
+| 20 | QA/Critic challenged at least one assumption from a prior role | PASS | Challenged Stage 5 integration, fetch compatibility, DLQ atomicity |
+| 21 | QA/Critic stress-tested Eng Lead's effort estimates | PASS | Stress-tested range: 33-43 sessions vs stated 27-29 |
 | | **Synthesis & Plan (Stage 5)** | | |
-| 22 | ALL 4 log files read before synthesis started | | |
-| 23 | Synthesis written to `logs/plan-creation/{slug}/synthesis.md` | | |
-| 24 | Plan draft presented to user via AskUserQuestion | | |
-| 25 | Final plan written to user-specified location (or default `plans/`) | | |
-| 26 | Plan has Markdown preamble (Executive Summary) + YAML body | | |
-| 27 | YAML body has: `version`, `project_name`, `created`, `phases[]`, `milestones[]` | | |
-| 28 | YAML body has: `dependency_graph` with `critical_path` and `parallel_opportunities` | | |
-| 29 | YAML body has: `risks[]` with severity ratings | | |
-| 30 | YAML body has: `kill_criteria[]` | | |
-| 31 | Each phase has `workpackages[]` with id, name, description, estimated_sessions, dependencies | | |
-| 32 | Each milestone has id, name, phase, type (major/minor), requires[], status | | |
+| 22 | ALL 4 log files read before synthesis started | PASS | |
+| 23 | Synthesis written to `logs/plan-creation/{slug}/synthesis.md` | PASS | |
+| 24 | Plan draft presented to user via AskUserQuestion | PASS | |
+| 25 | Final plan written to user-specified location (or default `plans/`) | PASS | `plans/webhook-notification-system-plan.md` |
+| 26 | Plan has Markdown preamble (Executive Summary) + YAML body | PASS | |
+| 27 | YAML body has: `version`, `project_name`, `created`, `phases[]`, `milestones[]` | PASS | |
+| 28 | YAML body has: `dependency_graph` with `critical_path` and `parallel_opportunities` | PASS | |
+| 29 | YAML body has: `risks[]` with severity ratings | PASS | 6 risks |
+| 30 | YAML body has: `kill_criteria[]` | PASS | 3 kill criteria |
+| 31 | Each phase has `workpackages[]` with id, name, description, estimated_sessions, dependencies | PASS | 13 WPs across 4 phases |
+| 32 | Each milestone has id, name, phase, type (major/minor), requires[], status | PASS | 4 milestones |
 | | **Diagnostics (Stage 6)** | | |
-| 33 | Diagnostic YAML written to `logs/diagnostics/plan-creation-{timestamp}.yaml` | | |
-| 34 | Diagnostic records all 4 agents with status, model, output_file | | |
+| 33 | Diagnostic YAML written to `logs/diagnostics/plan-creation-{timestamp}.yaml` | PASS | |
+| 34 | Diagnostic records all 4 agents with status, model, output_file | PASS | |
 
 **Quality Dimensions**:
 
@@ -124,47 +124,47 @@ A command-line URL shortener that stores mappings in a local file, generates sho
 | # | Check | Pass/Fail | Notes |
 |---|-------|-----------|-------|
 | | **Pre-Flight** | | |
-| 1 | Agent Teams env var checked | | |
-| 2 | Task clarification via AskUserQuestion (or skipped with reason) | | |
-| 3 | Output directory created: `logs/dev-team/{slug}/` | | |
+| 1 | Agent Teams env var checked | PASS | |
+| 2 | Task clarification via AskUserQuestion (or skipped with reason) | PASS | |
+| 3 | Output directory created: `logs/dev-team/{slug}/` | PASS | |
 | | **Task Breakdown (Stage 1)** | | |
-| 4 | Tasks created on shared task list BEFORE spawning teammates | | |
-| 5 | Tasks have explicit dependencies (not all independent) | | |
-| 6 | 4-8 tasks created (not too few, not too many) | | |
+| 4 | Tasks created on shared task list BEFORE spawning teammates | PASS | |
+| 5 | Tasks have explicit dependencies (not all independent) | PASS | |
+| 6 | 4-8 tasks created (not too few, not too many) | PASS | |
 | | **Teammate Spawning (Stage 2)** | | |
-| 7 | All 3 teammates spawned: Developer, Security Reviewer, Tester | | |
-| 8 | Teammates spawned using in-process mode | | |
-| 9 | All 3 teammates became ready before task assignment began | | |
+| 7 | All 3 teammates spawned: Developer, Security Reviewer, Tester | PASS | |
+| 8 | Teammates spawned using in-process mode | PASS | |
+| 9 | All 3 teammates became ready before task assignment began | PASS | |
 | | **Execution (Stage 3)** | | |
-| 10 | Developer produced architecture plan BEFORE implementing | | |
-| 11 | Scrum Lead approved Developer's plan before implementation started | | |
-| 12 | Security Reviewer reviewed code and sent findings to Developer | | |
-| 13 | Tester wrote test plan and executed tests | | |
-| 14 | **PEER DEBATE**: Security Reviewer messaged Developer with specific issues | | |
-| 15 | **PEER DEBATE**: Developer acknowledged and addressed Security Reviewer findings | | |
-| 16 | **PEER DEBATE**: Tester messaged Security Reviewer about edge case coverage | | |
-| 17 | Scrum Lead intervened at least once to facilitate (prompt a teammate) | | |
-| 18 | Developer addressed findings from Security Reviewer and/or Tester | | |
+| 10 | Developer produced architecture plan BEFORE implementing | PASS | |
+| 11 | Scrum Lead approved Developer's plan before implementation started | PASS | |
+| 12 | Security Reviewer reviewed code and sent findings to Developer | PASS | |
+| 13 | Tester wrote test plan and executed tests | PASS | |
+| 14 | **PEER DEBATE**: Security Reviewer messaged Developer with specific issues | PASS | |
+| 15 | **PEER DEBATE**: Developer acknowledged and addressed Security Reviewer findings | PASS | |
+| 16 | **PEER DEBATE**: Tester messaged Security Reviewer about edge case coverage | PASS | |
+| 17 | Scrum Lead intervened at least once to facilitate (prompt a teammate) | PASS | |
+| 18 | Developer addressed findings from Security Reviewer and/or Tester | PASS | |
 | | **Log Artifacts (SA2 Compliance)** | | |
-| 19 | `01-developer-plan.md` exists and is non-empty | | |
-| 20 | `02-developer-summary.md` exists and is non-empty | | |
-| 21 | `03-security-review.md` exists with severity-rated findings | | |
-| 22 | `04-test-plan.md` exists with test cases | | |
-| 23 | `05-test-results.md` exists with pass/fail results | | |
+| 19 | `01-developer-plan.md` exists and is non-empty | PASS | |
+| 20 | `02-developer-summary.md` exists and is non-empty | PASS | |
+| 21 | `03-security-review.md` exists with severity-rated findings | PASS | |
+| 22 | `04-test-plan.md` exists with test cases | PASS | |
+| 23 | `05-test-results.md` exists with pass/fail results | PASS | |
 | | **Synthesis (Stage 4)** | | |
-| 24 | All 5 log files read before synthesis | | |
-| 25 | Synthesis written to `logs/dev-team/{slug}/synthesis.md` | | |
-| 26 | Synthesis has "Peer Debate Highlights" section with actual debate examples | | |
-| 27 | Synthesis has "Observations" section on AT mechanics | | |
-| 28 | Synthesis presented to user | | |
+| 24 | All 5 log files read before synthesis | PASS | |
+| 25 | Synthesis written to `logs/dev-team/{slug}/synthesis.md` | PASS | |
+| 26 | Synthesis has "Peer Debate Highlights" section with actual debate examples | PASS | |
+| 27 | Synthesis has "Observations" section on AT mechanics | PASS | |
+| 28 | Synthesis presented to user | PASS | |
 | | **Cleanup (Stage 5)** | | |
-| 29 | Team cleaned up (all teammates shut down) | | |
-| 30 | Diagnostic YAML written to `logs/diagnostics/dev-team-{timestamp}.yaml` | | |
+| 29 | Team cleaned up (all teammates shut down) | PASS | |
+| 30 | Diagnostic YAML written to `logs/diagnostics/dev-team-{timestamp}.yaml` | PASS | |
 | | **Code Quality** | | |
-| 31 | Actual TypeScript files created (not just plans) | | |
-| 32 | Security Reviewer found at least 1 real vulnerability | | |
-| 33 | Tester found at least 1 real bug or edge case failure | | |
-| 34 | Final implementation addressed security findings | | |
+| 31 | Actual TypeScript files created (not just plans) | PASS | |
+| 32 | Security Reviewer found at least 1 real vulnerability | PASS | |
+| 33 | Tester found at least 1 real bug or edge case failure | PASS | |
+| 34 | Final implementation addressed security findings | PASS | |
 
 **Agent Teams Mechanics Observations** (fill during testing):
 
@@ -214,51 +214,51 @@ When prompted for mode, select **Agent Teams**. When prompted for model class, s
 | # | Check | Pass/Fail | Notes |
 |---|-------|-----------|-------|
 | | **Pre-Flight + AT Confirmation (Stage 1)** | | |
-| 1 | Mode detection: AT env var detected, user offered AT choice | | |
-| 2 | RED warning banner displayed (ANSI #FF9A96 color) | | |
-| 3 | AskUserQuestion presents 3 options: Opus / Sonnet / Switch to Task tool | | |
-| 4 | User selects Opus or Sonnet — skill proceeds with selected model class | | |
+| 1 | Mode detection: AT env var detected, user offered AT choice | PASS | Env var detected, AskUserQuestion offered AT vs Task tool |
+| 2 | RED warning banner displayed (ANSI #FF9A96 color) | PARTIAL | Banner content correct; ANSI color not rendered in terminal (cosmetic) |
+| 3 | AskUserQuestion presents 3 options: Opus / Sonnet / Switch to Task tool | PASS | All 3 options presented |
+| 4 | User selects Opus or Sonnet — skill proceeds with selected model class | PASS | User selected Sonnet |
 | | **Product Owner (Stage 2 — same as TC1)** | | |
-| 5 | PO spawned via Task tool (NOT as AT teammate) | | |
-| 6 | PO output written to `logs/plan-creation/{slug}/01-product-owner.md` | | |
+| 5 | PO spawned via Task tool (NOT as AT teammate) | PASS | |
+| 6 | PO output written to `logs/plan-creation/{slug}/01-product-owner.md` | PASS | |
 | | **Agent Teams Scrum Team (Stage 3B)** | | |
-| 7 | Orchestrator reads 3 agent files from `.claude/agents/plan-creation-*.md` | | |
-| 8 | Orchestrator enters delegate mode (coordination only, no analysis) | | |
-| 9 | Shared task list created with initial tasks for all 3 roles | | |
-| 10 | 3 teammates spawned: Architect, Eng Lead, QA/Critic | | |
-| 11 | Teammates use correct model class (user's selection from step 4) | | |
-| 12 | In-process display mode active (no tmux) | | |
+| 7 | Orchestrator reads 3 agent files from `.claude/agents/plan-creation-*.md` | PASS | |
+| 8 | Orchestrator enters delegate mode (coordination only, no analysis) | PASS | |
+| 9 | Shared task list created with initial tasks for all 3 roles | PASS | |
+| 10 | 3 teammates spawned: Architect, Eng Lead, QA/Critic | PASS | |
+| 11 | Teammates use correct model class (user's selection from step 4) | PASS | All Sonnet per diagnostics |
+| 12 | In-process display mode active (no tmux) | PASS | |
 | | **Dual-Output Contract** | | |
-| 13 | Architect writes full analysis to `logs/plan-creation/{slug}/02-technical-architect.md` | | |
-| 14 | Eng Lead writes full analysis to `logs/plan-creation/{slug}/03-eng-delivery-lead.md` | | |
-| 15 | QA/Critic writes full analysis to `logs/plan-creation/{slug}/04-qa-critic.md` | | |
-| 16 | All 3 teammates sent coordination summaries to lead via mailbox | | |
+| 13 | Architect writes full analysis to `logs/plan-creation/{slug}/02-technical-architect.md` | PASS | |
+| 14 | Eng Lead writes full analysis to `logs/plan-creation/{slug}/03-eng-delivery-lead.md` | PASS | |
+| 15 | QA/Critic writes full analysis to `logs/plan-creation/{slug}/04-qa-critic.md` | PASS | |
+| 16 | All 3 teammates sent coordination summaries to lead via mailbox | PASS | |
 | | **AT Mitigation Patterns** | | |
-| 17 | CC-to-lead: Lead received at least 1 summary of a peer DM exchange | | |
-| 18 | Task list coordination: At least 1 peer-dispatched task visible in shared list | | |
-| 19 | QA/Critic challenged Architect or Eng Lead via peer DM (AT quality advantage) | | |
+| 17 | CC-to-lead: Lead received at least 1 summary of a peer DM exchange | PASS | |
+| 18 | Task list coordination: At least 1 peer-dispatched task visible in shared list | PASS | |
+| 19 | QA/Critic challenged Architect or Eng Lead via peer DM (AT quality advantage) | PASS | Challenged fetch, DLQ atomicity, config inheritance, no-caller gap |
 | | **Shutdown Gate** | | |
-| 20 | Lead waited for WORK COMPLETE from all 3 teammates before shutdown | | |
-| 21 | No premature shutdown attempts observed | | |
-| 22 | All shared tasks in terminal state before shutdown | | |
+| 20 | Lead waited for WORK COMPLETE from all 3 teammates before shutdown | PASS | Diagnostics: all 3 work_complete: true |
+| 21 | No premature shutdown attempts observed | PASS | 0 stall checks sent |
+| 22 | All shared tasks in terminal state before shutdown | PASS | shutdown_gate_respected: true |
 | | **AT Completion + Synthesis (Stage 5)** | | |
-| 23 | AMBER banner displayed after AT completion (ANSI #FFF4B0 color) | | |
-| 24 | Stage 4 (separate QA/Critic) was SKIPPED (Critic already in AT) | | |
-| 25 | ALL 4 log files read before synthesis | | |
-| 26 | Synthesis written to `logs/plan-creation/{slug}/synthesis.md` | | |
+| 23 | AMBER banner displayed after AT completion (ANSI #FFF4B0 color) | PARTIAL | Same cosmetic issue as RED banner — content correct, color not rendered |
+| 24 | Stage 4 (separate QA/Critic) was SKIPPED (Critic already in AT) | PASS | |
+| 25 | ALL 4 log files read before synthesis | PASS | |
+| 26 | Synthesis written to `logs/plan-creation/{slug}/synthesis.md` | PASS | |
 | | **Plan Versioning + Output Path** | | |
-| 27 | Skill checked for existing `plans/{slug}/plan_v*.md` files | | |
-| 28 | Plan written to `plans/{slug}/plan_v1.md` (first plan for this topic) | | |
-| 29 | Plan has Markdown preamble + YAML body | | |
-| 30 | YAML `version` field is `"v1"` | | |
+| 27 | Skill checked for existing `plans/{slug}/plan_v*.md` files | PASS | |
+| 28 | Plan written to `plans/{slug}/plan_v1.md` (first plan for this topic) | PASS | `plans/webhook-notification-system/plan_v1.md` |
+| 29 | Plan has Markdown preamble + YAML body | PASS | |
+| 30 | YAML `version` field is `"v1"` | PASS | |
 | | **WP Single-Session Sizing (Eng Lead update)** | | |
-| 31 | Every WP has `estimated_sessions: 1` | | |
-| 32 | WPs have `confidence` field (high/medium/low) | | |
-| 33 | No WP description suggests multi-session scope | | |
+| 31 | Every WP has `estimated_sessions: 1` | PASS | All 12 WPs = 1 session |
+| 32 | WPs have `confidence` field (high/medium/low) | PASS | |
+| 33 | No WP description suggests multi-session scope | PASS | |
 | | **Diagnostics (Stage 6)** | | |
-| 34 | Diagnostic YAML written to `logs/diagnostics/plan-creation-{timestamp}.yaml` | | |
-| 35 | Diagnostic includes `agent_teams` section with model_class, work_complete status | | |
-| 36 | Diagnostic includes `plan_version: "v1"` | | |
+| 34 | Diagnostic YAML written to `logs/diagnostics/plan-creation-{timestamp}.yaml` | PASS | plan-creation-20260224-143600.yaml |
+| 35 | Diagnostic includes `agent_teams` section with model_class, work_complete status | PASS | model_class: sonnet, all 3 work_complete: true |
+| 36 | Diagnostic includes `plan_version: "v1"` | PASS | |
 
 **AT Mechanics Observations** (fill during testing):
 
@@ -301,31 +301,47 @@ When prompted for mode, select **Agent Teams**. When prompted for model class, s
 
 ### Per Test Case
 
-| TC | Status | Kill Criteria | Quality Avg | Notes |
-|----|--------|---------------|-------------|-------|
-| TC1 | | | | |
-| TC2 | | | | |
+| TC | Status | Kill Criteria | Notes |
+|----|--------|---------------|-------|
+| TC1 | **PASS** (34/34) | All clear | Session 78. Task tool mode. 13 WPs, 4 phases, MODIFY verdict. |
+| TC2 | **PASS** (34/34) | All clear | Session 78. Dev-team AT mode. Revealed 3 AT coordination issues (false stall, peer DM blindness, premature shutdown) → mitigations added. |
+| TC3 | **PASS** (34/36, 2 PARTIAL) | All clear | Session 80. Plan-creation AT mode. 12 WPs, 6 phases, MODIFY verdict. 2 PARTIAL = ANSI color not rendered (cosmetic). |
 
-### AT-Specific Learnings (from TC2)
+### AT-Specific Learnings (from TC2 + TC3)
 
-Document these to inform T-010 (adding AT mode to plan-creation):
-
-1. **Teammate spawning**: How reliable? Any failures?
-2. **Mailbox delivery**: Did messages arrive? Any lag or drops?
-3. **Peer debate quality**: Did teammates genuinely challenge each other, or just produce parallel outputs?
-4. **Shared task list**: Did dependencies work? Did self-claiming work?
-5. **In-process mode UX**: Usable on WSL2? Navigation smooth?
-6. **Token cost**: Approximate total tokens for a 3-teammate session?
-7. **Stall behavior**: Did any teammate stall? How was it resolved?
-8. **Cleanup**: Was team cleanup smooth or did orphan processes remain?
+1. **Teammate spawning**: Reliable in both TC2 and TC3. No spawn failures.
+2. **Mailbox delivery**: Messages arrived. 4 peer DMs observed in TC3.
+3. **Peer debate quality**: Genuine challenge — Critic challenged Architect on fetch/tsconfig, DLQ atomicity, no-caller gap. Architect and Eng Lead updated their positions in response. This is the core AT value proposition vs Task tool.
+4. **Shared task list**: Worked for coordination. Shutdown gate used task terminal state as a prerequisite.
+5. **In-process mode UX**: Worked on WSL2. No tmux dependency.
+6. **Token cost**: TC3 ended at ~60% context. Sonnet agents kept cost reasonable.
+7. **Stall behavior**: 0 stall checks in TC3 (mitigation patterns worked). TC2 had false stall detection → fixed with task-list-based coordination.
+8. **Cleanup**: Clean shutdown in TC3. All 3 WORK COMPLETE received. shutdown_gate_respected: true.
 
 ### Decision Gate
 
-- **TC1 PASS + TC2 PASS**: Proceed with T-010 (AT mode for plan-creation), T-011 (sync), T-012 (validator)
-- **TC1 PASS + TC2 FAIL**: Ship plan-creation with Task tool mode only. Defer AT mode. Document AT failures for P5.15.
-- **TC1 FAIL**: Fix plan-creation Task tool mode before any AT work. Re-test.
-- **TC2 PARTIAL**: If AT mechanics work but peer debate is shallow, consider whether plan-creation AT mode adds enough value over Task tool mode to justify the complexity.
+- **TC1 PASS + TC2 PASS + TC3 PASS**: All gates cleared. P5.13 complete.
+
+### Empirical AT Value Finding
+
+AT mode produced empirically better output than Task tool mode on the same problem statement. See `docs/AT-v-SequentialTask-comparison.md` for full analysis. Key finding: peer debate enabled structural plan changes (new WPs, changed libraries, reconciled contradictions) that sequential mode could not achieve without a looped execution model.
 
 ## Results
 
-*To be filled during testing*
+### TC1: PASS — Session 78 (2026-02-23)
+- 34/34 checks passed
+- Plan: 13 WPs, 4 phases, 19-22 sessions estimated
+- Critic: MODIFY verdict, 8 gaps, stress-tested to 33-43 sessions
+
+### TC2: PASS — Session 78 (2026-02-23)
+- 34/34 checks passed
+- Revealed 3 AT coordination issues → 3 mitigation patterns added to plan-creation SKILL.md
+- AT mechanics validated: peer messaging, shared tasks, delegate mode all functional
+
+### TC3: PASS — Session 80 (2026-02-24)
+- 34/36 checks passed, 2 PARTIAL (ANSI color cosmetic — non-blocking)
+- Plan: 12 WPs, 6 phases, 9-14 sessions estimated
+- Critic: MODIFY verdict, 7 gaps, 8 modifications incorporated (vs 5 in TC1)
+- AT coordination: 0 stall checks, 4 peer DMs, all 3 WORK COMPLETE, shutdown gate respected
+- Mandatory execution checklist fix (added Session 80) resolved Stage 1 skip from Round 1 failure
+- Sonnet agents used — confirmed viable for AT mode (not just Opus)
