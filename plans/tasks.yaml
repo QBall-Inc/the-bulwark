@@ -22,8 +22,8 @@ version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
-current_task: P5.15
-current_task_status: "P5.15 implementation complete (Session 81). SKILL.md dual-mode (563 lines), 7 references (incl. new at-teammate-prompts.md + role-product-delivery-lead.md), 4 templates updated. Anthropic-validator PASS (0 critical, 0 high after remediation). Test protocol created (76 checks). Awaiting TC1/TC2 validation."
+current_task: P7.1
+current_task_status: "P5.15 COMPLETE (Sessions 81-82). P5.8 deferred to P6. Next: brainstorm plugin packaging + initialization + distribution (Session 83), then P7 implementation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -172,7 +172,7 @@ phases:
 
       - id: P5.8
         name: "Consolidated test protocol"
-        status: not_started
+        status: deferred_to_P6
         dependencies: [P5.10, P5.3]  # After implementation stabilizes
         implementation_plan: "plans/task-briefs/P5.8-consolidated-test-protocol.md"
         deliverables:
@@ -229,7 +229,7 @@ phases:
 
       - id: P5.15
         name: "Add exploratory mode to bulwark-brainstorm skill (Agent Teams)"
-        status: in_progress
+        status: completed
         dependencies: [P5.14, P5.13]  # Extends existing bulwark-brainstorm; P5.13 validates AT patterns
         brainstorm_complete: true
         implementation_plan: "plans/task-briefs/P5.15-brainstorm-exploratory.md"
@@ -486,7 +486,7 @@ summary:
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
     completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69) → P5.5 implementation (Session 70) → P5.5 TC1 PASS + P5.5a revision (Session 71) → P5.5a rename + validation (Sessions 72-75) → P5.13 agents + templates + Task tool mode (Sessions 76-77) → P5.13 TC1 PASS + TC2 PASS + AT mode impl (Sessions 78-79) → P5.13 TC3 PASS + AT value validated (Session 80)"
-    next: "P5.15 validation (TC1/TC2 in PM-Essentials) → P5.8 (Test Protocol) or P6.x"
+    next: "Brainstorm: plugin packaging + initialization + distribution (Session 83) → P7.1-2 implementation"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
     launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
     implementation_schedule:
