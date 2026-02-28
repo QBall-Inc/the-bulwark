@@ -21,9 +21,9 @@ project: the-bulwark
 version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-19
-current_phase: P5
+current_phase: P7
 current_task: P7.0
-current_task_status: "P5.15 COMPLETE (Sessions 81-82). P5.8 deferred to P6. Session 83: rsync fix + P7 scoping. Next: P7.0 research (Session 84) → AT brainstorm (Session 85) → doc brainstorm (Session 86) → P7.1-2 implementation."
+current_task_status: "P7.0 research COMPLETE (Sessions 84-85). Targeted research resolved 4 open questions. P6.11 (setup-lsp) added. Next: AT brainstorm (Session 86) → doc brainstorm (Session 87) → P6.11 create-skill (Session 88) → P7.1-2 implementation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -418,6 +418,39 @@ phases:
           - "Should be done in a separate branch for safe experimentation"
         estimated_sessions: 3  # Session 1: research + prototype. Session 2: migration. Session 3: regression testing.
 
+      - id: P6.11
+        name: "Create setup-lsp skill"
+        status: not_started
+        dependencies: [P5.4]  # Uses create-skill skill for implementation
+        implementation_plan: "plans/task-briefs/P6.11-setup-lsp.md"
+        deliverables:
+          - "skills/setup-lsp/SKILL.md"
+          - "skills/setup-lsp/references/server-registry.md"
+          - "skills/setup-lsp/references/troubleshooting.md"
+          - "skills/setup-lsp/templates/diagnostic-output.yaml"
+        acceptance_criteria:
+          - "Detects project tech stack(s) by scanning for language-specific manifest files"
+          - "Supports monorepos with multiple tech stacks"
+          - "Installs language server binaries + Claude Code LSP plugins for detected languages"
+          - "Handles restart/resume checkpointing (install → restart → verify → configure)"
+          - "Includes troubleshooting diagnostics (PATH check, plugin status, debug log inspection)"
+          - "Integrates with Bulwark init (P7.1) as optional LSP setup step"
+          - "Uses create-skill pipeline for implementation"
+          - "Passes anthropic-validator"
+        verification:
+          - "Run on TypeScript project — verify typescript-lsp installed and enabled"
+          - "Run on Python project — verify pyright-lsp installed and enabled"
+          - "Run on monorepo with both — verify both servers configured"
+          - "Verify restart checkpoint prompts user correctly"
+          - "Verify troubleshooting diagnostics catch common issues (missing binary, disabled plugin)"
+        notes:
+          - "Session 85: User identified LSP as high-value addition to plugin"
+          - "Reference guide: https://karanbansal.in/blog/claude-code-lsp/"
+          - "ENABLE_LSP_TOOL flag is undocumented (community-discovered via GitHub #15619)"
+          - "Should be offered during Bulwark init as optional enhancement"
+          - "Task brief contains synthesized guide content for create-skill input"
+        estimated_sessions: 2  # Session 1: create-skill pipeline. Session 2: validation.
+
       - id: P6.9
         name: "Add persistent memory to sub-agents"
         status: not_started
@@ -468,6 +501,8 @@ phases:
           # --- Distribution ---
           - "AC12: Explore alternatives for single-command package installer — homebrew tap for macOS, bun for Linux/WSL/Windows/VSCode terminal"
           - "AC13: Determine if plugin setup + initialization can be unified into the package installer (install = scaffold + configure in one step)"
+          # --- LSP Integration ---
+          - "AC14: Init should offer optional LSP setup as a recommended enhancement step — delegates to P6.11 setup-lsp skill for tech stack detection, server installation, and verification"
         verification:
           - "Research covers all 4 groups: plugin structure, initialization, rules/claude.md prep, distribution"
           - "AT brainstorm produces decisions for P7.1 scope (plugin + init + distribution + rules/claude.md)"
@@ -483,17 +518,20 @@ phases:
       - id: P7.1
         name: "Finalize plugin manifest, initialization, and distribution"
         status: not_started
-        dependencies: [P7.0]
+        dependencies: [P7.0, P6.11]  # P6.11 (setup-lsp) needed for init integration
         implementation_plan: "plans/task-briefs/P7.1-plugin-manifest.md"
         deliverables:
           - ".claude-plugin/plugin.json"
           - "scripts/init.sh (unified initialization — replaces init-rules.sh, init-project-rules.sh)"
-          - "hooks/hooks.json (plugin hook configuration)"
+          - "hooks/hooks.json (plugin hook configuration, timeout values corrected to seconds)"
           - "Rules.md (slimmed, centralized)"
           - "lib/templates/claudemd-slim.md (minimal CLAUDE.md template with @mention)"
         notes:
           - "Session 48: PATH CANONICALIZATION REQUIRED — audit all skill/agent/script paths during packaging"
           - "Session 83: Scope expanded to include initialization, rules/claude.md prep, and distribution per P7.0 brainstorm"
+          - "Session 85: P6.11 (setup-lsp) added as dependency — init offers LSP setup as recommended optional step"
+          - "Session 85: Timeout values must be corrected (60000→60, 30000→30, 5000→5) — confirmed seconds"
+          - "Session 85: Init pipeline: mandatory (governance files → .claude/rules/) → recommended (LSP via setup-lsp) → optional (Justfile, project assets)"
           - "Deliverables will be refined after P7.0 research + brainstorm"
         estimated_sessions: 2
 
