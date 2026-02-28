@@ -22,8 +22,8 @@ version: 5.2.0
 created: 2026-01-04
 updated: 2026-02-19
 current_phase: P5
-current_task: P7.1
-current_task_status: "P5.15 COMPLETE (Sessions 81-82). P5.8 deferred to P6. Next: brainstorm plugin packaging + initialization + distribution (Session 83), then P7 implementation."
+current_task: P7.0
+current_task_status: "P5.15 COMPLETE (Sessions 81-82). P5.8 deferred to P6. Session 83: rsync fix + P7 scoping. Next: P7.0 research (Session 84) → AT brainstorm (Session 85) → doc brainstorm (Session 86) → P7.1-2 implementation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -440,16 +440,62 @@ phases:
       - "Must capture final state of all skills, agents, hooks, and commands"
       - "Should be the very last phase before public release"
     tasks:
-      - id: P7.1
-        name: "Finalize plugin manifest"
+      - id: P7.0
+        name: "P7 pre-implementation research and brainstorm"
         status: not_started
-        dependencies: [P5.13, P5.8]
+        dependencies: [P5.15]
+        deliverables:
+          - "logs/research/p7-launch/ (research output)"
+          - "logs/brainstorm/p7-launch/ (AT brainstorm output — plugin/init/distribution)"
+          - "logs/brainstorm/p7-docs/ (targeted brainstorm output — documentation)"
+          - "plans/task-briefs/P7.1-plugin-manifest.md (updated with research-backed scope)"
+          - "plans/task-briefs/P7.2-rollout-docs.md (updated with brainstorm-backed scope)"
+        acceptance_criteria:
+          # --- Plugin Manifest & Structure ---
+          - "AC1: Research what changes are needed for marketplace manifest and/or plugin manifest format (reference plans/the-bulwark-plan.md Section 5.5+)"
+          - "AC2: Assess Section 5.6 (command script requirements) applicability — skills/commands merged in Claude Code, determine what still applies"
+          - "AC3: Extract hook configurations required for Bulwark and create hook structure per plugin requirements (hooks.json, $CLAUDE_PLUGIN_ROOT paths)"
+          # --- Initialization & Scaffolding ---
+          - "AC4: Audit existing init scripts (init-rules.sh, init-project-rules.sh, sync-hooks-for-dev.sh) — determine what was originally planned vs what needs unification"
+          - "AC5: Initialization must support existing projects — audit existing CLAUDE.md and recommend changes to user (not just greenfield)"
+          - "AC6: Initialization must offer scope choice: user-level vs project-level installation"
+          - "AC7: If user-level: remind user after initialization to run a compatibility-audit command from specific projects to audit if project-specific hooks/CLAUDE.md conflict with Bulwark"
+          # --- Rules.md & CLAUDE.md Preparation ---
+          - "AC8: Slim down current Rules.md — remove example usage and unneeded text, but preserve essential nuance about each rule"
+          - "AC9: Centralize rules by moving rules currently in CLAUDE.md into Rules.md"
+          - "AC10: Slim down CLAUDE.md to bare minimum — at start of CLAUDE.md, @mention Rules.md so it auto-loads into context (user will provide template for slimmed CLAUDE.md)"
+          - "AC11: The slimmed Rules.md and CLAUDE.md are the versions provided as reference during initialization; existing user CLAUDE.md is audited against these"
+          # --- Distribution ---
+          - "AC12: Explore alternatives for single-command package installer — homebrew tap for macOS, bun for Linux/WSL/Windows/VSCode terminal"
+          - "AC13: Determine if plugin setup + initialization can be unified into the package installer (install = scaffold + configure in one step)"
+        verification:
+          - "Research covers all 4 groups: plugin structure, initialization, rules/claude.md prep, distribution"
+          - "AT brainstorm produces decisions for P7.1 scope (plugin + init + distribution + rules/claude.md)"
+          - "Targeted doc brainstorm produces decisions for P7.2 scope (documentation structure)"
+          - "P7.1 and P7.2 task briefs updated with research-backed acceptance criteria"
+        notes:
+          - "Session 83: Scoped — 3 pre-impl sessions: research (S84) → AT brainstorm (S85) → doc brainstorm (S86)"
+          - "Session 83: User specified AT brainstorm (--exploratory) for plugin/init/distribution"
+          - "Session 83: User specified targeted brainstorm (not full pipeline) for documentation"
+          - "Research viewpoints should cover: Anthropic plugin docs, Claude Code marketplace format, homebrew tap patterns, bun/npm distribution, existing Bulwark init scripts"
+        estimated_sessions: 3  # Session 1: research. Session 2: AT brainstorm. Session 3: targeted doc brainstorm.
+
+      - id: P7.1
+        name: "Finalize plugin manifest, initialization, and distribution"
+        status: not_started
+        dependencies: [P7.0]
         implementation_plan: "plans/task-briefs/P7.1-plugin-manifest.md"
         deliverables:
           - ".claude-plugin/plugin.json"
+          - "scripts/init.sh (unified initialization — replaces init-rules.sh, init-project-rules.sh)"
+          - "hooks/hooks.json (plugin hook configuration)"
+          - "Rules.md (slimmed, centralized)"
+          - "lib/templates/claudemd-slim.md (minimal CLAUDE.md template with @mention)"
         notes:
           - "Session 48: PATH CANONICALIZATION REQUIRED — audit all skill/agent/script paths during packaging"
-        estimated_sessions: 1
+          - "Session 83: Scope expanded to include initialization, rules/claude.md prep, and distribution per P7.0 brainstorm"
+          - "Deliverables will be refined after P7.0 research + brainstorm"
+        estimated_sessions: 2
 
       - id: P7.2
         name: "Create rollout documentation"
@@ -457,9 +503,27 @@ phases:
         dependencies: [P7.1]
         implementation_plan: "plans/task-briefs/P7.2-rollout-docs.md"
         deliverables:
+          - "README.md (main repo readme — humanized tone, mermaid architecture charts, star request)"
           - "docs/rollout-guide.md"
           - "docs/quickstart.md"
-        estimated_sessions: 1
+          - "docs/skills-registry.md (catalog of all skills with links to individual readmes)"
+          - "docs/agents-registry.md (catalog of all agents with links to individual readmes)"
+          - "skills/*/README.md (individual skill readmes)"
+          - "agents/*/README.md (individual agent readmes)"
+        acceptance_criteria:
+          - "Main README.md uses humanizer skill for natural, approachable tone"
+          - "Main README.md includes mermaid charts explaining Bulwark architecture (reference docs/architecture.md)"
+          - "Main README.md includes star-the-repo request near the top and bottom"
+          - "Skills registry: catalog of all skills with description, usage, and link to individual README"
+          - "Agents registry: catalog of all agents with description, purpose, and link to individual README"
+          - "Each skill has its own README.md with usage, examples, and configuration"
+          - "Each agent has its own README.md with purpose, invocation, and output format"
+          - "Quickstart guide: install → configure → first run in under 5 minutes"
+        notes:
+          - "Session 83: Scope expanded with documentation details — registries, individual readmes, humanizer, mermaid, star request"
+          - "Session 83: Targeted brainstorm (P7.0 Session 3) will inform documentation structure decisions"
+          - "Deliverables will be refined after P7.0 doc brainstorm"
+        estimated_sessions: 3
 
   # P8: COMPLETED — archived to tasks_completed.yaml (Session 58)
   - id: P8
@@ -472,7 +536,7 @@ phases:
 
 # Summary
 summary:
-  total_tasks: 46  # +P6.10 (agent consolidation, Session 80)
+  total_tasks: 47  # +P7.0 (pre-impl research+brainstorm, Session 83)
   completed_phases: "P0, P1, P2, P3, P4, P8 (see tasks_completed.yaml)"
   skipped_tasks:
     - { id: P1.1, reason: "Redundant - Main Context Orchestration pattern" }
@@ -486,9 +550,9 @@ summary:
       decision_reference: "Session 62 (2026-02-16), logs/research/agent-teams/synthesis.md"
   execution_order:
     completed: "P8.1-2 → P5.10-12 → P5.14 → P5.3-5 research (Ralph Loops, Agent Teams) → P5.3 brainstorm (Session 63) → P5.4/P5.5 research (Session 64) → P5.13 brainstorm (Session 65) → P5.15 brainstorm (Session 66) → P5.3 implementation (Session 67) → P5.4 implementation (Session 68) → P5.4 validation + rename (Session 69) → P5.5 implementation (Session 70) → P5.5 TC1 PASS + P5.5a revision (Session 71) → P5.5a rename + validation (Sessions 72-75) → P5.13 agents + templates + Task tool mode (Sessions 76-77) → P5.13 TC1 PASS + TC2 PASS + AT mode impl (Sessions 78-79) → P5.13 TC3 PASS + AT value validated (Session 80)"
-    next: "Brainstorm: plugin packaging + initialization + distribution (Session 83) → P7.1-2 implementation"
+    next: "P7.0 research (Session 84) → P7.0 AT brainstorm (Session 85) → P7.0 doc brainstorm (Session 86) → P7.1-2 implementation"
     final_features: "P5.8 (Test Protocol) → P6.x (Optional Enhancements)"
-    launch: "P7.1-2 (Plugin Manifest, Rollout Docs)"
+    launch: "P7.0 (Research+Brainstorm) → P7.1 (Plugin+Init+Distribution) → P7.2 (Documentation)"
     implementation_schedule:
       - task: P5.3
         sessions: "67 (impl + validation in single session)"

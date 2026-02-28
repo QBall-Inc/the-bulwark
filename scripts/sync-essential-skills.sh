@@ -107,16 +107,12 @@ for mapping in "${BULWARK_SKILLS[@]}"; do
     # Rebrand: bulwark-{name} → {name} in all skill files
     if [ -f "$DEST/skills/$dest_name/SKILL.md" ]; then
       sed -i "s|bulwark-$dest_name|$dest_name|g" "$DEST/skills/$dest_name/SKILL.md"
-      # Also handle capitalized header form: "# Bulwark Research" → "# Research" etc
-      local cap_name
+      # Capitalized header form: "# Bulwark Research" → "# Research" etc
       cap_name="$(echo "${dest_name:0:1}" | tr '[:lower:]' '[:upper:]')${dest_name:1}"
       sed -i "s|# Bulwark $cap_name|# $cap_name|g" "$DEST/skills/$dest_name/SKILL.md"
-      # Cross-skill references: /bulwark-{other} → /{other}
-      sed -i 's|/bulwark-research|/research|g' "$DEST/skills/$dest_name/SKILL.md"
-      sed -i 's|/bulwark-brainstorm|/brainstorm|g' "$DEST/skills/$dest_name/SKILL.md"
-      sed -i 's|from bulwark-research|from research skill|g' "$DEST/skills/$dest_name/SKILL.md"
-      sed -i 's|`bulwark-research`|`research`|g' "$DEST/skills/$dest_name/SKILL.md"
-      sed -i 's|`bulwark-brainstorm`|`brainstorm`|g' "$DEST/skills/$dest_name/SKILL.md"
+      # Cross-skill references (all bulwark-prefixed skills, not just self)
+      sed -i 's|bulwark-research|research|g' "$DEST/skills/$dest_name/SKILL.md"
+      sed -i 's|bulwark-brainstorm|brainstorm|g' "$DEST/skills/$dest_name/SKILL.md"
       # Strip SA2 rule IDs
       sed -i 's| (SA2)||g' "$DEST/skills/$dest_name/SKILL.md"
       echo "  [rebrand] $dest_name SKILL.md: bulwark-$dest_name → $dest_name + cross-refs"
@@ -124,7 +120,9 @@ for mapping in "${BULWARK_SKILLS[@]}"; do
     # Rebrand references and templates in subdirectories
     for subfile in "$DEST/skills/$dest_name/references/"*.md "$DEST/skills/$dest_name/templates/"*.md "$DEST/skills/$dest_name/templates/"*.yaml; do
       if [ -f "$subfile" ]; then
-        sed -i "s|bulwark-$dest_name|$dest_name|g" "$subfile"
+        # All bulwark-prefixed skill names (not just self)
+        sed -i 's|bulwark-research|research|g' "$subfile"
+        sed -i 's|bulwark-brainstorm|brainstorm|g' "$subfile"
         sed -i 's| (SA2 — MANDATORY in every teammate prompt)||g' "$subfile"
         sed -i 's| (SA2 artifact)||g' "$subfile"
         sed -i 's| (SA2)||g' "$subfile"
