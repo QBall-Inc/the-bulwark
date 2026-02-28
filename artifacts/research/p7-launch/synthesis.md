@@ -73,6 +73,7 @@ Findings from a single viewpoint that add important nuance.
 | 13 | **`extraKnownMarketplaces` bug confirmed still OPEN (#16870)** — silently ignored in managed-settings.json. Works in project-level `.claude/settings.json` only. Headless/CI mode #13096 closed NOT_PLANNED. Team distribution: use project-level settings.json + manual install instructions. | Targeted Research | HIGH (verified) |
 | 14 | **`.claude/rules/` supports recursive subdirectories and path-scoped frontmatter** — files auto-load with same priority as CLAUDE.md. Supports `paths:` globs for targeting specific directories. User-level equivalent at `~/.claude/rules/`. This is the canonical mechanism for modular governance. | Targeted Research | HIGH (verified) |
 | 15 | **LSP setup should be an optional init step** — LSP integration replaces grep/glob searches (~30-60s) with semantic code intelligence (~50ms). High-value enhancement that requires tech stack detection, binary installation, plugin installation, and restart. Task brief at `plans/task-briefs/P6.11-setup-lsp.md`. Init should offer: "Would you like to set up LSP for faster code navigation? (Recommended)". Skill: P6.11 (`setup-lsp`). | Session 85, User | HIGH |
+| 16 | **Rules.md needs a Code Navigation (CN) section to enforce LSP preference** — without explicit rules, Claude defaults to training-pattern text search (Grep/Glob) even when LSP is available. Proposed hierarchy: Code navigation: LSP > Grep > Glob. File content search: Grep > Glob. Note: Claude Code's built-in Grep tool already uses ripgrep (rg) internally, so ripgrep is already the default for text search. The CN rules enforce LSP-first for semantic operations. | Session 85, User | HIGH |
 
 ## Confidence Map
 
@@ -156,9 +157,10 @@ The brainstorm should resolve these decision points (updated with targeted resea
 3. **Plugin scope**: monolithic (all components) vs modular (core + extensions)
 4. **Distribution priority**: marketplace-only for v1, or multi-channel from day 1
 5. **Init UX**: bash script vs slash command (`/bulwark:init`) vs both
-6. **Rules.md centralization scope**: which OR/SA rules move back from CLAUDE.md, what gets slimmed
+6. **Rules.md centralization scope**: which OR/SA rules move back from CLAUDE.md, what gets slimmed, AND new CN (Code Navigation) section added
 7. **Agent audit**: which of the 19 agents are production (ship with plugin) vs test-only (exclude)
 8. **NEW: First-run failure mitigation**: document restart requirement vs find workaround (#10997)
+9. **NEW: Code Navigation rules (CN section)**: enforce LSP-first preference hierarchy. Proposed: CN1 (LSP > Grep > Glob for code), CN2 (Grep > Glob for file content). Without explicit rules, Claude defaults to text search even when LSP is configured.
 
 ### Immediate Actions (Before Brainstorm)
 
