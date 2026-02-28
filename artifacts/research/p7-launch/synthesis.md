@@ -114,6 +114,11 @@ What couldn't be resolved — needs user input or further research.
 
 **Slimmed CLAUDE.md template**: Before implementation, ask user for their template of a slimmed-down CLAUDE.md. This template defines the target state for AC10 and informs both init script design and governance file delivery decisions.
 
+**Hierarchical scoping model (user preference, aligns with best practices)**: Plugin init should create `CLAUDE.md` and `Rules.md` at the appropriate scope — `~/.claude/` for user-level or `.claude/` for project-level. The key architectural principle: these files are **additive and hierarchical**. In a monorepo, a `frontend/` subfolder can have its own `.claude/CLAUDE.md` and `Rules.md` with frontend-specific rules. When Claude is launched from that folder, the subfolder's files load IN ADDITION TO the root-level files — not as replacements. This is the recommended pattern from Boris Cherney (Claude Code creator) and widely adopted as best practice. Implications for init design:
+- Init should respect scope (user-level → `~/.claude/`, project-level → `.claude/`)
+- Init should document the hierarchical loading model so users know they can add subfolder-scoped rules
+- The "compatibility audit" (AC7) should check for existing files at ALL scope levels, not just project root
+
 ### Pre-Brainstorm Targeted Research (Start of Session 85)
 
 Before the AT brainstorm begins, run targeted Task tool sub-agent research to resolve specific open questions. This updates the synthesis with verified answers so the brainstorm operates on facts, not assumptions.
