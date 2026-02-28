@@ -28,11 +28,12 @@ Findings where multiple viewpoints agree — these are high confidence.
 
 Where viewpoints disagree — present both sides, flag for brainstorm decision.
 
-### Tension 1: Rules.md Slimming vs Compliance Reliability
+### Tension 1: ~~Rules.md Slimming vs Compliance Reliability~~ RESOLVED
 
-- **View A** (First Principles, Direct Investigation): CLAUDE.md should be minimal with `@Rules.md` import. Official best practices say "for each line, ask: would removing this cause Claude to make mistakes?" Current ~200-line CLAUDE.md is above the ~150-line soft limit.
-- **View B** (Contrarian): Every time instruction weight is reduced, compliance degrades. DEF-P4-005 proved binding language is essential. TC3 Round 1 failed due to instruction positioning. Further slimming risks repeating this with external users who lack project memory context.
-- **Implication**: The brainstorm must decide WHERE to slim (project-specific OR/SA rules don't belong in user templates) vs WHAT must remain (binding language, SC1-SC3 enforcement). The delivery mechanism (@import vs copy) affects this — if Rules.md lives in the plugin and auto-updates, users always get the latest version without re-running init.
+**User decision (validated in production)**: The optimal slimming formula is: **rule statement + essential nuance where non-obvious. No justifications, no examples, no elaboration.** This aligns with Boris Cherney's guidance ("just write the rules") and was empirically validated:
+- P8.1 tested both extremes: too slim broke compliance, full justifications wasted tokens
+- User validated the slim-with-nuance approach in production at Jefferies (firm Claude subscription) — works at same quality as current Bulwark Rules.md
+- Removed from brainstorm scope — the slimming approach is decided, only the execution remains (which rules get nuance, which don't)
 
 ### Tension 2: ~~Dual-Repo Model Sustainability~~ RESOLVED
 
