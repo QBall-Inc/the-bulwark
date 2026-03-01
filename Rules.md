@@ -209,7 +209,11 @@ Follow session startup protocol defined in project instructions.
 
 ### SR4: Session Handoff
 
-Before ending: create session handoff, update task tracking, document blockers and next steps.
+When the user requests or confirms session end or session handoff, load the session-handoff skill and follow the instructions to begin session handoff. Update `plans/tasks.yaml` with current task status before completing the handoff.
+
+### SR5: Commit Changes
+
+Commit all session changes to git before ending the session. Ask user whether to push to remote.
 
 ---
 

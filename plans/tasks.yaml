@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-02-19
 current_phase: P7
 current_task: P7.0
-current_task_status: "P7.0 research COMPLETE (Sessions 84-85). Targeted research resolved 4 open questions. P6.11 (setup-lsp) added. Next: AT brainstorm (Session 86) → doc brainstorm (Session 87) → P6.11 create-skill (Session 88) → P7.1-2 implementation."
+current_task_status: "P6.11 setup-lsp skill revised (Session 87) — plugin install via user action, correct marketplace names, scope UX. User re-test in progress. P7.0 research COMPLETE (Sessions 84-85). AC17 (cleanup) added. Next: AT brainstorm (Session 88) → doc brainstorm (Session 89) → P7.1-2 implementation."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -489,7 +489,7 @@ phases:
           - "AC2: Assess Section 5.6 (command script requirements) applicability — skills/commands merged in Claude Code, determine what still applies"
           - "AC3: Extract hook configurations required for Bulwark and create hook structure per plugin requirements (hooks.json, $CLAUDE_PLUGIN_ROOT paths)"
           # --- Initialization & Scaffolding ---
-          - "AC4: Audit existing init scripts (init-rules.sh, init-project-rules.sh, sync-hooks-for-dev.sh) — determine what was originally planned vs what needs unification"
+          - "AC4: Audit existing init scripts — scripts/init-rules.sh (copies lib/templates/rules.md), scripts/init-project-rules.sh (injects binding contract from lib/templates/claudemd-injection.md + project-rules-{bulwark,template}.md into CLAUDE.md, supports --bulwark flag), scripts/sync-hooks-for-dev.sh (transforms hooks/hooks.json CLAUDE_PLUGIN_ROOT→CLAUDE_PROJECT_DIR into .claude/settings.json). These pre-date the plugin system — determine what gets unified into plugin init vs kept as dev scripts"
           - "AC5: Initialization must support existing projects — audit existing CLAUDE.md and recommend changes to user (not just greenfield)"
           - "AC6: Initialization must offer scope choice: user-level vs project-level installation"
           - "AC7: If user-level: remind user after initialization to run a compatibility-audit command from specific projects to audit if project-specific hooks/CLAUDE.md conflict with Bulwark"
@@ -502,12 +502,14 @@ phases:
           - "AC12: Explore alternatives for single-command package installer — homebrew tap for macOS, bun for Linux/WSL/Windows/VSCode terminal"
           - "AC13: Determine if plugin setup + initialization can be unified into the package installer (install = scaffold + configure in one step)"
           # --- Other Integrations ---
-          - "AC14: Init should offer optional LSP setup as a recommended enhancement step — delegates to P6.11 setup-lsp skill for tech stack detection, server installation, and verification"
-          - "AC15: Init should also install and setup Justfile with required recipes, i.e. Just recipes"
-          - "AC16: Init should provide statusline as an optional setup, uses the bulwark-statusline skill"
+          - "AC14: Init should offer optional LSP setup as a recommended enhancement step — delegates to skills/setup-lsp/ for tech stack detection, binary installation, and plugin install guidance. Design question: if user opts out of LSP, CN1-CN2 rules in Rules.md should not be injected (conditional rule inclusion)"
+          - "AC15: Init should install Just and generate Justfile with required recipes. Existing: skills/bulwark-scaffold/ already handles Justfile generation with 4 language templates (lib/templates/justfile-{node,python,rust,generic}.just) and auto-detection. Design question: does init delegate to bulwark-scaffold, absorb its logic, or run it as a sub-step?"
+          - "AC16: Init should provide statusline as an optional setup — delegates to skills/bulwark-statusline/. Existing: statusline skill + lib/templates/statusline-default.yaml + scripts/statusline/statusline.sh + agents/statusline-setup.md"
+          # --- Operational ---
+          - "AC17: Create age-based cleanup script for logs/ and tmp/ directories. Deletes files older than T-10 days. Must run ONLY on new session start (not resume or post-compact). Existing: just clean-logs recipe (Justfile line ~95) deletes all logs indiscriminately — replace with age-based rotation. Hook trigger: SessionStart hook, but needs mechanism to distinguish new session vs resume vs compact"
         verification:
-          - "Research covers all 4 groups: plugin structure, initialization, rules/claude.md prep, distribution"
-          - "AT brainstorm produces decisions for P7.1 scope (plugin + init + distribution + rules/claude.md)"
+          - "Research covers all 5 groups: plugin structure, initialization, rules/claude.md prep, distribution, operational (cleanup)"
+          - "AT brainstorm produces decisions for P7.1 scope (plugin + init + distribution + rules/claude.md + cleanup/operational)"
           - "Targeted doc brainstorm produces decisions for P7.2 scope (documentation structure)"
           - "P7.1 and P7.2 task briefs updated with research-backed acceptance criteria"
         notes:
