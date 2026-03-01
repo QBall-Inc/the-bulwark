@@ -20,10 +20,10 @@
 project: the-bulwark
 version: 5.2.0
 created: 2026-01-04
-updated: 2026-02-19
+updated: 2026-03-01
 current_phase: P7
 current_task: P7.1
-current_task_status: "P7.0 COMPLETE (Sessions 84-89). Research, AT brainstorm, and doc scope all resolved. Consolidated task brief created (plans/task-briefs/P7.1-2-launch.md). Next: P7.1 implementation (S90 correctness fixes → S91 init pipeline → S92 distribution)."
+current_task_status: "P7.1 FR1+FR3+FR4 COMPLETE (Session 90). Correctness fixes (10/10), cleanup script, plugin metadata validated against Anthropic docs. Next: S91 init pipeline (FR2+FR6) → S92 distribution (FR5)."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 

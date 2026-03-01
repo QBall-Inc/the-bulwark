@@ -162,6 +162,24 @@ After executing a skill:
 
 ---
 
+## Code Navigation Rules (CN)
+
+### CN1: Prefer LSP for Semantic Operations
+
+When LSP is available, use it for go-to-definition, find-references, type information, symbol search, and implementation tracing. Fall back to Grep only when LSP is unavailable, returns no results, or the target is a non-code file (docs, config, logs).
+
+### CN2: Search Tool Hierarchy
+
+| Operation | Preference Order |
+|-----------|-----------------|
+| Code navigation (definitions, references, types) | LSP > Grep > Glob |
+| File content search | Grep > Glob |
+| File discovery | Glob |
+
+Do not use Grep/Glob for operations LSP handles semantically (e.g., finding all callers of a function). LSP respects scope, types, and inheritance; text search does not.
+
+---
+
 ## Session Rules (SR)
 
 ### SR1: Follow Startup Protocol
@@ -191,7 +209,11 @@ Follow session startup protocol defined in project instructions.
 
 ### SR4: Session Handoff
 
-Before ending: create session handoff, update task tracking, document blockers and next steps.
+When the user requests or confirms session end or session handoff, load the session-handoff skill and follow the instructions to begin session handoff. Update `plans/tasks.yaml` with current task status before completing the handoff.
+
+### SR5: Commit Changes
+
+Commit all session changes to git before ending the session. Ask user whether to push to remote.
 
 ---
 

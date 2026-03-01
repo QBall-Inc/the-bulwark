@@ -1,8 +1,36 @@
 {
-  "name": "the-bulwark",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Development workflow enforcement plugin for Claude Code",
+  "name": "@qball-inc/the-bulwark",
+  "version": "1.0.0",
+  "description": "Full-lifecycle SDLC guardrailing framework for Claude Code — from product ideation and planning through implementation, code review, and test validation. Enterprise-grade skills and agents for AI-human peer collaboration.",
+  "license": "MIT",
+  "author": "Ashay Kubal <https://ashaykubal.com>",
+  "homepage": "https://github.com/Q-Ball-Inc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Q-Ball-Inc/the-bulwark.git"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "sdlc",
+    "quality-enforcement",
+    "code-review",
+    "testing",
+    "governance",
+    "ideation",
+    "product-ideation",
+    "product-management",
+    "market-research",
+    "competitive-research",
+    "brainstorming",
+    "planning",
+    "plan-creation",
+    "agent-design",
+    "skill-design",
+    "test-audit",
+    "statusline",
+    "agent-teams"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts"

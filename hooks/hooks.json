@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/enforce-quality.sh",
-            "timeout": 60000
+            "timeout": 60
           }
         ]
       }
@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/track-pipeline-start.sh",
-            "timeout": 30000
+            "timeout": 30
           }
         ]
       }
@@ -30,7 +30,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/track-pipeline-stop.sh",
-            "timeout": 30000
+            "timeout": 30
           }
         ]
       }
@@ -41,7 +41,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/inject-protocol.sh",
-            "timeout": 5000
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/cleanup-stale.sh",
+            "timeout": 30
           }
         ]
       }

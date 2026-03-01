@@ -48,49 +48,67 @@ in plugin distribution. Do NOT reference `.claude/` paths in plugin.json.
 
 ## plugin.json Schema
 
+Source: [Plugins reference](https://code.claude.com/docs/en/plugins-reference.md)
+
 ```json
 {
-  "name": "my-plugin",
-  "version": "1.0.0",
-  "description": "Short description of what the plugin does.",
-  "author": "Your Name or Org",
-  "homepage": "https://github.com/yourorg/my-plugin",
-  "skills": [
-    "skills/my-skill/SKILL.md"
-  ],
-  "agents": [
-    "agents/my-agent.md"
-  ],
-  "hooks": "hooks.json",
-  "init": "init.sh",
-  "minClaudeCodeVersion": "1.0.0"
+  "name": "plugin-name",
+  "version": "1.2.0",
+  "description": "Brief plugin description",
+  "author": {
+    "name": "Author Name",
+    "email": "author@example.com",
+    "url": "https://github.com/author"
+  },
+  "homepage": "https://docs.example.com/plugin",
+  "repository": "https://github.com/author/plugin",
+  "license": "MIT",
+  "keywords": ["keyword1", "keyword2"],
+  "commands": ["./custom/commands/special.md"],
+  "agents": "./custom/agents/",
+  "skills": "./custom/skills/",
+  "hooks": "./config/hooks.json",
+  "mcpServers": "./mcp-config.json",
+  "outputStyles": "./styles/",
+  "lspServers": "./.lsp.json"
 }
 ```
 
 ### Required Fields
 
+Only `name` is required. All other fields are optional.
+
 | Field | Type | Format | Notes |
 |-------|------|--------|-------|
-| `name` | string | kebab-case | Must be globally unique for marketplace |
-| `version` | string | semver X.Y.Z | Must match package.json if npm-distributed |
-| `description` | string | single line | Used in marketplace listings; keep under 120 chars |
+| `name` | string | kebab-case | Must be globally unique for marketplace. Used as skill namespace prefix. |
 
-### Recommended Fields
+### Metadata Fields (Optional)
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `author` | string | Name or org for attribution |
-| `homepage` | string | URL to repo or docs |
-| `minClaudeCodeVersion` | string | semver; prevents install on incompatible versions |
+| `version` | string | semver X.Y.Z. Must match package.json if npm-distributed. |
+| `description` | string | Shown in plugin manager |
+| `author` | object | `{ name, email, url }` — use object form, not plain string |
+| `homepage` | string | Documentation URL |
+| `repository` | string | Source code URL |
+| `license` | string | e.g. `"MIT"`, `"Apache-2.0"` |
+| `keywords` | array | Discovery tags for marketplace search |
 
-### Optional Fields
+### Component Fields (Optional)
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `skills` | array | Paths to SKILL.md files (relative to plugin root) |
-| `agents` | array | Paths to agent .md files (relative to plugin root) |
-| `hooks` | string | Path to hooks.json |
-| `init` | string | Path to init script |
+| `skills` | string\|array | Directory path or array of skill directory paths. Supplements default `skills/` auto-discovery. |
+| `agents` | string\|array | Directory path or array of agent file paths. Supplements default `agents/` auto-discovery. |
+| `hooks` | string\|array\|object | Hook config path(s) or inline config object |
+| `commands` | string\|array | Additional command files/directories |
+| `mcpServers` | string\|array\|object | MCP config path(s) or inline config |
+| `outputStyles` | string\|array | Additional output style files/directories |
+| `lspServers` | string\|array\|object | LSP server configs |
+
+### Path Convention
+
+All paths must be relative to the plugin root and start with `./`.
 
 ---
 
@@ -116,11 +134,16 @@ Version MUST be identical across:
 
 ## Skill and Agent Path Rules
 
-Paths in `skills` and `agents` arrays are relative to the plugin root.
+Paths in `skills` and `agents` fields are relative to the plugin root and must start with `./`.
 
-- Correct: `"skills/my-skill/SKILL.md"`
-- Wrong (.claude/ won't distribute): `".claude/skills/my-skill/SKILL.md"`
-- Wrong (absolute path breaks portability): `"/home/user/my-plugin/skills/my-skill/SKILL.md"`
+Both directory paths (string) and individual file arrays are valid:
+
+- Correct: `"./skills/"` (directory — auto-discovers all subdirectories)
+- Correct: `["./skills/my-skill/"]` (array of skill directories)
+- Correct: `["./agents/my-agent.md"]` (array of agent files)
+- Wrong (.claude/ won't distribute): `"./.claude/skills/my-skill/"`
+- Wrong (absolute path breaks portability): `"/home/user/my-plugin/skills/"`
+- Wrong (missing ./ prefix): `"skills/"` (should be `"./skills/"`)
 
 ---
 

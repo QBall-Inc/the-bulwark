@@ -1,12 +1,45 @@
 {
   "name": "the-bulwark",
-  "description": "Deterministic quality governance layer for AI-assisted software development. Enforces testing discipline, code review, and quality gates through hooks, sub-agents, and skills.",
-  "version": "0.1.0",
-  "commands": [],
-  "agents": "agents/",
-  "skills": "skills/",
-  "hooks": "hooks/hooks.json",
+  "version": "1.0.0",
+  "description": "Full-lifecycle SDLC guardrailing framework for Claude Code — from product ideation and planning through implementation, code review, and test validation. Enterprise-grade skills and agents for AI-human peer collaboration.",
   "author": {
-    "name": "Ashay Kubal"
-  }
+    "name": "Ashay Kubal",
+    "url": "https://ashaykubal.com"
+  },
+  "homepage": "https://github.com/Q-Ball-Inc",
+  "repository": "https://github.com/Q-Ball-Inc/the-bulwark",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "sdlc",
+    "quality-enforcement",
+    "code-review",
+    "testing",
+    "governance",
+    "hooks",
+    "skills",
+    "agents",
+    "pipeline",
+    "ideation",
+    "product-ideation",
+    "product-management",
+    "market-research",
+    "competitive-research",
+    "brainstorming",
+    "brainstorm",
+    "planning",
+    "plan-creation",
+    "agent-design",
+    "skill-design",
+    "create-skill",
+    "create-agent",
+    "test-audit",
+    "test-coverage",
+    "statusline",
+    "agent-teams"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json"
 }
