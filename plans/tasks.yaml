@@ -501,8 +501,10 @@ phases:
           # --- Distribution ---
           - "AC12: Explore alternatives for single-command package installer — homebrew tap for macOS, bun for Linux/WSL/Windows/VSCode terminal"
           - "AC13: Determine if plugin setup + initialization can be unified into the package installer (install = scaffold + configure in one step)"
-          # --- LSP Integration ---
+          # --- Other Integrations ---
           - "AC14: Init should offer optional LSP setup as a recommended enhancement step — delegates to P6.11 setup-lsp skill for tech stack detection, server installation, and verification"
+          - "AC15: Init should also install and setup Justfile with required recipes, i.e. Just recipes"
+          - "AC16: Init should provide statusline as an optional setup, uses the bulwark-statusline skill"
         verification:
           - "Research covers all 4 groups: plugin structure, initialization, rules/claude.md prep, distribution"
           - "AT brainstorm produces decisions for P7.1 scope (plugin + init + distribution + rules/claude.md)"

@@ -37,6 +37,7 @@ SKILLS=(
   create-subagent
   plan-creation
   session-handoff
+  setup-lsp
   subagent-prompting
   subagent-output-templating
 )
