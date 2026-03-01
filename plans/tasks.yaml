@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-03-01
 current_phase: P7
 current_task: P7.1
-current_task_status: "P7.1 FR1+FR3+FR4 COMPLETE (Session 90). Correctness fixes (10/10), cleanup script, plugin metadata validated against Anthropic docs. Next: S91 init pipeline (FR2+FR6) → S92 distribution (FR5)."
+current_task_status: "P7.1 FR1-FR4+FR6 COMPLETE (Sessions 90-91). Init pipeline created (init.sh + CLAUDE.md template + init-rules.sh updated), validated SC4-SC7. Gap found: no init skill. Next: S92 Rules.md slimming + init skill → S93 local plugin validation + repo transfer → S94 distribution."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
@@ -525,15 +525,17 @@ phases:
 
       - id: P7.1
         name: "Finalize plugin manifest, initialization, and distribution"
-        status: not_started
+        status: in_progress
         dependencies: [P7.0, P6.11]  # P6.11 (setup-lsp) needed for init integration
         implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
         deliverables:
           - "Correctness fixes (inventory cleanup, timeout fixes, legacy removal)"
-          - "scripts/init.sh (thin orchestrator — mandatory rules copy + printed skill delegation)"
+          - "lib/templates/claude.md (CLAUDE.md template for init)"
+          - "scripts/init.sh (thin orchestrator — scope selection, CLAUDE.md + rules install)"
           - "scripts/hooks/cleanup-stale.sh (AC17 — T-10 day age-based cleanup)"
           - "hooks/hooks.json (timeout values corrected to seconds, cleanup hook added)"
           - "plugin.json (marketplace metadata, version 1.0.0)"
+          - "skills/init/SKILL.md (init skill for /the-bulwark:init invocation)"
           - "QBall-Inc/claude-plugins marketplace repo with marketplace.json"
           - "npm publish (@qball-inc/the-bulwark)"
         acceptance_criteria:
@@ -543,20 +545,27 @@ phases:
           - "Product-ideation skill + 6 agents copied to root dirs"
           - "Test agents removed from .claude/agents/"
           - "Timeout values corrected to seconds (60/30/5)"
-          - "init.sh copies rules.md to .claude/rules/, does NOT touch CLAUDE.md"
+          - "init.sh creates CLAUDE.md from template + copies rules.md to .claude/rules/"
+          - "init.sh supports --scope=project (default) and --scope=user"
+          - "init.sh backs up existing CLAUDE.md and rules.md with .bak extension"
+          - "Init skill wraps init.sh, checks if already initialized"
           - "cleanup-stale.sh deletes files >10 days, preserves .gitkeep, never blocks"
-          - "Plugin validates: claude plugin validate ."
-          - "Plugin loads locally: claude --plugin-dir ./"
+          - "Plugin validates: claude plugin validate /path/to/the-bulwark"
+          - "Plugin loads locally: claude --plugin-dir /path/to/the-bulwark"
           - "Marketplace install works end-to-end"
           - "npm install works"
           - "First-run hook restart documented"
+          - "Rules.md slimmed: OR/SA rules moved from CLAUDE.md into Rules.md"
         notes:
           - "Session 48: PATH CANONICALIZATION REQUIRED — audit all skill/agent/script paths during packaging"
           - "Session 88: AT brainstorm resolved all design decisions. Synthesis: artifacts/brainstorm/p7-launch/synthesis.md"
           - "Session 89: Consolidated task brief covers both P7.1 and P7.2"
-          - "init-project-rules.sh descoped — CLAUDE.md injection redundant with .claude/rules/ auto-loading"
+          - "Session 90: FR1 correctness (10/10), FR3 cleanup, FR4 plugin.json — all complete"
+          - "Session 91: FR2 init pipeline + FR6 first-run docs complete. CLAUDE.md is standalone template (not injection). Brainstorm had wrong framing — corrected."
+          - "Session 91: Init skill gap identified — /the-bulwark:init needed for plugin users"
+          - "Session 91: Rules.md slimming must precede distribution (OR/SA rules not yet in templates/rules.md)"
           - "Humanizer NOT shipped in plugin (third-party dev dependency only)"
-        estimated_sessions: 3  # S90 correctness, S91 init+validation, S92 distribution
+        estimated_sessions: 5  # S90 correctness, S91 init scripts, S92 rules slimming + init skill, S93 local validation + transfer, S94 distribution
 
       - id: P7.2
         name: "Create rollout documentation"
