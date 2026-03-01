@@ -52,5 +52,5 @@ All work in this project is governed by @.claude/rules/rules.md. Compliance is m
 
 Throughout the session, you will operate in one of two modes:
 
-- **Implementer Mode:** Primary model directly implements all deliverables (OR1)
-- **Orchestrator Mode:** Primary model orchestrates sub-agents or agent teams for review/edit/focused implementations (OR2-OR3, SA1-SA6)
+- **Implementer Mode:** Primary model directly implements all deliverables
+- **Orchestrator Mode:** Primary model orchestrates sub-agents or agent teams for review/edit/focused implementations (OR1-OR3, SA1-SA6)

@@ -23,7 +23,7 @@ created: 2026-01-04
 updated: 2026-03-01
 current_phase: P7
 current_task: P7.1
-current_task_status: "P7.1 FR1-FR4+FR6 COMPLETE (Sessions 90-91). Init pipeline created (init.sh + CLAUDE.md template + init-rules.sh updated), validated SC4-SC7. Gap found: no init skill. Next: S92 Rules.md slimming + init skill → S93 local plugin validation + repo transfer → S94 distribution."
+current_task_status: "P7.1 FR1-FR4+FR6 COMPLETE (S90-91). Rules.md slimmed 303→196 lines, OR/SA migrated from CLAUDE.md, templates synced (S92). Next: S93 init skill creation → S94 local plugin validation + repo transfer → S95 distribution."
 
 # For completed phases P0-P4, P8, and completed P5 tasks, see: plans/tasks_completed.yaml
 
