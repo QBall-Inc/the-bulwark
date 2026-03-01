@@ -534,7 +534,7 @@ phases:
           - "scripts/hooks/cleanup-stale.sh (AC17 — T-10 day age-based cleanup)"
           - "hooks/hooks.json (timeout values corrected to seconds, cleanup hook added)"
           - "plugin.json (marketplace metadata, version 1.0.0)"
-          - "Q-Ball-Inc/claude-plugins marketplace repo with marketplace.json"
+          - "QBall-Inc/claude-plugins marketplace repo with marketplace.json"
           - "npm publish (@qball-inc/the-bulwark)"
         acceptance_criteria:
           - "lib/templates/rules.md synced with CN1/CN2 (unconditional inclusion)"

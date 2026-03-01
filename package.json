@@ -4,10 +4,10 @@
   "description": "Full-lifecycle SDLC guardrailing framework for Claude Code — from product ideation and planning through implementation, code review, and test validation. Enterprise-grade skills and agents for AI-human peer collaboration.",
   "license": "MIT",
   "author": "Ashay Kubal <https://ashaykubal.com>",
-  "homepage": "https://github.com/Q-Ball-Inc",
+  "homepage": "https://github.com/QBall-Inc",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Q-Ball-Inc/the-bulwark.git"
+    "url": "https://github.com/QBall-Inc/the-bulwark.git"
   },
   "keywords": [
     "claude-code",
