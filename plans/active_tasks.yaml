@@ -9,7 +9,7 @@ created: 2026-01-04
 updated: 2026-03-01
 current_phase: P7
 current_task: P7.1
-current_task_status: "FR1-FR6 COMPLETE (S90-91). Rules.md slimmed (S92). Next: init skill + local plugin validation (S93) → distribution (S94)"
+current_task_status: "FR1-FR6 COMPLETE. Init skill + plugin validation DONE (S93). Remaining: scaffold fixes (T-008/9/10) + distribution (FR5) (S94)"
 
 phases:
   # ─── P5: Only deferred task remains ───────────────────────────────────────────
@@ -251,7 +251,8 @@ phases:
           - "Session 90: FR1 correctness (10/10), FR3 cleanup, FR4 plugin.json — all complete"
           - "Session 91: FR2 init pipeline + FR6 first-run docs complete"
           - "Session 92: Rules.md slimmed 303→196 lines, OR/SA migrated, templates synced"
-          - "Remaining: init skill, local plugin validation, distribution (FR5)"
+          - "Session 93: Init skill created (348 lines, guided onboarding), plugin validated E2E, 3 scaffold bugs logged (T-008/9/10)"
+          - "Remaining: scaffold fixes (T-008/9/10), distribution (FR5)"
           - "Humanizer NOT shipped in plugin (third-party dev dependency only)"
         estimated_sessions: 5
 
