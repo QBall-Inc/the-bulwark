@@ -1,0 +1,70 @@
+# Dev-only directories
+.claude/
+artifacts/
+backup/
+commands/
+docs/
+logs/
+node_modules/
+plans/
+sessions/
+templates/
+tests/
+tmp/
+
+# Stale git artifacts (should not be in root)
+HEAD
+objects
+objects/
+refs
+refs/
+config
+
+# Editor / OS (both file and dir forms)
+.idea
+.idea/
+.vscode
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Dev config
+.bash_profile
+.bashrc
+.profile
+.zprofile
+.zshrc
+.gitconfig
+.gitmodules
+.ripgreprc
+.mcp.json
+.envrc
+.eslintrc.json
+tsconfig.json
+package-lock.json
+
+# Backup files
+*.bak
+*.tmp
+*.swp
+*.swo
+
+# Build artifacts
+report.html
+
+# Dev-only scripts (not needed by plugin consumers)
+scripts/components/
+scripts/handlers/
+scripts/sync-*.sh
+scripts/hooks/test-*.sh
+scripts/init-project-rules.sh
+scripts/claude-project
+
+# Test files within skills
+**/__tests__/
+
+# Misc
+starter-prompt.md
+CLAUDE.md
+Rules.md
+Justfile

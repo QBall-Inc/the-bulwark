@@ -49,7 +49,35 @@ If LANG_OVERRIDE is set, use that. Otherwise, search from current directory for 
 
 Store result in DETECTED_LANG variable.
 
-### Step 3: Check for Existing Justfile
+### Step 3: Check for `just` and Existing Justfile
+
+**Pre-flight: Verify `just` is installed.**
+
+```
+Run: command -v just
+
+IF just is NOT found:
+    Print:
+        "`just` command runner is not installed. It is required to use the generated Justfile."
+        ""
+        "Install just using one of these methods:"
+        "  curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin"
+        "  brew install just          # macOS/Linux (Homebrew)"
+        "  cargo install just         # Rust/Cargo"
+        "  npm install -g rust-just   # npm"
+        "  apt install just           # Debian/Ubuntu"
+        "  pacman -S just             # Arch"
+        ""
+        "See https://github.com/casey/just for all installation options."
+
+    Ask user: "Install just now using the install script, or skip Justfile generation?"
+    - If install: Run `curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin`
+      - If install succeeds: Continue
+      - If install fails: Print error and set SKIP_JUSTFILE=true
+    - If skip: Set SKIP_JUSTFILE=true
+```
+
+**Check for existing Justfile:**
 
 ```
 IF Justfile exists AND NOT FORCE_OVERWRITE:
@@ -131,8 +159,37 @@ logs/debug-reports/*.yaml
 
 UNLESS SKIP_HOOKS is true:
 
+**Pre-flight: Check for existing Bulwark hooks to prevent duplication.**
+
+Plugin hooks (`hooks/hooks.json`) and settings hooks (`.claude/settings.json`) both fire at runtime. If hooks already exist in any location, adding them again causes double execution.
+
+**Check these locations for existing Bulwark hooks** (search for `enforce-quality` or `inject-protocol`):
+
+| Location | Scope | Notes |
+|----------|-------|-------|
+| `./hooks/hooks.json` | Project plugin | Bulwark installed as project-level plugin |
+| `~/.claude/plugins/*/hooks/hooks.json` | User plugin | Bulwark installed at user level via `/install` |
+| `.claude/settings.json` | Project settings | Previously scaffolded |
+| `.claude/settings.local.json` | Project local | User-specific project overrides |
+| `~/.claude/settings.json` | User settings | Global user hooks |
+| `~/.claude/settings.local.json` | User local | Global user overrides |
+
+```
+HOOKS_FOUND_IN = []
+
+FOR each location above:
+    IF file exists AND contains "enforce-quality" OR "inject-protocol":
+        Append location to HOOKS_FOUND_IN
+
+IF HOOKS_FOUND_IN is not empty:
+    Print: "Bulwark hooks already present in: {HOOKS_FOUND_IN}. Skipping hook generation to prevent duplication."
+    Set SKIP_HOOKS=true
+```
+
+**If no existing hooks found**, proceed with hook generation:
+
 Check if `.claude/settings.json` exists:
-- If exists: Merge hooks into existing configuration
+- If exists: Merge hooks into existing configuration (preserve other settings)
 - If not exists: Create new file
 
 **Hook configuration to add:**
@@ -145,7 +202,7 @@ Check if `.claude/settings.json` exists:
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/scripts/hooks/inject-protocol.sh",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }
@@ -157,7 +214,7 @@ Check if `.claude/settings.json` exists:
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/scripts/hooks/enforce-quality.sh",
-            "timeout": 60000
+            "timeout": 60
           }
         ]
       }
@@ -168,7 +225,7 @@ Check if `.claude/settings.json` exists:
 
 **Note:** SessionStart has no matcher, so it fires for all session events (start, resume, clear, compact).
 
-**Also copy required files:**
+**Also copy required files** (only if hooks were generated above):
 1. Copy `scripts/hooks/inject-protocol.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
 2. Copy `scripts/hooks/enforce-quality.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
 3. Copy `scripts/hooks/suggest-pipeline.sh` to `${CLAUDE_PROJECT_DIR}/scripts/hooks/`
