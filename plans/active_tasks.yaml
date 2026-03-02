@@ -9,7 +9,7 @@ created: 2026-01-04
 updated: 2026-03-02
 current_phase: P7
 current_task: P7.2
-current_task_status: "P7.1 COMPLETE (S94). Scaffold fixes done, npm published, marketplace live. Remaining: P7.2 README + docs"
+current_task_status: "P7.2 in progress (S95). README.md complete (369 lines, all sections, humanizer pass). Remaining: docs/skills/*.md (28) + docs/agents/*.md (15)"
 
 phases:
   # ─── P5: Only deferred task remains ───────────────────────────────────────────
@@ -259,7 +259,7 @@ phases:
 
       - id: P7.2
         name: "Create rollout documentation"
-        status: pending
+        status: in_progress
         dependencies: [P7.1]
         implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
         deliverables:
@@ -284,6 +284,8 @@ phases:
           - "Session 89: Agent README template: description, purpose, invoked by, model, output"
           - "Session 89: Docs in docs/skills/ and docs/agents/ — not in plugin skill/agent directories"
           - "Session 89: statusline-setup.md ships but gets no individual README (internal utility)"
+          - "Session 95: README.md complete (369 lines, all 16 sections, 2 humanizer passes). Skill/agent registry tables with cross-links. docs/assets/bulwark-hero.png placed."
+          - "Session 95: User wants meaty skill READMEs for complex skills — modes of operation, argument examples, batch handling examples. Agent READMEs are small/limited."
         estimated_sessions: 3
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
