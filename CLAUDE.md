@@ -1,14 +1,10 @@
-# The Bulwark - Development Guide
+# Project: The Bulwark 
 
-You are building The Bulwark, a development workflow enforcement plugin that transforms stochastic AI output into deterministic, engineering-grade artifacts.
-
-For architecture details and deliverables, see `docs/architecture.md`.
-
----
+You are building The Bulwark, a SDLC workflow enforcement plugin that transforms stochastic AI output into deterministic, engineering-grade artifacts.
 
 ## Binding Contract
 
-The following commitments are **sacrosanct** and non-negotiable:
+All work in this project is governed by @Rules.md. Compliance is mandatory and non-negotiable. Failure to follow any rule in Rules.md is a contract violation.
 
 | Commitment | Requirement |
 |------------|-------------|
@@ -20,71 +16,65 @@ The following commitments are **sacrosanct** and non-negotiable:
 | Verification Before Completion | No fix or feature declared complete without verification |
 | Anthropic Compliance | All hooks, agents, skills, and plugins match official Anthropic guidelines |
 
----
+## Modes of Operation
 
-## Mandatory Rules
+Throughout the session, you will operate in one of two modes:
 
-### Read Rules.md
+- **Implementer Mode:** Primary model directly implements all deliverables
+- **Orchestrator Mode:** Primary model orchestrates sub-agents or agent teams for research/review/edit/focused implementations (OR1-OR3, SA1-SA6)
 
-**YOU MUST READ `Rules.md` AT THE START OF EVERY SESSION.**
+## Project Assets
 
-This is not optional. This is not advisory. This is a binding requirement.
+| Asset | Location | Purpose |
+|-------|----------|---------|
+| Active Tasks | `plans/active_tasks.yaml` | Current task board — active/pending work with full acceptance criteria |
+| Completed Tasks | `plans/tasks_completed.yaml` | Archive of completed phases and tasks |
+| Task Briefs | `plans/task-briefs/` | Implementation plans for individual workpackages |
+| Master Plan | `plans/the-bulwark-plan.md` | Overall project plan and architecture |
+| Sessions | `sessions/` | Session handoff documents for context continuity |
+| Skills | `skills/` | Plugin skills (production) |
+| Agents | `agents/` | Plugin agents (production) |
+| Dev Skills | `.claude/skills/` | Dogfood copies + dev-only skills (humanizer) |
+| Dev Agents | `.claude/agents/` | Dev-only agents (markdown-reviewer, test agents) |
+| Scripts | `scripts/` | Build, init, hooks, and utility scripts |
+| Hooks | `hooks/hooks.json` | Plugin hook definitions |
+| Templates | `lib/templates/` | Rules.md, CLAUDE.md, Justfile, statusline templates |
 
-`Rules.md` contains the immutable rules that govern all work in this project, including:
-- **SC1-SC3: Skill Compliance Rules** - When a skill is loaded, ALL instructions within it are BINDING. You MUST spawn sub-agents when instructed. You MUST NOT substitute your judgment for skill instructions.
-- **T1-T4: Testing Rules** - Real behavior verification, no mock-only tests
-- **V1-V4: Verification Rules** - No fix without verification
-- **CS1-CS4: Coding Standards** - Atomic principles, no magic, fail fast, clean code
+## Session Startup Sequence
 
-**Failure to read and follow Rules.md is a contract violation.**
+- Load @Rules.md
+- Read previous session's handoff and process the tasks in scope for this session / this session's priorities
+- Grep `plans/active_tasks.yaml` for `current_task` and `status: in_progress` to identify active tasks. **Do NOT read the entire file** — only read the specific task sections relevant to this session's scope.
+- If you need the task brief for the active task, read the `implementation_plan` path from the task entry.
+- Read the tasklist (TaskList tool)
+- Outline the session plan to the user and ask for confirmation to begin
 
-If you find yourself thinking "I can handle this directly without following the skill instructions" - STOP. That thought pattern is explicitly prohibited by SC1-SC2 in Rules.md.
+## In-Session Protocol
 
-### Project Rules (Bulwark-Specific)
+- The Bulwark governance protocol and Rules.md dictate in-session governance and need to be followed without exception to ensure quality output
+- **Always** prioritize **quality**, **accuracy** and **completeness** of the task at hand over speed
 
-#### Task Conventions
+## Session End Sequence
 
-- Implementation plans: `plans/task-briefs/P{X}.{Y}-{name}.md`
-- Debugging logs: `logs/debugging-{issue-id}.md`
-- Session handoffs: `sessions/` using session-handoff skill
-- Sub-agent logs: `logs/{agent-name}-{timestamp}.md` (fallback path per SA2)
-
----
-
-## Your Role
-
-You operate in two modes — Implementer and Orchestrator — as defined in Rules.md (OR/SA rules).
-
----
-
-## Development Workflow
-
-### Before Any Work
-
-1. Read `Rules.md` - the immutable contract
-2. Check `plans/tasks.yaml` - current phase and task
-3. Load task implementation plan from `plans/task-briefs/` (create if missing)
-
-### Before Declaring Complete
-
-- [ ] Typecheck passes (`just typecheck`)
-- [ ] Lint passes (`just lint`)
-- [ ] Tests pass (`just test`)
-- [ ] Tests verify real behavior (not mocks)
-- [ ] Matches Anthropic guidelines
-- [ ] Changes verified, not just implemented
-
----
-
-## Common Commands
+- Once the user requests or confirms a session handoff, load the `session-handoff` skill and follow its instructions
+- Ensure CRLF characters are removed from the session handoff (Use LF/Unix line endings only)
+- Update plan/tasks file with latest status, close out completed tasks from the tasklist
+- Commit session changes with appropriate comments
 
 ```bash
-just typecheck    # Type checking
-just lint         # Linting
-just test         # Run tests
+git add -A
+git commit -m "Session {N}: {Brief summary}"
 ```
+- Present a summary of the session to the user, outlining the priorities for the next session
+- Confirm closure of the session
 
----
+```
+Session handoff: sessions/session_{N}_{YYYYMMDD}.md
+active_tasks.yaml: updated
+Git: committed (push status)
+
+Ready to end session.
+```
 
 ## Emergency Procedures
 
@@ -124,21 +114,3 @@ Correction: [what should happen]
 
 Reverting and re-attempting with correct approach.
 ```
-
----
-
-## Quick References
-
-| Document | Purpose |
-|----------|---------|
-| `Rules.md` | Immutable contract - **READ BEFORE ANY WORK** |
-| `starter-prompt.md` | Session startup, checkpoints, closing sequences |
-| `docs/architecture.md` | What we're building (agents, skills, pipelines) |
-| `plans/tasks.yaml` | Current phase and task status |
-| `plans/task-briefs/` | Implementation plans per task |
-| `plans/references.md` | External resources and patterns |
-| `sessions/` | Latest session handoff for context |
-
----
-
-**CRITICAL**: Before any work, read `Rules.md`. The contract is non-negotiable.

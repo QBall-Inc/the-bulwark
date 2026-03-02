@@ -665,3 +665,98 @@ phases:
           - "Standalone tests/ infrastructure"
           - ".gitignore, README.md"
         estimated_sessions: 1
+
+  # P5 completed tasks (archived Session 93, 2026-03-01)
+  # Active P5 tasks (P5.8 deferred) remain in active_tasks.yaml
+  - id: P5-completed
+    name: "Test Audit Hardening — completed tasks (Session 93 archive)"
+    tasks:
+      - id: P5.3
+        name: "Create continuous-feedback skill"
+        status: completed
+        completion_notes: "Session 67. 4-stage pipeline, 11 proposals on first run. Single-session impl+validation."
+        dependencies: [P0.2]
+        implementation_plan: "plans/task-briefs/P5.3-continuous-feedback.md"
+        deliverables:
+          - "skills/continuous-feedback/SKILL.md"
+          - "skills/continuous-feedback/references/collect-instructions.md"
+          - "skills/continuous-feedback/references/specialize-test-audit.md"
+          - "skills/continuous-feedback/references/specialize-code-review.md"
+          - "skills/continuous-feedback/references/specialize-general.md"
+          - "skills/continuous-feedback/templates/collect-output.md"
+          - "skills/continuous-feedback/templates/proposal-output.md"
+          - "skills/continuous-feedback/templates/diagnostic-output.yaml"
+        estimated_sessions: 1
+
+      - id: P5.4
+        name: "Create create-skill skill"
+        status: completed
+        completion_notes: "Sessions 68-69. 6-stage pipeline, 7 references, 5 templates. Renamed from skill-creator."
+        dependencies: [P5.3]
+        implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
+        deliverables:
+          - "skills/create-skill/SKILL.md"
+        estimated_sessions: 2
+
+      - id: P5.5
+        name: "Create create-subagent skill (renamed from create-agent)"
+        status: completed
+        completion_notes: "Sessions 70-75. TC1 12/12, TC3 revealed pipeline infeasibility, P5.5a rename+revision."
+        dependencies: [P5.3]
+        implementation_plan: "plans/task-briefs/P5.4-5-skill-agent-creators.md"
+        deliverables:
+          - "skills/create-subagent/SKILL.md"
+          - "skills/create-subagent/references/decision-framework.md"
+          - "skills/create-subagent/references/agent-conventions.md"
+          - "skills/create-subagent/references/content-guidance.md"
+          - "skills/create-subagent/references/template-single-agent.md"
+          - "skills/create-subagent/templates/diagnostic-output.yaml"
+        estimated_sessions: 4
+
+      - id: P5.13
+        name: "Create plan-creation skill (Agent Teams dual-mode)"
+        status: completed
+        completion_notes: "Sessions 76-80. TC1 34/34, TC2 34/34, TC3 34/36. AT value validated empirically."
+        dependencies: [P5.3]
+        implementation_plan: "plans/task-briefs/P5.13-plan-creation.md"
+        deliverables:
+          - "skills/plan-creation/SKILL.md"
+        estimated_sessions: 3
+
+      - id: P5.14
+        name: "Create bulwark-research and bulwark-brainstorm skills (production-grade)"
+        status: completed
+        completion_notes: "Sessions 59-60. Reasoning depth and Critical Evaluation Gates."
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P5.14-research-brainstorm.md"
+        deliverables:
+          - "skills/bulwark-research/SKILL.md + references/ + templates/"
+          - "skills/bulwark-brainstorm/SKILL.md + references/ + templates/"
+          - "skills/pipeline-templates/references/research-brainstorm.md"
+        estimated_sessions: 2
+
+      - id: P5.15
+        name: "Add exploratory mode to bulwark-brainstorm skill (Agent Teams)"
+        status: completed
+        completion_notes: "Sessions 81-82. TC1 30/30, TC2 37/37, TC4 6/6. AT peer debate validated."
+        dependencies: [P5.14, P5.13]
+        implementation_plan: "plans/task-briefs/P5.15-brainstorm-exploratory.md"
+        deliverables:
+          - "skills/bulwark-brainstorm/SKILL.md (updated with --exploratory mode)"
+        estimated_sessions: 2
+
+  # P7.0 completed (archived Session 93, 2026-03-01)
+  - id: P7-completed
+    name: "Launch Activities — completed tasks (Session 93 archive)"
+    tasks:
+      - id: P7.0
+        name: "P7 pre-implementation research and brainstorm"
+        status: completed
+        completion_notes: "S84-85 research, S88 AT brainstorm, S89 doc scope (conversational). Consolidated task brief: plans/task-briefs/P7.1-2-launch.md"
+        dependencies: [P5.15]
+        deliverables:
+          - "logs/research/p7-launch/"
+          - "logs/brainstorm/p7-launch/"
+          - "logs/brainstorm/p7-docs/"
+          - "plans/task-briefs/P7.1-2-launch.md"
+        estimated_sessions: 3

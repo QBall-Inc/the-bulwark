@@ -1,0 +1,298 @@
+# The Bulwark - Active Tasks
+#
+# This file contains ONLY active and pending work.
+# Completed phases (P0-P4, P5 completed tasks, P7.0, P8) archived to tasks_completed.yaml
+
+project: the-bulwark
+version: 5.3.0
+created: 2026-01-04
+updated: 2026-03-01
+current_phase: P7
+current_task: P7.1
+current_task_status: "FR1-FR6 COMPLETE (S90-91). Rules.md slimmed (S92). Next: init skill + local plugin validation (S93) → distribution (S94)"
+
+phases:
+  # ─── P5: Only deferred task remains ───────────────────────────────────────────
+  - id: P5
+    name: "Test Audit Hardening, Evolution Tools, and Testing Protocol"
+    status: completed_except_deferred
+    tasks:
+      - id: P5.8
+        name: "Consolidated test protocol"
+        status: deferred_to_P6
+        dependencies: [P5.10, P5.3]
+        implementation_plan: "plans/task-briefs/P5.8-consolidated-test-protocol.md"
+        deliverables:
+          - "tests/master-test-protocol.md"
+        acceptance_criteria:
+          - "Catalogs every skill, agent, hook, and command with test cases"
+          - "Defines fixture setup requirements for each component"
+          - "Serves as regression test guide for future changes"
+          - "Incorporates learnings from all phase-specific manual test protocols"
+          - "Organized by component type (skills, agents, hooks, pipelines)"
+        verification:
+          - "Review covers all implemented components"
+          - "Test cases are actionable and reproducible"
+          - "Fixture setup instructions are complete"
+        notes:
+          - "Pure documentation consolidation. 9 existing protocol files (5,546 lines) work fine separately."
+          - "Deferred to P6.x or P7 launch prep."
+        estimated_sessions: 1
+
+  # ─── P6: Optional Enhancements (all not_started) ─────────────────────────────
+  - id: P6
+    name: "Optional Enhancements"
+    description: "Post-completion enhancements that improve consistency but are not required for core functionality"
+    status: not_started
+    tasks:
+      - id: P6.1
+        name: "Add subagent-prompting dependency to orchestration skills"
+        status: not_started
+        dependencies: [P7.1]
+        implementation_plan: "plans/task-briefs/P6.1-subagent-prompting-dependency.md"
+        deliverables:
+          - "skills/bulwark-verify/SKILL.md (updated)"
+          - "skills/anthropic-validator/SKILL.md (updated)"
+          - "skills/test-audit/SKILL.md (updated)"
+        estimated_sessions: 1
+
+      - id: P6.2
+        name: "Framework-specific Justfile templates"
+        status: not_started
+        dependencies: [P3.2]
+        implementation_plan: "plans/task-briefs/P6.2-framework-detection.md"
+        deliverables:
+          - "lib/templates/justfile-*.just (5 frameworks)"
+          - "skills/bulwark-scaffold/SKILL.md (updated)"
+        estimated_sessions: 1
+
+      - id: P6.3
+        name: "Create bug-magnet-update helper skill"
+        status: not_started
+        dependencies: [P4.2]
+        implementation_plan: "plans/task-briefs/P6.3-bug-magnet-update.md"
+        deliverables:
+          - "skills/bug-magnet-update/SKILL.md"
+        estimated_sessions: 1
+
+      - id: P6.4
+        name: "Standardize self-describing usage patterns across skills"
+        status: not_started
+        dependencies: [P7.1]
+        implementation_plan: "plans/task-briefs/P6.4-skill-usage-patterns.md"
+        deliverables:
+          - "All user-invocable skills with Usage section updated"
+        notes:
+          - "Session 48: Mermaid flow diagrams for flagship skills (code-review, test-audit)"
+        estimated_sessions: 2
+
+      - id: P6.5
+        name: "Add usage documentation validation to anthropic-validator"
+        status: not_started
+        dependencies: [P6.4]
+        implementation_plan: "plans/task-briefs/P6.5-validator-usage-check.md"
+        deliverables:
+          - "skills/anthropic-validator/SKILL.md (updated)"
+          - "skills/anthropic-validator/references/skills-checklist.md (updated)"
+        estimated_sessions: 1
+
+      - id: P6.6
+        name: "Enhance pipeline routing for review+fix scenarios"
+        status: not_started
+        dependencies: [P4.1]
+        implementation_plan: "plans/task-briefs/P6.6-pipeline-routing.md"
+        deliverables:
+          - "skills/pipeline-templates/SKILL.md (updated)"
+          - "skills/pipeline-templates/references/code-review.md (updated)"
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+        estimated_sessions: 1
+
+      - id: P6.7
+        name: "Update Fix Validation Stage 5 to use code-review skill"
+        status: not_started
+        dependencies: [P4.1]
+        implementation_plan: "plans/task-briefs/P6.7-fix-validation-code-review.md"
+        deliverables:
+          - "skills/pipeline-templates/references/fix-validation.md (updated)"
+        estimated_sessions: 1
+
+      - id: P6.8
+        name: "Agent-scoped quality enforcement for bulwark-verify script generation"
+        status: not_started
+        dependencies: [P2.3]
+        implementation_plan: "plans/task-briefs/P6.8-verify-scriptgen-agent.md"
+        deliverables:
+          - "agents/bulwark-verify-scriptgen.md"
+          - "scripts/hooks/enforce-quality-tmp.sh"
+          - "skills/bulwark-verify/SKILL.md (updated Step 4)"
+        estimated_sessions: 1
+
+      - id: P6.9
+        name: "Add persistent memory to sub-agents"
+        status: not_started
+        dependencies: []
+        implementation_plan: "plans/task-briefs/P6.9-agent-persistent-memory.md"
+        deliverables:
+          - ".claude/agents/*.md (5 agents updated: memory: project)"
+          - ".claude/agent-memory/*/MEMORY.md (5 pre-seeded)"
+          - "lib/templates/agent-memory-seed.md"
+        notes:
+          - "Session 49: Claude Code 2.1.33 added memory frontmatter for sub-agents"
+        estimated_sessions: 1
+
+      - id: P6.10
+        name: "Consolidate shared agents across brainstorm and plan-creation skills"
+        status: not_started
+        dependencies: [P5.13, P5.15]
+        deliverables:
+          - ".claude/agents/ (5 shared agents: SME, PM, Architect, Eng Lead, QA/Critic)"
+          - ".claude/agents/references/ (skill-specific output instructions per agent per skill)"
+          - "skills/plan-creation/SKILL.md (updated to use shared agents)"
+          - "skills/bulwark-brainstorm/SKILL.md (updated to use shared agents)"
+        acceptance_criteria:
+          - "5 shared agent files replace current skill-specific agents (4 plan-creation + 5 brainstorm roles)"
+          - "Agent definitions are role-generic (WHO); skill-specific output instructions live in agent references/ or skill Task prompts (WHAT)"
+          - "Each agent independently invocable by users without parent skill context"
+          - "Role mapping: SME replaces PO (codebase explorer), PM is brainstorm-only, Architect/Eng Lead/Critic shared"
+          - "Plan-creation TC1 regression: output quality matches or exceeds current TC1 baseline"
+          - "Brainstorm regression: --scoped output quality matches current baseline"
+          - "Research needed: whether agent definitions support references/ subdirectories"
+        verification:
+          - "Re-run plan-creation TC1 with shared agents — compare against archived TC1 output"
+          - "Run brainstorm --scoped with shared agents — compare against existing baseline"
+          - "Invoke each shared agent independently (no parent skill) — verify sensible standalone behavior"
+          - "Pass /anthropic-validator on all 5 shared agents"
+        notes:
+          - "Session 80: Identified during P5.13 TC3 review. Conceptually sound but risky to existing validated pipelines."
+          - "Session 80: Current agents are heavily specialized (~11K bytes each). Generalizing may reduce quality."
+          - "Deferred to P6 to avoid destabilizing validated P5.13 and P5.15 pipelines"
+          - "Should be done in a separate branch for safe experimentation"
+        estimated_sessions: 3
+
+      - id: P6.11
+        name: "Create setup-lsp skill"
+        status: not_started
+        dependencies: [P5.4]
+        implementation_plan: "plans/task-briefs/P6.11-setup-lsp.md"
+        deliverables:
+          - "skills/setup-lsp/SKILL.md"
+          - "skills/setup-lsp/references/server-registry.md"
+          - "skills/setup-lsp/references/troubleshooting.md"
+          - "skills/setup-lsp/templates/diagnostic-output.yaml"
+        acceptance_criteria:
+          - "Detects project tech stack(s) by scanning for language-specific manifest files"
+          - "Supports monorepos with multiple tech stacks"
+          - "Installs language server binaries + Claude Code LSP plugins for detected languages"
+          - "Handles restart/resume checkpointing (install → restart → verify → configure)"
+          - "Includes troubleshooting diagnostics (PATH check, plugin status, debug log inspection)"
+          - "Integrates with Bulwark init (P7.1) as optional LSP setup step"
+          - "Uses create-skill pipeline for implementation"
+          - "Passes anthropic-validator"
+        verification:
+          - "Run on TypeScript project — verify typescript-lsp installed and enabled"
+          - "Run on Python project — verify pyright-lsp installed and enabled"
+          - "Run on monorepo with both — verify both servers configured"
+          - "Verify restart checkpoint prompts user correctly"
+          - "Verify troubleshooting diagnostics catch common issues (missing binary, disabled plugin)"
+        notes:
+          - "Session 85: User identified LSP as high-value addition to plugin"
+          - "Reference guide: https://karanbansal.in/blog/claude-code-lsp/"
+          - "Task brief contains synthesized guide content for create-skill input"
+        estimated_sessions: 2
+
+  # ─── P7: Launch Activities (ACTIVE) ───────────────────────────────────────────
+  - id: P7
+    name: "Launch Activities"
+    description: "Plugin packaging and rollout documentation — done after all P5+P6 work is complete"
+    status: in_progress
+    implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
+    notes:
+      - "Session 46: Moved from P5 (was P5.6 and P5.7)"
+      - "Must capture final state of all skills, agents, hooks, and commands"
+      - "Should be the very last phase before public release"
+    tasks:
+      # P7.0: COMPLETED — archived to tasks_completed.yaml
+      - { id: P7.0, name: "P7 pre-implementation research and brainstorm", status: completed, notes: "See tasks_completed.yaml" }
+
+      - id: P7.1
+        name: "Finalize plugin manifest, initialization, and distribution"
+        status: in_progress
+        dependencies: [P7.0, P6.11]
+        implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
+        deliverables:
+          - "Correctness fixes (inventory cleanup, timeout fixes, legacy removal)"
+          - "lib/templates/claude.md (CLAUDE.md template for init)"
+          - "scripts/init.sh (thin orchestrator — scope selection, CLAUDE.md + rules install)"
+          - "scripts/hooks/cleanup-stale.sh (AC17 — T-10 day age-based cleanup)"
+          - "hooks/hooks.json (timeout values corrected to seconds, cleanup hook added)"
+          - "plugin.json (marketplace metadata, version 1.0.0)"
+          - "skills/init/SKILL.md (init skill for /the-bulwark:init invocation)"
+          - "QBall-Inc/claude-plugins marketplace repo with marketplace.json"
+          - "npm publish (@qball-inc/the-bulwark)"
+        acceptance_criteria:
+          - "lib/templates/rules.md synced with CN1/CN2 (unconditional inclusion)"
+          - "Legacy skills removed (brainstorm, research, ez-statusline)"
+          - "Duplicate agent removed (standards-reviewer.md)"
+          - "Product-ideation skill + 6 agents copied to root dirs"
+          - "Test agents removed from .claude/agents/"
+          - "Timeout values corrected to seconds (60/30/5)"
+          - "init.sh creates CLAUDE.md from template + copies rules.md to .claude/rules/"
+          - "init.sh supports --scope=project (default) and --scope=user"
+          - "init.sh backs up existing CLAUDE.md and rules.md with .bak extension"
+          - "Init skill wraps init.sh, checks if already initialized"
+          - "cleanup-stale.sh deletes files >10 days, preserves .gitkeep, never blocks"
+          - "Plugin validates: claude plugin validate /path/to/the-bulwark"
+          - "Plugin loads locally: claude --plugin-dir /path/to/the-bulwark"
+          - "Marketplace install works end-to-end"
+          - "npm install works"
+          - "First-run hook restart documented"
+          - "Rules.md slimmed: OR/SA rules moved from CLAUDE.md into Rules.md"
+        notes:
+          - "Session 90: FR1 correctness (10/10), FR3 cleanup, FR4 plugin.json — all complete"
+          - "Session 91: FR2 init pipeline + FR6 first-run docs complete"
+          - "Session 92: Rules.md slimmed 303→196 lines, OR/SA migrated, templates synced"
+          - "Remaining: init skill, local plugin validation, distribution (FR5)"
+          - "Humanizer NOT shipped in plugin (third-party dev dependency only)"
+        estimated_sessions: 5
+
+      - id: P7.2
+        name: "Create rollout documentation"
+        status: not_started
+        dependencies: [P7.1]
+        implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
+        deliverables:
+          - "README.md (main repo readme — 16-section structure)"
+          - "docs/assets/bulwark-hero.png (hero image — already generated)"
+          - "docs/skills/*.md (22 user-facing skill READMEs)"
+          - "docs/agents/*.md (14 production agent READMEs)"
+        acceptance_criteria:
+          - "README.md: hero image, quick install, what/why/how, conventions, hooks table, registries, detailed install, FAQ"
+          - "Mermaid diagrams: enforcement loop + pipeline orchestration (5-7 nodes each)"
+          - "Skill registry with cross-linked sub-agents"
+          - "Agent registry with cross-linked invoking skills"
+          - "All docs pass humanizer skill (no AI writing patterns)"
+          - "Manual authoring (no auto-generation from frontmatter)"
+          - "Star request near top and bottom of README"
+          - "Prerequisites section (Claude Code version, Node.js, platform notes)"
+          - "Troubleshooting/FAQ section (hooks not firing, quality gate failing, etc.)"
+          - "All hyperlinks resolve correctly on GitHub"
+        notes:
+          - "Session 89: Doc scope resolved conversationally — README structure, templates, manual authoring, humanizer"
+          - "Session 89: Skill README template: description, usage, what it does, sub-agents table, output, example"
+          - "Session 89: Agent README template: description, purpose, invoked by, model, output"
+          - "Session 89: Docs in docs/skills/ and docs/agents/ — not in plugin skill/agent directories"
+          - "Session 89: statusline-setup.md ships but gets no individual README (internal utility)"
+        estimated_sessions: 3
+
+# ─── Summary ──────────────────────────────────────────────────────────────────
+summary:
+  total_tasks: 47
+  completed_phases: "P0, P1, P2, P3, P4, P5 (except P5.8), P8 — see tasks_completed.yaml"
+  active_work: "P7.1 in progress (init skill + validation + distribution remaining)"
+  next_after_p7: "P6.x optional enhancements"
+  session_schedule:
+    - { session: "S93", scope: "Init skill + local plugin validation" }
+    - { session: "S94", scope: "Distribution (repo transfer, marketplace, npm)" }
+    - { session: "S95", scope: "P7.2 README.md (first half)" }
+    - { session: "S96", scope: "P7.2 README.md (second half) + skill READMEs batch 1" }
+    - { session: "S97", scope: "P7.2 Skill READMEs batch 2 + agent READMEs + humanizer" }
