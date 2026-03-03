@@ -9,7 +9,7 @@ created: 2026-01-04
 updated: 2026-03-02
 current_phase: P7
 current_task: P7.2
-current_task_status: "P7.2 in progress (S95). README.md complete (369 lines, all sections, humanizer pass). Remaining: docs/skills/*.md (28) + docs/agents/*.md (15)"
+current_task_status: "P7.2 in progress (S96). 10/28 skill READMEs complete (all meaty skills). Remaining: 18 simple skill READMEs, 14 agent READMEs, review edits (7 warning blocks + 2 enhancements), humanizer pass"
 
 phases:
   # ─── P5: Only deferred task remains ───────────────────────────────────────────
