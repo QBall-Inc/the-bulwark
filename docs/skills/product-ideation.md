@@ -2,6 +2,9 @@
 
 Evaluates a product idea through a six-agent research pipeline and delivers a BUY/HOLD/SELL recommendation.
 
+> [!WARNING]
+> This skill launches 6 sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```

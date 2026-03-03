@@ -2,6 +2,9 @@
 
 Audits test suites for mock abuse, skipped tests, and broken verification chains using AST analysis and multi-agent LLM judgment.
 
+> [!WARNING]
+> This skill launches 3+ sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```
@@ -42,12 +45,30 @@ Audit all tests under `src/` with a raised threshold. Files numbering 10 or fewe
 ```
 Force Scale mode on a small directory by lowering the threshold.
 
+### Auto-invocation
+
+Test-audit runs automatically as Stage 3b in the fix-bug pipeline. It triggers conditionally, when any test files are created or modified by the FixWriter (Stage 2) or TestWriter (Stage 3) stages. When auto-triggered, it audits those tests for T1-T4 compliance. No user action needed for this path.
+
 **Two modes:**
 
 - **Focus mode** (file count at or below threshold). Skips classification entirely. Every file goes straight to mock detection with full AST metadata. Deeper per-file analysis, better for small targets.
 - **Scale mode** (file count above threshold). Classifies files first using fast Haiku agents to identify which ones need deeper inspection. Only flagged files proceed to mock detection. More efficient for large test suites.
 
 **Outputs:** Classification report (Scale mode only), mock detection findings per file, a synthesis report with T1-T4 violation counts and effectiveness scores, and a diagnostic log recording mode selection and AST script status.
+
+## Auditing large test suites
+
+The `--threshold` flag controls Focus vs Scale mode. Scale mode uses Haiku classifiers for initial triage, keeping costs low even on large suites.
+
+For very large test suites (100+ files), run per-directory:
+
+```
+/the-bulwark:test-audit tests/unit/
+/the-bulwark:test-audit tests/integration/ --threshold=10
+/the-bulwark:test-audit tests/e2e/
+```
+
+Scale mode classification is cheap (Haiku agents), but synthesis still uses Sonnet. Budget accordingly for large suites.
 
 ## Who is it for
 

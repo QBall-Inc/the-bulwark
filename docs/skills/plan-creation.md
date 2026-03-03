@@ -2,6 +2,9 @@
 
 Create structured implementation plans using a 4-role scrum team: Product Owner, Technical Architect, Engineering & Delivery Lead, and QA/Critic.
 
+> [!WARNING]
+> This skill launches 4 sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```

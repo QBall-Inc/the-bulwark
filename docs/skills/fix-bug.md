@@ -2,6 +2,9 @@
 
 Five-stage fix validation pipeline that investigates a bug, implements the fix, conditionally writes and audits tests, validates the fix against the original analysis, and reviews the result.
 
+> [!WARNING]
+> This skill launches 5 sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```

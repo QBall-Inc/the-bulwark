@@ -9,7 +9,7 @@ created: 2026-01-04
 updated: 2026-03-02
 current_phase: P7
 current_task: P7.2
-current_task_status: "P7.2 in progress (S96). 10/28 skill READMEs complete (all meaty skills). Remaining: 18 simple skill READMEs, 14 agent READMEs, review edits (7 warning blocks + 2 enhancements), humanizer pass"
+current_task_status: "P7.2 COMPLETE (S97). 28 skill READMEs + 14 agent READMEs + warning blocks + code-review/test-audit enhancements. All P7 deliverables shipped."
 
 phases:
   # ─── P5: Only deferred task remains ───────────────────────────────────────────
@@ -204,12 +204,13 @@ phases:
   - id: P7
     name: "Launch Activities"
     description: "Plugin packaging and rollout documentation — done after all P5+P6 work is complete"
-    status: in_progress
+    status: completed
     implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
     notes:
       - "Session 46: Moved from P5 (was P5.6 and P5.7)"
       - "Must capture final state of all skills, agents, hooks, and commands"
       - "Should be the very last phase before public release"
+      - "Session 97: P7.2 COMPLETE — 28 skill READMEs + 14 agent READMEs + warning blocks + enhancements. All P7 deliverables shipped."
     tasks:
       # P7.0: COMPLETED — archived to tasks_completed.yaml
       - { id: P7.0, name: "P7 pre-implementation research and brainstorm", status: completed, notes: "See tasks_completed.yaml" }
@@ -259,7 +260,7 @@ phases:
 
       - id: P7.2
         name: "Create rollout documentation"
-        status: in_progress
+        status: completed
         dependencies: [P7.1]
         implementation_plan: "plans/task-briefs/P7.1-2-launch.md"
         deliverables:

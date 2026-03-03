@@ -25,7 +25,7 @@
 
 ---
 
-Please star the repo if you like it and/or think it can benefit others, will help boost discoverability!
+### If you find this useful, please give it a star. It helps others discover the project.
 
 [![GitHub stars](https://img.shields.io/github/stars/QBall-Inc/the-bulwark?style=social)](https://github.com/QBall-Inc/the-bulwark)
 
@@ -363,6 +363,6 @@ You can't disable individual plugin hooks without modifying `hooks/hooks.json` i
 
 ---
 
-Please star the repo if you like it and/or think it can benefit others, will help boost discoverability!
+### If you find this useful, please give it a star. It helps others discover the project.
 
 [![GitHub stars](https://img.shields.io/github/stars/QBall-Inc/the-bulwark?style=social)](https://github.com/QBall-Inc/the-bulwark)

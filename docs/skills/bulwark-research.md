@@ -2,6 +2,9 @@
 
 Spawns 5 parallel sub-agents to research a topic from distinct analytical viewpoints, then merges findings into a single synthesis document.
 
+> [!WARNING]
+> This skill launches 5 sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```

@@ -2,6 +2,9 @@
 
 Role-based brainstorming with a dual-mode pipeline: sequential roles via Task tool, or concurrent peer debate via Agent Teams.
 
+> [!WARNING]
+> This skill launches 4-5 sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```

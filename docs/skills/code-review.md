@@ -52,6 +52,24 @@ Full review with git history attached to complexity findings. Helps distinguish 
 
 Findings are grouped by severity with confidence levels (verified or suspected). A diagnostic YAML log is written after every review for pipeline observability.
 
+### Auto-invocation
+
+Code-review runs automatically as Stage 5 (CodeReviewer) in the fix-bug pipeline. After a fix is implemented and validated, it runs a final review pass in pipeline mode with scoped output. No user action needed for this path.
+
+## Reviewing large codebases
+
+The `--quick` flag tiers review depth by lines changed, giving a lighter pass for smaller diffs.
+
+For large reviews, split into focused invocations by directory or concern:
+
+```
+/the-bulwark:code-review src/auth/ --section=security
+/the-bulwark:code-review src/api/ --section=type-safety
+/the-bulwark:code-review src/ --quick
+```
+
+A full 4-section review of a large directory can consume 30-40% of your context budget. Plan accordingly.
+
 ## Who is it for
 
 - Developers who want a structured review before merging a PR
@@ -116,3 +134,9 @@ Frameworks are detected from `package.json` dependencies, `requirements.txt`, or
 | `logs/diagnostics/code-review-{timestamp}.yaml` | Diagnostic log with invocation metadata, static analysis results, and finding counts |
 
 When invoked as a pipeline stage (via `--section`), output follows the pipeline template format with a gate pass/fail indicator for downstream orchestration.
+
+## Customizing for your tech stack
+
+The skill auto-detects React, Express, Angular, Vue, Django, Flask, and FastAPI from package.json or requirements.txt. Use `--framework=<name>` to override when auto-detection picks wrong or for unsupported frameworks.
+
+To add custom framework patterns, create a `frameworks/{name}.md` file in the skill's directory following the existing pattern format. The `references/security-patterns.md` file contains the OWASP checklist and can be extended with project-specific patterns. Similarly, extend `references/standards-patterns.md` with your own coding conventions.

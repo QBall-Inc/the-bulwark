@@ -2,6 +2,9 @@
 
 Harvests learnings from session handoffs, memory files, and logs to propose concrete improvements to skills and agents with copy-paste ready patches.
 
+> [!WARNING]
+> This skill launches 4+ sub-agents and is token-intensive. Check your current token usage before triggering it. Run `/cost` or `/context` to see where you stand.
+
 ## Invocation and usage
 
 ```
