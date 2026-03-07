@@ -92,6 +92,8 @@ After installing, restart your Claude Code session and run the init skill:
 
 This walks you through a guided setup: Rules.md injection, CLAUDE.md configuration, and optional tooling (LSP, Justfile scaffolding, statusline). It auto-detects brownfield projects and adjusts accordingly.
 
+> Having trouble installing? See [FAQ and troubleshooting](#faq-and-troubleshooting). If your issue isn't covered, please [open an issue](https://github.com/QBall-Inc/the-bulwark/issues).
+
 ## Prerequisites
 
 | Requirement | Details |
@@ -296,6 +298,23 @@ Agents are single-purpose sub-agents spawned by skills via the Task tool. You do
 | [statusline-setup](docs/agents/statusline-setup.md) | Haiku | Handles settings.json updates and config file placement for statusline configuration. | [bulwark-statusline](docs/skills/bulwark-statusline.md) |
 
 ## FAQ and troubleshooting
+
+### Plugin clone fails with "Permission denied (publickey)"
+
+If you see this error when installing from the marketplace:
+
+```
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+
+Your git is defaulting to SSH for GitHub, but you don't have SSH keys configured. Fix by telling git to use HTTPS:
+
+```bash
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+```
+
+Then retry the install. This applies globally and redirects all GitHub SSH URLs to HTTPS.
 
 ### Hooks aren't firing after install
 

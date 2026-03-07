@@ -77,5 +77,14 @@ scripts/modules/
 tests/modules/
 tests/fixtures/implementer/
 
+# Infographics (large binary assets, not committed)
+Infographics/
+
+# Stale git artifacts (empty files from prior operations)
+HEAD
+config
+objects
+refs
+
 # Misc artifacts
 report.html
