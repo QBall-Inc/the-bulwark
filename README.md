@@ -15,7 +15,8 @@
   <a href="#how-it-works">How it works</a> &middot;
   <a href="#hooks">Hooks</a> &middot;
   <a href="#skill-registry">Skills</a> &middot;
-  <a href="#agent-registry">Agents</a>
+  <a href="#agent-registry">Agents</a> &middot;
+  <a href="#planned-enhancements">Roadmap</a>
 </p>
 
 <p align="center">
@@ -373,6 +374,26 @@ Cost tracking depends on your Claude Code version and plan. If cost data isn't a
 ### I want to disable a specific hook temporarily
 
 You can't disable individual plugin hooks without modifying `hooks/hooks.json` in the plugin directory. But you can work around it by adding the file path to the skip list in `enforce-quality.sh`, or by working in a directory that the hook already skips (`tmp/`, `logs/`, etc.).
+
+---
+
+## Planned enhancements
+
+These are on the roadmap. No timeline commitments, but they represent the direction The Bulwark is heading.
+
+**Evaluation framework.** Skills and agents are the new code layer in agentic development. They need the same rigor as code: versioned, tested, measured. We're building two new skills — `create-eval` and `run-eval` — that generate and execute evaluations for any Claude Code asset. Define test prompts, expected outputs, and grading criteria. Run them across skill versions to catch regressions. Measure conversational invocation success, checklist compliance, and output quality with structured grading reports.
+
+**Asset baselines.** Once the eval skills exist, we'll baseline all 28 skills and 15 agents with versioned evaluations. Every asset gets a `version` field in its frontmatter and a set of evals that serve as regression references. Future changes get measured against these baselines automatically.
+
+**Enterprise traceability.** Enhanced logging with version stamps (skill version, model, rules hash) in every sub-agent log header. Run manifests that tie together all artifacts from a pipeline execution into a single auditable record. Decision lineage: trace any output back to which model, skill version, and rules produced it.
+
+**Security pattern updates.** A helper skill that pulls the latest vulnerability patterns and edge cases into the test-audit pipeline. Keeps your security coverage current without manual curation.
+
+**Framework-specific Justfiles.** Auto-detect your project's framework (Next.js, Django, FastAPI, Actix, etc.) and generate tailored `just` recipes with the right build, test, and lint commands out of the box.
+
+**Agent memory.** Persistent memory for sub-agents across invocations. Agents remember patterns from previous runs — common failure modes, project-specific conventions, recurring issues — and apply that context automatically.
+
+**Smarter pipeline routing.** Better orchestration for review-then-fix workflows. When a code review finds issues, automatically route to fix validation without manual intervention. Tighter feedback loops between review, fix, and retest stages.
 
 ---
 
