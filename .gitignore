@@ -20,8 +20,8 @@ desktop.ini
 *.swp
 *.swo
 *~
-.vscode/
-.idea/
+.vscode
+.idea
 
 # Shell profile files (user-specific)
 .bash_profile
@@ -79,6 +79,9 @@ tests/fixtures/implementer/
 
 # Infographics (large binary assets, not committed)
 Infographics/
+
+# Public repo sync worktree (created by scripts/sync-to-public.sh)
+.public-worktree/
 
 # Stale git artifacts (empty files from prior operations)
 HEAD

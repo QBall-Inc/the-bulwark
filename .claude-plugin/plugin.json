@@ -38,6 +38,5 @@
     "test-coverage",
     "statusline",
     "agent-teams"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
