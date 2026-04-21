@@ -124,6 +124,30 @@ Document decisions that affect future work. Include rationale so future sessions
 
 Always include these sections. Write "None" if empty - don't omit.
 
+## Memory Reflection (Mandatory)
+
+Before finalizing the handoff, perform a two-part memory reflection:
+
+### Part 1: Session Learnings → Memory Candidates
+
+Review the session for durable insights worth persisting to memory:
+- Feedback from the user (corrections, confirmations, preferences)
+- Technical decisions that affect future sessions (not just this task)
+- Project context that would be lost without memory (deadlines, stakeholder constraints)
+
+**Filter:** Only flag items that (a) will persist beyond this session, (b) haven't already been saved to memory during the session, and (c) aren't derivable from code/git.
+
+**Present candidates to the user for approval before writing.** Do not silently update memory.
+
+### Part 2: Supersession Check
+
+Review existing memory entries against current project state:
+- Has any memory been invalidated by work done this session?
+- Are there memories that reference completed phases, old file paths, or reversed decisions?
+- Can any two memories be merged into one?
+
+**Present proposed removals/updates to the user for approval before modifying.**
+
 ## Quick Checklist
 
 Before finalizing:
@@ -133,6 +157,8 @@ Before finalizing:
 - [ ] All sections present (even if "None")
 - [ ] Next steps are specific and actionable
 - [ ] No CRLF line endings
+- [ ] Memory reflection Part 1: session learnings reviewed with user, saved if approved
+- [ ] Memory reflection Part 2: existing memory checked for superseded entries
 
 ## Examples
 

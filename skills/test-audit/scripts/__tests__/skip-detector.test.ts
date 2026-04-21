@@ -239,8 +239,8 @@ describe('skip-detector.ts', () => {
           encoding: 'utf-8',
           timeout: 15000,
         });
-      } catch (err: any) {
-        const stderr = err.stderr as string;
+      } catch (err) {
+        const stderr = (err as Error & { stderr: string }).stderr;
         const parsed = JSON.parse(stderr.trim());
         expect(parsed.error).toContain('No file paths provided');
         expect(parsed.file).toBe('');

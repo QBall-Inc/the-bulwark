@@ -67,8 +67,11 @@ Investigation |> Implementation |> TestAudit |> Validation
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    OUTER RING: HOOKS                        │
-│  PostToolUse enforcement - lint/typecheck errors blocked    │
-│  Exit Code 2 = blocking error injected into agent context   │
+│  PostToolUse: per-edit quality gates (typecheck, lint,      │
+│    build) via enforce-quality.sh. Exit 2 blocks.            │
+│  Stop: once-per-turn pipeline suggestion via                │
+│    suggest-pipeline-stop.sh. Accumulates edited files,      │
+│    emits ONE decision:block per turn (not N per edit).      │
 ├─────────────────────────────────────────────────────────────┤
 │                  MIDDLE RING: SUB-AGENTS                    │
 │  Specialists review in isolated context, return via logs    │
@@ -205,12 +208,14 @@ the-bulwark/                     # Plugin root
 ├── hooks/
 │   └── hooks.json               # Global hooks (uses ${CLAUDE_PLUGIN_ROOT})
 ├── scripts/                     # Hook execution scripts
-│   ├── enforce-quality.sh
+│   ├── enforce-quality.sh       # PostToolUse: per-edit typecheck/lint/build + accumulator write
+│   ├── suggest-pipeline-stop.sh # Stop: once-per-turn pipeline suggestion from accumulator
+│   ├── suggest-pipeline.sh      # (deprecated) legacy per-edit pipeline hook — retained for rollback
 │   ├── inject-protocol.sh
 │   └── agents/                  # Agent-specific scripts
 │       └── finalize.sh
 ├── lib/
-│   └── templates/               # Justfile templates
+│   └── templates/               # Justfile templates (node, python, rust, go, kotlin, swift, shell, generic fail-loudly)
 ├── plans/
 │   ├── the-bulwark-plan.md      # Master plan
 │   ├── tasks.yaml               # Task status tracking
@@ -245,7 +250,7 @@ the-bulwark/                     # Plugin root
 
 The Bulwark provides:
 
-1. **Enforcement Hooks** - PostToolUse blocking on quality failures
+1. **Enforcement Hooks** - PostToolUse per-edit quality gates + Stop-hook consolidated pipeline suggestion (one block per turn, not per edit)
 2. **Specialist Agents** - Code auditor, test auditor, issue debugger, implementer
 3. **Workflow Skills** - Prompting templates, output formatting, pipeline patterns
 4. **Audit Skills** - Test classification, mock detection, verification scripts

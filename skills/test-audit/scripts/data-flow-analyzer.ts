@@ -1,4 +1,4 @@
-import { Project, Node, CallExpression, SourceFile, Block, SyntaxKind } from 'ts-morph';
+import { Project, Node, CallExpression, SourceFile, SyntaxKind } from 'ts-morph';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -44,7 +44,6 @@ interface VariableSource {
 
 const TEST_FUNCTIONS = new Set(['it', 'test']);
 const DESCRIBE_FUNCTIONS = new Set(['describe']);
-const ALL_TEST_WRAPPERS = new Set([...TEST_FUNCTIONS, ...DESCRIBE_FUNCTIONS]);
 
 const MOCK_NAME_PATTERN = /^(mock|fake|stub|dummy)/i;
 

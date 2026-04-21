@@ -118,14 +118,14 @@ Ask the user to choose before proceeding.
 Execute the init script using the plugin directory path. First verify the environment variable is set:
 
 ```bash
-if [ -z "$CLAUDE_PLUGIN_DIR" ]; then
-  echo "ERROR: CLAUDE_PLUGIN_DIR is not set. This skill must be run as a plugin."
+if [ -z "${CLAUDE_PLUGIN_ROOT}" ]; then
+  echo "ERROR: CLAUDE_PLUGIN_ROOT is not set. This skill must be run as a plugin."
   exit 1
 fi
-"$CLAUDE_PLUGIN_DIR/scripts/init.sh" [arguments]
+"${CLAUDE_PLUGIN_ROOT}/scripts/init.sh" [arguments]
 ```
 
-`$CLAUDE_PLUGIN_DIR` is set by the Claude Code plugin runtime and resolves to the installed plugin root. If unset, the skill is not running in a plugin context.
+`${CLAUDE_PLUGIN_ROOT}` is the Claude Code plugin runtime variable that resolves to the installed plugin root (substituted in skill content and exported as env var to subprocesses). If unset, the skill is not running in a plugin context.
 
 Where `[arguments]` is the original `$ARGUMENTS` string (excluding `--verify`) passed through verbatim. This preserves `--scope=` and any target directory the user provided.
 
@@ -309,11 +309,101 @@ Follow the setup-lsp verification flow. Report result.
 
 #### 8f: Verify Scaffold (if selected)
 
-If `scaffold: true` in state file, check that:
+If `scaffold: true` in state file, run the checks below in order. Check 8f.1 determines the scaffold pass/fail; checks 8f.2–8f.6 are a non-blocking **toolchain smoke-run** that reports which language tools are installed on this machine. 8f.2 is the entrypoint (delegates to `scripts/toolchain-smoke-run.sh`); 8f.3–8f.6 are the contract the script implements.
+
+##### 8f.1: Scaffold artifacts exist
+
+Check that:
 - `Justfile` exists in the project root
 - `logs/` directory exists
 
-Report: pass or fail.
+If either is missing: scaffold status = **FAIL** and skip the remaining checks (toolchain smoke-run requires a valid Justfile).
+
+##### 8f.2: Invoke the toolchain smoke-run script
+
+All of 8f.2–8f.6 are implemented by `scripts/toolchain-smoke-run.sh` to keep the skill-to-script contract single-sourced. Verify the plugin directory variable is set (matching the Stage 3 pattern — bash subshells do not persist Claude Code runtime env vars unless re-resolved), then invoke:
+
+```bash
+if [ -z "${CLAUDE_PLUGIN_ROOT}" ]; then
+  echo "Toolchain check: CLAUDE_PLUGIN_ROOT is not set — toolchain smoke-run unavailable."
+  # Non-blocking: report toolchain: unavailable and continue with Stage 8g.
+  TOOLCHAIN_STATUS=unavailable
+else
+  bash "${CLAUDE_PLUGIN_ROOT}/scripts/toolchain-smoke-run.sh" .
+fi
+```
+
+The script is **non-blocking** and always exits 0. It prints a per-tool availability report to stdout and a machine-parseable trailer to stderr:
+
+```
+TOOLCHAIN_STATUS={ready|partial|unavailable|fail-loudly}
+TOOLCHAIN_LANG={node|python|rust|go|kotlin|swift|shell|generic|unknown|none}
+TOOLCHAIN_MISSING={comma-separated tool names or empty}
+```
+
+Read the trailer to fill in the Stage 8g summary's `Toolchain:` line. The sub-steps below (8f.3–8f.6) describe the contract the script implements; they are the spec, not a re-implementation.
+
+##### 8f.3: Language detected from Justfile header
+
+Read the first line of `./Justfile` and match against the canonical header format:
+
+```
+# Bulwark Justfile Template - <Language>
+```
+
+Where `<Language>` is one of: `Node/TypeScript | Python | Rust | Go | Kotlin | Swift | Shell | Generic (Fail-Loudly Fallback)`.
+
+Store the detected language. If the header is missing or unrecognized, skip 8f.4–8f.6 and report `toolchain: unavailable (could not detect language from Justfile header)`. Scaffold check still counts as PASS — the toolchain smoke-run is non-blocking.
+
+##### 8f.4: Justfile parses (`just --dry-run lint`)
+
+Run `just --dry-run lint` in the project root. This asks `just` to resolve the `lint` recipe without executing it — confirms the Justfile is structurally sound and the `lint` recipe exists.
+
+- Exit 0: proceed to 8f.5
+- Exit non-zero: report `toolchain: unavailable (Justfile failed to parse or lint recipe missing)` with the stderr output. Scaffold check still PASS (the Justfile file exists), but toolchain cannot be verified.
+
+##### 8f.5: Tool-by-tool availability check
+
+For the detected language, run `command -v <tool>` for each tool the recipe invokes. Expected tools per language:
+
+| Language | Tools to check |
+|----------|---------------|
+| Node/TypeScript | `tsc` or `./node_modules/.bin/tsc`, `eslint` or `./node_modules/.bin/eslint` |
+| Python | `mypy`, `ruff`, `pytest` |
+| Rust | `cargo` (ships with rustup; `cargo clippy` and `cargo fmt` are cargo subcommands) |
+| Go | `go`, `golangci-lint`, `gofmt` (ships with Go) |
+| Kotlin | `java` (prerequisite, 11+), `ktlint`, `detekt` |
+| Swift | `swiftlint`, `swift-format` |
+| Shell | `shellcheck`, `shfmt` |
+| Generic | (skip — generic template has no real tools; status = `toolchain: fail-loudly (generic template by design)`) |
+
+For each tool: record `installed` or `missing`.
+
+##### 8f.6: Report toolchain status and install hints
+
+Print a tool-by-tool table to the user:
+
+```
+Toolchain check (Go):
+  - go             ✓ installed (/usr/local/go/bin/go)
+  - golangci-lint  ✗ missing — install: brew install golangci-lint (macOS) | scoop install golangci-lint (Win) | see Justfile header
+  - gofmt          ✓ installed (ships with Go)
+```
+
+Extract the install hint per tool from the Justfile template's header comment (the `Install:` block). If a tool has no hint in the header, fall back to the generic message: `install: see <tool's> upstream documentation`.
+
+Set `toolchain` status:
+- **`ready`** — all tools installed
+- **`partial`** — Justfile parses, at least one tool missing (list them with install hints)
+- **`unavailable`** — Justfile did not parse OR language could not be detected (pre-condition failure)
+- **`fail-loudly`** — language is `Generic` (by design — no tools expected)
+
+**Scope boundary (critical — non-negotiable):**
+- This toolchain smoke-run **does not** install any tools.
+- This toolchain smoke-run **does not** modify the Justfile.
+- This toolchain smoke-run **does not** exit non-zero on any tool being missing.
+
+A missing tool is informational. The user picks when to install based on their workflow.
 
 #### 8g: Verification Summary
 
@@ -328,9 +418,15 @@ Bulwark Init Verification
   Statusline:        [PASS / FAIL / SKIPPED]
   LSP:               [PASS / FAIL / SKIPPED]
   Scaffold:          [PASS / FAIL / SKIPPED]
+  Toolchain:         [READY / PARTIAL / UNAVAILABLE / FAIL-LOUDLY / SKIPPED]
 
   Overall: [ALL PASS / X failures]
 ```
+
+**Notes on Overall status:**
+- `Toolchain: PARTIAL` and `Toolchain: FAIL-LOUDLY` are informational and do NOT count as failures.
+- Only `PASS/FAIL` checks count toward the overall verdict.
+- If `Toolchain: PARTIAL`, list missing tools and install hints under the summary block.
 
 If any failures, provide specific remediation steps for each.
 

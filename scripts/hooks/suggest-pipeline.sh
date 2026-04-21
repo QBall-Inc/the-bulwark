@@ -1,4 +1,16 @@
 #!/bin/bash
+# DEPRECATED as of P10.1 (Session 101, 2026-04-20)
+# ================================================================
+# This script emitted `decision: block` on EVERY PostToolUse, which
+# cascaded into N interrupts on multi-edit turns (the "hook storm" /
+# "silent crash"). Replaced by:
+#   - scripts/hooks/enforce-quality.sh (accumulator write, no block)
+#   - scripts/hooks/suggest-pipeline-stop.sh (one block per turn at Stop)
+#
+# No live caller should invoke this script. Retained one release cycle
+# for rollback safety; scheduled for removal after P10 completion.
+# ================================================================
+#
 # suggest-pipeline.sh
 # PostToolUse hook for Write|Edit - suggests pipeline orchestration after code changes
 #

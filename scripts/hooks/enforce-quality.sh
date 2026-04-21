@@ -1,5 +1,5 @@
 #!/bin/bash
-# enforce-quality.sh - Quality gate + pipeline suggestion (chained execution)
+# enforce-quality.sh - Quality gate + changed-files accumulator
 #
 # Called by PostToolUse hooks on Write|Edit operations.
 #
@@ -7,12 +7,16 @@
 #   - Runs just typecheck, lint, build
 #   - Exit 2 on failure (blocks tool call)
 #
-# Phase 2: Pipeline suggestion (all files)
-#   - Chains to suggest-pipeline.sh
-#   - Passes through stdin JSON for change analysis
+# Phase 2: Accumulator write (code + script files only)
+#   - Appends file path to tmp/bulwark-changed-files.json
+#   - Excludes docs, config, infra paths via extension + prefix filter
+#   - Dedup on path
+#   - Stop hook (suggest-pipeline-stop.sh) reads accumulator and emits
+#     exactly ONE pipeline-suggestion block per turn — replacing the legacy
+#     per-edit decision:block anti-pattern (hook storm / silent crash).
 #
 # Exit codes:
-#   0 = All checks passed, pipeline suggestion complete
+#   0 = All checks passed, accumulator updated
 #   2 = Quality gate failed (block)
 #
 # Usage: Called by hooks, not directly by users
@@ -22,14 +26,11 @@ set -euo pipefail
 # Configuration
 MAX_OUTPUT_LINES=100
 
-# Color codes (if terminal supports)
-RED='\033[0;31m'
-GREEN='\033[0;32m'
+# Color codes (if terminal supports) — used for warning banners only
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
 # Get directories
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 LOGS_DIR="${PROJECT_DIR}/logs"
 HOOKS_LOG="${LOGS_DIR}/hooks.log"
@@ -48,10 +49,18 @@ echo "[${TIMESTAMP}] PostToolUse: enforce-quality.sh triggered for ${FILE_PATH_F
 # Extract file path from input
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 
-# Skip infrastructure directories (no quality checks or pipeline suggestions)
+# Normalize absolute path to repo-relative (if under PROJECT_DIR)
+REL_PATH="$FILE_PATH"
+if [ -n "$FILE_PATH" ] && [ "${PROJECT_DIR}" != "." ] && [[ "$REL_PATH" == "$PROJECT_DIR/"* ]]; then
+    REL_PATH="${REL_PATH#"$PROJECT_DIR/"}"
+fi
+
+# Skip infrastructure directories (no quality checks or pipeline suggestions).
+# Matches against REPO-RELATIVE path — absolute-path glob matching was a bug:
+# any project under a path containing /tmp/, /logs/, etc. was ignored entirely.
 # DEF-005: Prevents infinite loops when writing to logs/
-case "$FILE_PATH" in
-  */logs/*|logs/*|*/tmp/*|tmp/*|*/.claude/*|.claude/*|*/node_modules/*|node_modules/*)
+case "$REL_PATH" in
+  logs/*|tmp/*|.claude/*|node_modules/*|dist/*|build/*|.git/*)
     exit 0
     ;;
 esac
@@ -145,22 +154,62 @@ if is_code_file "$FILE_PATH"; then
                 }
             fi
 
-            # Export quality results for suggest-pipeline.sh
-            export QUALITY_CHECKS_PASSED="true"
         fi
     fi
 fi
 
 # ============================================================
-# PHASE 2: Pipeline Suggestion (all file types)
+# PHASE 2: Accumulator Write (code + script files only)
 # ============================================================
+#
+# Legacy Phase 2 chained to suggest-pipeline.sh, which emitted one
+# decision:block per edit — cascading into N interrupts on multi-edit turns.
+# Replaced by: append qualifying file path to accumulator; Stop hook
+# (suggest-pipeline-stop.sh) emits exactly one block at turn end.
 
-SUGGEST_SCRIPT="${SCRIPT_DIR}/suggest-pipeline.sh"
-
-if [ -x "$SUGGEST_SCRIPT" ]; then
-    # Pass through the original input to suggest-pipeline.sh
-    echo "$INPUT" | "$SUGGEST_SCRIPT"
-else
-    # suggest-pipeline.sh not found - not an error, just skip
+# Skip accumulator write if no file path (defensive)
+if [ -z "$FILE_PATH" ]; then
     exit 0
 fi
+
+# --- Exclusion filter: extensions ---
+# Docs, config, data files do not warrant pipeline orchestration.
+# Prefix exclusions (logs/, tmp/, .claude/, node_modules/, dist/, build/, .git/)
+# already exited at the top-of-file skip. REL_PATH is also pre-computed there.
+FILENAME=$(basename "$FILE_PATH")
+EXTENSION="${FILENAME##*.}"
+EXTENSION_LOWER=$(echo "$EXTENSION" | tr '[:upper:]' '[:lower:]')
+
+case "$EXTENSION_LOWER" in
+    md|markdown|json|jsonc|yaml|yml|xml|csv|tsv|txt|docx|xlsx|pdf|html|htm)
+        exit 0
+        ;;
+esac
+
+# --- Accumulator: ensure directory, validate, append with dedup ---
+ACCUMULATOR_DIR="${PROJECT_DIR}/tmp"
+ACCUMULATOR="${ACCUMULATOR_DIR}/bulwark-changed-files.json"
+mkdir -p "$ACCUMULATOR_DIR"
+
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
+ACC_TIMESTAMP=$(date -Iseconds)
+
+# Recover from corrupt accumulator
+if [ -f "$ACCUMULATOR" ] && ! jq -e '.' "$ACCUMULATOR" >/dev/null 2>&1; then
+    rm -f "$ACCUMULATOR"
+fi
+
+if [ ! -f "$ACCUMULATOR" ]; then
+    jq -n --arg p "$REL_PATH" --arg t "$TOOL_NAME" --arg ts "$ACC_TIMESTAMP" \
+        '{version: "1.0", files: [{path: $p, tool: $t, time: $ts}]}' > "$ACCUMULATOR"
+else
+    # Dedup: append only if path not already present
+    EXISTING=$(jq -r --arg p "$REL_PATH" '.files[] | select(.path == $p) | .path' "$ACCUMULATOR" 2>/dev/null || echo "")
+    if [ -z "$EXISTING" ]; then
+        jq --arg p "$REL_PATH" --arg t "$TOOL_NAME" --arg ts "$ACC_TIMESTAMP" \
+            '.files += [{path: $p, tool: $t, time: $ts}]' "$ACCUMULATOR" > "${ACCUMULATOR}.tmp" \
+            && mv "${ACCUMULATOR}.tmp" "$ACCUMULATOR"
+    fi
+fi
+
+exit 0

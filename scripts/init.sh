@@ -97,6 +97,14 @@ if [ ! -f "$CLAUDE_TEMPLATE" ]; then
   exit 1
 fi
 
+# --- Ensure `just` is installed (hard dependency for scaffold-produced Justfiles) ---
+
+# shellcheck source=./install-just.sh
+source "$SCRIPT_DIR/install-just.sh"
+install_just
+
+echo ""
+
 # --- Install CLAUDE.md ---
 
 if [ -f "$CLAUDE_TARGET" ]; then
