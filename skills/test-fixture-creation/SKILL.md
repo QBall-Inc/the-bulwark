@@ -2,6 +2,8 @@
 name: test-fixture-creation
 description: Guidelines for creating unbiased test fixtures that integrate with project infrastructure. Use when creating fixtures for manual testing, setting up E2E test scenarios, or building code samples with deliberate issues for LLM review. Ensures fixtures work with hook automation and pass Phase 1 checks.
 user-invocable: false
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Test Fixture Creation

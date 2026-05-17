@@ -6,6 +6,8 @@ skills:
   - assertion-patterns
   - component-patterns
   - bug-magnet-data
+version: 1.0.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Verify
@@ -118,7 +120,6 @@ Check for project manifest files in order (search from target file's directory u
 Task(
     description="Generate verification script for {component_name}",
     subagent_type="general-purpose",
-    model="sonnet",
     prompt=<constructed_4part_prompt_from_template_below>
 )
 ```
@@ -276,6 +277,14 @@ This allows:
 
 ### Log Schema
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List every .sh verification script generated for this run (Bulwark verify
+# scripts live under tmp/verification/ but are SCRIPT-bucket files for
+# coverage purposes). Paths relative to ${CLAUDE_PROJECT_DIR}. Empty list
+# `[]` if no script was emitted. Missing field disables suppression.
+reviewed_files:
+  - tmp/verification/{component-name}-verify.sh
+
 metadata:
   skill: bulwark-verify
   timestamp: {ISO-8601}
@@ -314,6 +323,10 @@ summary: |
 
 ### Diagnostic Schema
 ```yaml
+# Top-level — mirror the same list emitted in the run log (Stop hook contract).
+reviewed_files:
+  - tmp/verification/{component-name}-verify.sh
+
 skill: bulwark-verify
 timestamp: {ISO-8601}
 diagnostics:

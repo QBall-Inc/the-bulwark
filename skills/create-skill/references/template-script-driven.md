@@ -28,6 +28,8 @@ description: {single-line, trigger-specific, "Use when..." framing}
 user-invocable: true
 skills:
   - subagent-prompting  # If sub-agents used
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # {Skill Title}
@@ -61,21 +63,21 @@ skills:
 
 ---
 
-## Pre-Flight Gate (BLOCKING)
+## Mandatory Execution Checklist (BINDING)
 
-**STOP. Scripts MUST run before any LLM analysis.**
+**Every item below is mandatory. No deviations. No substitutions. No skipping. Skipping items violates SC1-SC3 (Skill Compliance Rules in Rules.md).**
 
-### What You MUST Do
+This skill combines deterministic script execution with LLM stages. Scripts MUST run before any LLM analysis. Follow every item in order. Do NOT return to the user until all applicable items are checked.
 
-1. Run all required scripts first — they produce deterministic metadata
-2. Read script output before proceeding to LLM stages
-3. LLM stages consume script output as structured input
-
-### What You MUST NOT Do
-
-- Do NOT skip script execution
-- Do NOT substitute LLM judgment for script output
-- Do NOT proceed to LLM stages if scripts fail
+- [ ] **Stage 0 — Scripts**: All required scripts executed first — they produce deterministic metadata
+- [ ] **Stage 0 — Scripts**: Script output read and validated before proceeding to LLM stages
+- [ ] **Stage 0 — Scripts**: If any script fails, STOP — do NOT proceed to LLM stages on bad data
+- [ ] **Stage 1..N — LLM**: LLM stages consume script output as structured input — you MUST NOT substitute LLM judgment for script output
+- [ ] **Stage 1..N — LLM**: Sub-agents (if any) NOT spawned with `run_in_background: true` (SA5)
+- [ ] **All stage outputs** written to `$PROJECT_DIR/logs/{skill-name}/`
+- [ ] **Final deliverables** written to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/`
+- [ ] **Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
+- [ ] **Results presented to user**
 
 ---
 
@@ -123,16 +125,6 @@ Write to `$PROJECT_DIR/logs/diagnostics/{skill-name}-{YYYYMMDD-HHMMSS}.yaml`
 | Script fails to execute | Check: Is the script executable? Is the task runner recipe defined? Report error and STOP. |
 | Script produces empty output | Report: "Script {name} produced no output for {target}." STOP. |
 | Script output malformed | Report the parse error. Do NOT proceed with LLM stages on bad data. |
-
----
-
-## Completion Checklist
-
-- [ ] All scripts executed successfully
-- [ ] Script output consumed by LLM stages
-- [ ] All log files written
-- [ ] Diagnostic YAML written
-- [ ] Results presented to user
 ```
 
 ## Generated Script Structure
@@ -161,6 +153,26 @@ const result = analyze(target);
 console.log(JSON.stringify(result, null, 2));
 ```
 
+## Common Sub-Patterns
+
+Script-driven skills exhibit one recurring sub-pattern (others may emerge as the archetype gains usage).
+
+### `hook-orchestrated`
+
+**Definition**: Bundled script invoked by a Claude Code hook (statusLine, SessionStart, PostToolUse, etc.) rather than by the skill's own user-invocation flow. The script runs automatically as part of session lifecycle.
+
+**When to use**: The script's value is automatic execution at hook events — status updates, session injection, post-tool quality gates.
+
+**Bulwark example**: `bulwark-statusline` ships a `statusline.sh` invoked by Claude Code's `statusLine` command hook configured in user/project settings.
+
+**How it shapes the skill**:
+- SKILL.md is thin glue (often `user-invocable: false`) — most behavior lives in `scripts/{name}.sh`.
+- The hook configuration (settings.json `statusLine`, `hooks/hooks.json`, etc.) is part of the skill's distribution and documented in SKILL.md as a setup step.
+- The script must be sandbox-friendly (one permission grant per execution; minimal external deps).
+- Validate hook compatibility: test the script in isolation AND in-context with the relevant hook event firing.
+
+---
+
 ## Guidance for Generator
 
 - Scripts must be self-contained — no imports from project-specific modules
@@ -170,3 +182,4 @@ console.log(JSON.stringify(result, null, 2));
 - If the skill needs a Justfile recipe, include it in the post-generation summary as a manual setup step
 - Script-driven skills are the most complex type — expect 200-400 lines for SKILL.md plus script files
 - Consider whether a simpler approach (LLM-only) would work before committing to scripts
+- **Hook-orchestrated sub-pattern**: if the script is invoked by a Claude Code hook, document the hook configuration as part of the skill's distribution + setup steps

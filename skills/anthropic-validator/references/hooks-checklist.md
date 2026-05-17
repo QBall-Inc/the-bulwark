@@ -2,19 +2,24 @@
 
 This checklist is used when dynamic documentation fetch fails. May be outdated - prefer fetched standards.
 
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-04-30 (S112 — corrected false-positive `once: true` requirement on SessionStart; clarified that boundary-injection hooks intentionally omit `once: true`)
 
 ---
 
 ## Hook Types
 
-| Type | Trigger | Use Case |
-|------|---------|----------|
-| `PreToolUse` | Before tool execution | Validation, blocking |
-| `PostToolUse` | After tool execution | Logging, side effects |
-| `SubagentStart` | When subagent spawns | Tracking, setup |
-| `SubagentStop` | When subagent completes | Finalization, cleanup |
-| `Notification` | System notifications | Alerts, logging |
+| Type | Supports `matcher`? | Trigger | Use Case |
+|------|---------------------|---------|----------|
+| `PreToolUse` | Yes | Before tool execution | Validation, blocking |
+| `PostToolUse` | Yes | After tool execution | Logging, side effects, quality gates |
+| `SubagentStart` | No | When subagent spawns | Tracking, setup |
+| `SubagentStop` | No | When subagent completes | Finalization, cleanup |
+| `Stop` | No | End of model turn | Pipeline triggers (P10.1 pattern) |
+| `SessionStart` | No | New session begins (and post-compact, post-clear) | Boundary-injection by default. Use `once: true` ONLY when the hook is genuinely one-shot; omit otherwise. |
+| `SessionEnd` | No | Session ends | End-of-session cleanup |
+| `PreCompact` | No | Before context compaction | Pre-compaction validation |
+| `UserPromptSubmit` | No | User submits prompt | Prompt-time triggers |
+| `Notification` | No | System notifications | Alerts, logging |
 
 ---
 
@@ -118,7 +123,7 @@ This checklist is used when dynamic documentation fetch fails. May be outdated -
 
 ## High Priority
 
-- [ ] `once: true` used appropriately (SessionStart scenarios)
+- [ ] `once: true` used **only when intended one-shot** (boundary-injection hooks like governance/rules-injection MUST omit it so they re-fire post-compact and post-clear)
 - [ ] `timeout` specified (recommended 5000ms for scripts)
 - [ ] Script paths are correct (use `$CLAUDE_PROJECT_DIR` or `$CLAUDE_PLUGIN_ROOT`)
 - [ ] Exit codes used correctly (0=success, 1=warning, 2=block)
@@ -147,5 +152,9 @@ This checklist is used when dynamic documentation fetch fails. May be outdated -
 | Missing `command` in hook | Critical | Add `"command": "script.sh"` |
 | `matcher` on non-matcher event | High | Remove `matcher` from SubagentStart/SubagentStop/Stop |
 | Script not found | High | Check path, use env variables |
-| No `once: true` for SessionStart | Medium | Add if hook should run once |
 | No `timeout` specified | Low | Add `"timeout": 5000` for predictable behavior |
+
+**NOT violations** (do not emit findings against these — see Allowlist in `hooks-validation.md`):
+
+- SessionStart hook WITHOUT `once: true` — boundary-injection is the canonical pattern for hooks that inject state on every session boundary (e.g., governance banner, rules injection). Adding `once: true` would silently break post-compact / post-clear injection.
+- `hooks.json` top-level `description` field — informational only; harmless additive metadata.

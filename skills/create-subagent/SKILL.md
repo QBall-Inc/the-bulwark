@@ -6,6 +6,8 @@ argument-hint: "<description-or-name> [--doc <requirements-path>]"
 skills:
   - subagent-prompting
   - anthropic-validator
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Create Sub-Agent

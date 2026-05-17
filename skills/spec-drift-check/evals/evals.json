@@ -1,0 +1,33 @@
+{
+  "$schema": "eval-shape-v1",
+  "skill_path": "skills/spec-drift-check",
+  "skill_version": "1.0.0",
+  "grading_mode": "objective",
+  "tests": [
+    {
+      "id": "T1",
+      "description": "Audits a real Bulwark brief, emits structured verdict to log file, no sub-agents spawned",
+      "prompt": "/spec-drift-check plans/task-briefs/P10.16-statusline-lock-cleanup-observability.md",
+      "allowed_tools": ["Read", "Grep", "Glob", "Bash", "Write", "AskUserQuestion"],
+      "timeout_seconds": 600,
+      "assertions": [
+        {"type": "tool_use_called", "tool": "Task", "max_count": 0},
+        {"type": "tool_use_called", "tool": "Read", "min_count": 3},
+        {"type": "tool_use_called", "tool": "Grep", "min_count": 1},
+        {"type": "file_written", "path_glob": "logs/spec-verify-*.md", "min_count": 1},
+        {"type": "regex_match", "target": "result", "pattern": "(PROCEED|PROCEED_ADJUSTED|STOP_USER_APPROVAL)", "case_insensitive": false},
+        {"type": "exit_code", "value": 0}
+      ]
+    },
+    {
+      "id": "T2",
+      "description": "<<TODO: add second test for HIGH-severity drift fixture>>",
+      "prompt": "<<TODO: invoke against examples/high-drift-spec.md fixture>>",
+      "allowed_tools": ["Read", "Grep", "Glob", "Bash", "Write", "AskUserQuestion"],
+      "timeout_seconds": 600,
+      "assertions": [
+        {"type": "regex_match", "target": "result", "pattern": "STOP_USER_APPROVAL"}
+      ]
+    }
+  ]
+}

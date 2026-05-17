@@ -129,6 +129,20 @@ Pipeline suggestions from code-writing sub-agents are **PRESUMED EXECUTE**.
 - **Deferral**: Only permitted with explicit user approval. Ask the user: "Pipeline X was suggested for [files]. Execute or defer?"
 - **Rule Violation**: Silent ignoring, self-rationalizing deferral (e.g., "change is small", "not warranted")
 
+## Spec Drift Rules (SD)
+
+### SD1: Pre-WP Spec Drift Check
+Before starting any new WP implementation (or resuming an in_progress WP), invoke the `spec-drift-check` skill to verify the brief's claims against current code state.
+
+The skill produces a STOP/PROCEED verdict:
+- All CONFIRMED → PROCEED with original plan
+- Only LOW + MEDIUM drift → PROCEED with adjusted plan (changes documented in the verification log)
+- Any HIGH drift (wrong file, undeclared scope, missing thing) → STOP and surface findings to user via AskUserQuestion. Scope changes require explicit user sign-off before implementation begins.
+
+Default trigger: Stage 0 of any new WP implementation, no exceptions.
+
+The verified plan in the spec-drift-check log SUPERSEDES the original brief for the rest of the WP. Implementation work follows the verified plan; deviations require explicit user approval.
+
 ## Skill Compliance Rules (SC)
 
 ### SC1: Skill Instructions Are **Binding**, Not Advisory

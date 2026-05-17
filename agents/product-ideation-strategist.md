@@ -7,6 +7,8 @@ tools:
   - Write
 skills:
   - subagent-output-templating
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Product Ideation Strategist

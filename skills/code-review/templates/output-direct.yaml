@@ -10,10 +10,33 @@ code_review:
   framework_detected: react  # react | express | angular | vue | django | flask | generic
   framework_override: null  # User-specified override, if any
 
-  # Files reviewed
-  files_reviewed:
+  # Files reviewed (consumed by Stop hook for per-file pipeline-recursion suppression).
+  # Required field — must be a list of paths relative to ${CLAUDE_PROJECT_DIR}.
+  # Empty list `[]` is valid if pipeline ran but covered no specific files
+  # (e.g., asset-only validation). Missing field disables suppression for this log.
+  reviewed_files:
     - path/to/file1.ts
     - path/to/file2.ts
+
+  # Followup edits expected (P10.22 — consumed by Stop hook grace-window logic).
+  # Optional field — declare when this review emitted actionable findings (severity
+  # critical or important) on a file and the user is expected to apply fixes within
+  # a grace window. Subsequent edits to a listed file within the grace window are
+  # treated as pre-covered by this review and do NOT re-fire the Code Review pipeline.
+  #
+  # Emit one entry per file with at least one critical or important finding.
+  # Suggestions alone do NOT require a followup entry (cosmetic; user-driven).
+  # Default grace_window_seconds: 1800 (30 min). Tunable per-file if needed.
+  # finding_ids and rationale are informational (not used by coverage logic).
+  followup_edits_expected:
+    - file: src/auth/token.ts
+      grace_window_seconds: 1800
+      finding_ids: [SEC-001]
+      rationale: "Pipeline emitted 1 critical finding (SQL injection); user-applied fix expected within grace window"
+    - file: src/api/users.ts
+      grace_window_seconds: 1800
+      finding_ids: [TYPE-001]
+      rationale: "Pipeline emitted 1 important finding (any usage)"
 
   # Phase 1: Static analysis results
   static_analysis:

@@ -2,7 +2,7 @@
 
 This checklist is used when dynamic documentation fetch fails. May be outdated - prefer fetched standards.
 
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-04-26 (header/index sync only — content last verified 2026-01-17; re-verify against Anthropic docs before relying on this in fallback mode)
 
 ---
 

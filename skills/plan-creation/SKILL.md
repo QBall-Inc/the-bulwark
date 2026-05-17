@@ -1,10 +1,13 @@
 ---
 name: plan-creation
-description: Create structured implementation plans using a 4-role scrum team with optional Agent Teams peer debate
+description: Create structured implementation plans via a 4-role scrum team (Product Owner, Architect, Eng/Delivery Lead, QA/Critic) with optional Agent Teams peer debate mode.
+when_to_use: Use when the user asks to design, plan, scope, or break down an implementation, feature, refactor, or system change. Also invoked by orchestrator pipelines (e.g., new-feature) that need a structured plan before execution.
 user-invocable: true
-argument-hint: "<topic, filepath, or directory> [--research <synthesis-file>]"
+argument-hint: "<topic, filepath, or directory> [--doc <path>] [--research <synthesis-file>]"
 skills:
   - subagent-prompting
+version: 1.0.2
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Plan Creation
@@ -68,9 +71,12 @@ This skill uses a multi-stage pipeline. You are the orchestrator. Follow every i
 - [ ] **Stage 1 — Mode Detection**: If user selects Agent Teams, AT Confirmation Flow executed (RED banner + model class choice)
 - [ ] **Stage 2 — Product Owner**: PO spawned via Task tool (`plan-creation-po`, Opus) and output read
 - [ ] **Stage 3A or 3B**: Correct mode executed based on user's Stage 1 choice
-- [ ] **Stage 3A (Task tool)**: Architect + Eng Lead spawned in parallel, then QA/Critic spawned with all 3 prior outputs
+- [ ] **Stage 3A (Task tool)**: Architect + Eng Lead spawned in parallel via Task tool with all prior outputs
 - [ ] **Stage 3B (Agent Teams)**: Agent files read, delegate mode entered, 3 teammates spawned with correct model class
+- [ ] **Stage 3B (Agent Teams)**: Lead enforces Work-Complete Confirmation Gate, Re-Entry Gate, and Shutdown Gate (rendezvous before synthesis) — synthesis MUST NOT begin until all teammates have explicit YES confirmation AND 30s quiet period has elapsed
+- [ ] **Stage 4 — QA / Critic**: (Task tool mode 3A only — in 3B mode the critic is embedded in the team) QA/Critic spawned with all 3 prior outputs and output read
 - [ ] **Stage 5 — Synthesis**: ALL role outputs read, synthesis written, plan drafted using template
+- [ ] **Stage 5 — Consistency**: Before writing the plan, verify `executive_summary.workpackage_count == sum(phase.workpackages.length for phase in phases)`. If counts disagree, re-derive the executive summary count from the structured phase blocks and emit a `process_notes` entry in the Stage 6 diagnostic flagging the drift.
 - [ ] **Stage 5 — Approval**: Plan presented to user via AskUserQuestion — you MUST NOT write the final plan without user approval
 - [ ] **Stage 5 — Plan Written**: Final plan written to `plans/{slug}/plan_v{N}.md`
 - [ ] **Stage 6 — Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
@@ -252,7 +258,7 @@ Stage 3B: Scrum Team (Agent Teams Mode)
 │   ├── Problem statement + research synthesis (if available)
 │   ├── PO output (full text)
 │   ├── Dual-output contract (see below)
-│   ├── CC-to-lead instruction (see below)
+│   ├── CC-ALL instruction (see below)
 │   ├── Task list coordination instruction (see below)
 │   └── Rendezvous instruction (see below)
 ├── Use in-process display mode (WSL2 safe — no tmux)
@@ -266,9 +272,9 @@ Stage 3B: Scrum Team (Agent Teams Mode)
 > 1. **Full analysis** → Write to `$PROJECT_DIR/logs/plan-creation/{slug}/{NN}-{role-name}.md` using the Write tool. This is your SA2-compliant artifact. Include all analysis, tables, and findings.
 > 2. **Coordination summary** → Send a 3-5 sentence summary of your key findings and conclusions to the Scrum Lead via mailbox. This is for coordination only — the full analysis is in the log file.
 
-**CC-to-Lead Instruction** (include in EVERY teammate prompt):
+**CC-ALL Instruction** (include in EVERY teammate prompt):
 
-> When sending peer DMs to other teammates with work instructions, challenges, or significant findings, also send a 1-line summary to the Scrum Lead. Example: "Sent Architect a challenge on component coupling — see my full analysis in logs."
+> When sending peer DMs with work instructions, challenges, or significant findings, you MUST CC every other teammate (including the Scrum Lead). Peer DMs without full-team CC are invisible to non-recipients and will be treated as stalled work. Format: include `CC: <Teammate-A>, <Teammate-B>, Scrum-Lead` at the top of the message. The CC-ALL convention replaces the prior CC-to-Lead pattern — every participant sees every cross-cutting peer message in real time.
 
 **Task List Coordination Instruction** (include in EVERY teammate prompt):
 
@@ -278,16 +284,35 @@ Stage 3B: Scrum Team (Agent Teams Mode)
 
 > Your FINAL action before going idle is to send the Scrum Lead: "WORK COMPLETE — all tasks done, log written to {path}". Do NOT go idle without sending this message.
 
-**Shutdown Gate** (Scrum Lead logic — YOU enforce this):
+**Work-Complete Confirmation Gate (MANDATORY)** — Scrum Lead logic — YOU enforce this:
 
-The Scrum Lead (you, the orchestrator) MUST NOT call `requestShutdown` for ANY teammate until ALL of the following are true:
+When a teammate sends `WORK COMPLETE`, do NOT mark them terminal. Instead:
+
+1. Send the following DM to that teammate, CC all other teammates:
+   > "Confirm: have you incorporated ALL inbound debate feedback from this round? Reply YES when fully complete, NO if still iterating."
+2. Await explicit `YES` response.
+3. Only after receiving `YES` mark the teammate as terminal.
+4. If the teammate replies `NO` or does not respond within the timeout, treat them as active — do NOT begin synthesis.
+
+**Reason**: teammates often send `WORK COMPLETE` at initial draft, then iterate on peer feedback. Without this gate, synthesis excludes post-debate outcomes.
+
+**Re-Entry Gate (MANDATORY)** — extends the Confirmation Gate:
+
+If a teammate who previously confirmed `YES` sends any new peer DM, new WORK COMPLETE signal, or new content, mark them as **re-active** and require a fresh confirmation handshake (repeat the Confirmation Gate procedure). The previous confirmation is **invalidated**.
+
+**Reason**: a teammate may confirm done, then re-engage after receiving a late peer DM. Without re-entry handling, the late iteration is missed.
+
+**Shutdown Gate** (rendezvous before synthesis):
+
+The Scrum Lead (you, the orchestrator) MUST NOT call `requestShutdown` for ANY teammate AND MUST NOT begin Stage 5 synthesis until ALL of the following are true:
 
 1. All shared task list tasks are in terminal state (completed or blocked)
-2. WORK COMPLETE message received from ALL 3 teammates
+2. WORK COMPLETE + explicit `YES` confirmation received from ALL 3 teammates (per Confirmation Gate above)
 3. All 3 log files exist and are non-empty:
    - `logs/plan-creation/{slug}/02-technical-architect.md`
    - `logs/plan-creation/{slug}/03-eng-delivery-lead.md`
    - `logs/plan-creation/{slug}/04-qa-critic.md`
+4. **Quiet period of 30 seconds** with NO new peer DM activity AND NO re-active teammates (per Re-Entry Gate). If any new activity lands during the quiet period, reset the 30s timer and re-evaluate the Confirmation Gate for any re-active teammate.
 
 If a teammate appears idle but has NOT sent WORK COMPLETE:
 - Check the shared task list for in-progress tasks assigned to that teammate
@@ -372,10 +397,19 @@ Stage 5: Synthesis
 │   ├── If user is starting fresh or pivoting: bump major (v1 → v2, v2 → v3)
 │   └── When ambiguous, ask user: "This is a revision of the existing plan (v1.1) or a new plan (v2)?"
 ├── On approval: write final plan to plans/{slug}/plan_v{N}.md
+├── Emit Stage 5 opt-in hint (see below) — discoverability for plan-to-tasks
 └── Token budget check (must be <65% after synthesis)
 ```
 
 **Enforcement**: Do NOT begin writing synthesis until ALL available agent outputs have been read. The orchestrator must reference every agent's output at least once in the synthesis.
+
+**Stage 5 opt-in hint** (P10.5) — after writing the plan, emit this 3-line hint to the user:
+
+> **Next step (optional)**: To generate executable task structure from this plan, run:
+>
+>     /plan-to-tasks plans/{slug}/plan_v{N}.md
+>
+> The skill will produce a structured `tasks.yaml` (workpackage index) and per-workpackage YAML files for execution-ready task tracking. No-op cost when ignored; discoverable when needed.
 
 #### Critical Evaluation Gate (Post-User Q&A)
 
@@ -476,7 +510,7 @@ If token budget is insufficient to complete all 4 agents + synthesis, inform the
 |----------|--------|
 | Teammate appears stuck (no WORK COMPLETE, no task updates) | Send status check via mailbox. Wait for response before any shutdown attempt. |
 | Teammate never sends WORK COMPLETE | After status check + 1 follow-up, check if log file was written. If log exists and is non-empty, treat as implicit completion. Document in diagnostics. |
-| Peer DM traffic invisible to lead | Expected — this is an AT architectural constraint. Rely on CC-to-lead summaries and task list state. |
+| Peer DM traffic invisible to non-recipients | Mitigated by CC-ALL convention — every peer DM must CC all teammates including the Scrum Lead. Rely on CC-ALL message stream and task list state. |
 | One teammate fails, others succeed | Document gap. Do NOT shut down working teammates — let them complete. Synthesize from available outputs. |
 | AT env var absent but user requested AT | Notify user, fall back to Task tool mode (Stage 3A). |
 | User selects "Switch to Task tool" in AT Confirmation | Execute Stage 3A instead. No AT infrastructure spawned. |

@@ -5,6 +5,8 @@ user-invocable: true
 argument-hint: "<target-skill-or-path> [--sources <paths>] [--since <session-N>]"
 skills:
   - subagent-prompting
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Continuous Feedback

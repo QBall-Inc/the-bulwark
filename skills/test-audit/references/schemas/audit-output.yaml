@@ -1,6 +1,37 @@
 # Audit Output Schema
 # Used by the synthesis sub-agent (Stage 3) to structure the final audit report.
 
+# Top-level field consumed by the Stop hook for per-file pipeline-recursion
+# suppression. List the test files this audit run analyzed, paths relative
+# to ${CLAUDE_PROJECT_DIR}. Empty list `[]` is valid if no files matched
+# the audit target. Missing field disables Stop-hook suppression for this log.
+reviewed_files:
+  - tests/proxy.test.ts
+  - tests/api.integration.ts
+  - tests/workflow.integration.ts
+  - tests/config.test.ts
+
+# Followup edits expected (top-level field — consumed by the Stop hook
+# grace-window logic, P10.22). OPTIONAL list-of-mappings. Emit one entry
+# per file in directive.files_to_rewrite when REWRITE_REQUIRED == true.
+# Subsequent edits to a listed file within grace_window_seconds of this
+# log being written are treated as pre-covered (no Test Audit re-fire).
+# When REWRITE_REQUIRED == false, OMIT this field entirely (no follow-up
+# expected — audit produced no actionable rewrite directive).
+followup_edits_expected:
+  - file: tests/proxy.test.ts
+    grace_window_seconds: 1800
+    finding_ids: [P0-T1]
+    rationale: "P0 rewrite directive (T1 violation, 16% effectiveness)"
+  - file: tests/workflow.integration.ts
+    grace_window_seconds: 1800
+    finding_ids: [P0-T3+]
+    rationale: "P0 rewrite directive (T3+ violation, 28% effectiveness)"
+  - file: tests/api.integration.ts
+    grace_window_seconds: 1800
+    finding_ids: [P1-T3]
+    rationale: "P1 rewrite directive (T3 violation, 33% effectiveness)"
+
 metadata:
   skill: test-audit
   timestamp: "{ISO-8601}"

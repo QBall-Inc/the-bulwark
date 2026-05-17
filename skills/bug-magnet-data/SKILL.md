@@ -2,6 +2,8 @@
 name: bug-magnet-data
 description: Curated edge case test data for boundary testing, verification scripts, and test generation. Provides pre-curated reference data organized by data type with context-specific loading guidance.
 user-invocable: false
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bug Magnet Data

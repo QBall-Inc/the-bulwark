@@ -9,10 +9,29 @@ security_review:  # or type_safety_review, lint_review, standards_review
   section: security  # security | type_safety | linting | standards
   framework: react  # Detected or overridden framework
 
-  # Files reviewed
-  files_reviewed:
+  # Files reviewed (consumed by Stop hook for per-file pipeline-recursion suppression).
+  # Required field — must be a list of paths relative to ${CLAUDE_PROJECT_DIR}.
+  # Empty list `[]` is valid if pipeline ran but covered no specific files.
+  # Missing field disables suppression for this log (strict mode).
+  reviewed_files:
     - src/auth/token.ts
     - src/api/users.ts
+
+  # Followup edits expected (P10.22 — consumed by Stop hook grace-window logic).
+  # Optional field — emit per-file when this section produced at least one
+  # critical or important finding. Subsequent edits to a listed file within
+  # grace_window_seconds of this log being written are treated as pre-covered.
+  # ReviewSynthesizer (Stage 5) aggregates this field across all 4 reviewer logs:
+  # union by file, max grace_window_seconds, union of finding_ids.
+  followup_edits_expected:
+    - file: src/auth/token.ts
+      grace_window_seconds: 1800
+      finding_ids: [SEC-001]
+      rationale: "1 critical (SQL injection); user-applied fix expected within grace"
+    - file: src/api/users.ts
+      grace_window_seconds: 1800
+      finding_ids: [SEC-002]
+      rationale: "1 important (missing auth check)"
 
   # Findings for this section only
   findings:

@@ -1,6 +1,13 @@
 # Diagnostic Output Schema
 # Written by the synthesis sub-agent to logs/diagnostics/test-audit-{YYYYMMDD-HHMMSS}.yaml
 
+# Top-level field consumed by the Stop hook for per-file pipeline-recursion
+# suppression. Mirror the same list used in the synthesis audit report.
+# Empty list `[]` is valid if the diagnostic was emitted with no file scope.
+reviewed_files:
+  - tests/proxy.test.ts
+  - tests/api.integration.ts
+
 diagnostic:
   skill: test-audit
   timestamp: "{ISO-8601}"

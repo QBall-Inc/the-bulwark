@@ -28,6 +28,21 @@ All work in this project is governed by @.claude/rules/rules.md. Compliance is m
 - The Bulwark governance protocol and Rules.md dictate in-session governance and need to be followed without exception to ensure quality output
 - **Always** prioritize **quality**, **accuracy** and **completeness** of the task at hand over speed
 
+### Pre-WP Spec Drift Check (SD1 binding)
+
+Before starting any new WP implementation, run:
+
+```
+/spec-drift-check <wp-brief-path>
+```
+
+The skill verifies the brief's file paths, line refs, function names, and behavioral claims against current code state. It produces a verification log at `logs/spec-verify-{session}-{wp-id}.md` and emits a STOP/PROCEED verdict.
+
+- PROCEED → use the verified plan from the log (supersedes the original brief)
+- STOP → user sign-off required for any HIGH drift findings before implementation can begin
+
+This applies to NEW WPs and to RESUMED in_progress WPs. Skipping the check violates SD1.
+
 ## Session End Sequence
 
 - Once the user requests or confirms a session handoff, load the session-handoff skill and follow its instructions

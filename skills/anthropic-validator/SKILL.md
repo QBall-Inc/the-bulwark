@@ -1,7 +1,10 @@
 ---
 name: anthropic-validator
 description: Validates Claude Code assets (skills, hooks, agents, commands, MCP servers, plugins) against official Anthropic standards. Fetches latest docs dynamically and produces structured validation reports.
+when_to_use: When validating Claude Code assets (skills, hooks, agents, commands, MCP servers, plugins) against official Anthropic standards before release, after creation, or when auditing for spec compliance.
 user-invocable: true
+version: 1.1.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Anthropic Validator
@@ -26,14 +29,14 @@ This skill provides **dynamic validation** by:
 
 ### Design Pattern: Main Context Orchestration
 
-This skill uses **Main Context Orchestration** - you (Claude) follow the instructions below to orchestrate sub-agents sequentially. This is required because sub-agents cannot spawn other sub-agents.
+This skill uses **Main Context Orchestration** — you (Claude) follow the instructions below to orchestrate sub-agents sequentially. This is required because sub-agents cannot spawn other sub-agents.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   MAIN CONTEXT (You)                         │
 │                                                             │
 │  1. Load this skill (anthropic-validator)                   │
-│  2. Follow section instructions for asset type              │
+│  2. Determine asset type → load matching references file    │
 │  3. Spawn claude-code-guide → fetch latest standards        │
 │  4. Read output (direct response)                           │
 │  5. Spawn bulwark-standards-reviewer → analyze asset        │
@@ -82,29 +85,35 @@ ELSE (no arguments, context inference):
 ```
 
 **Argument Reference:**
-- `$ARGUMENTS` - Full argument string passed to skill
-- `$1` - First positional argument (the path)
+- `$ARGUMENTS` — Full argument string passed to skill
+- `$1` — First positional argument (the path)
 
 **Workflow Routing:**
 - Single file → Continue with Steps 1-4 below
 - Directory (batch) → Jump to "Batch Validation" section
 
-### Step 1: Determine Asset Type
+### Step 1: Determine Asset Type & Load Per-Type Reference
 
-For the resolved `target_path`, match against these patterns:
+For the resolved `target_path`, match against these patterns and **load the corresponding `references/{type}-validation.md` file** for asset-specific workflow + validation points:
 
-| Path Pattern | Asset Type |
-|--------------|------------|
-| `skills/*/SKILL.md` | Skill |
-| `hooks/hooks.json` or `*.hooks.json` | Hooks |
-| `agents/*.md` or `.claude/agents/*.md` | Agent |
-| `commands/*.md` | Command |
-| `mcp/` or `*-mcp-server*` | MCP Server |
-| `.claude-plugin/plugin.json` | Plugin |
+| Path Pattern | Asset Type | Reference File |
+|--------------|------------|----------------|
+| `skills/*/SKILL.md` | Skill | `references/skills-validation.md` |
+| `hooks/hooks.json` or `*.hooks.json` | Hooks | `references/hooks-validation.md` |
+| `agents/*.md` or `.claude/agents/*.md` | Agent | `references/agents-validation.md` |
+| `commands/*.md` | Command | `references/commands-validation.md` |
+| `mcp/` or `*-mcp-server*` | MCP Server | `references/mcp-validation.md` |
+| `.claude-plugin/plugin.json` | Plugin | `references/plugins-validation.md` |
+
+The loaded reference file provides:
+- The official documentation URL for the asset type
+- Asset-type-specific validation workflow steps
+- Key validation points (frontmatter fields, required structure, etc.)
+- Fallback checklist pointer (used if doc fetch fails — see Fallback Behavior section)
 
 ### Step 2: Fetch Latest Standards
 
-Spawn `claude-code-guide` agent with the appropriate documentation URL:
+Spawn `claude-code-guide` agent with the documentation URL from the loaded references file:
 
 ```
 GOAL: Fetch current standards for {asset_type} from official Claude Code docs
@@ -115,7 +124,7 @@ CONSTRAINTS:
 - Include any recent changes or deprecations
 
 CONTEXT:
-- Documentation URL: {see section below for URL}
+- Documentation URL: {URL from references/{type}-validation.md}
 - Capability being validated: {asset_type}
 
 OUTPUT:
@@ -126,6 +135,8 @@ OUTPUT:
 ```
 
 ### Step 2.5: Gather Supporting Files (Skills Only)
+
+**Scope**: This step applies ONLY to `asset_type == "skill"`. Non-skill validations (agents, commands, MCP, plugins, hooks) MUST skip this step and proceed directly to Step 3 with `supporting_files = null` in the CONTEXT block.
 
 For skills, check for supporting subdirectories and files:
 
@@ -160,20 +171,35 @@ Spawn `bulwark-standards-reviewer` agent (Task tool with `subagent_type: bulwark
 GOAL: Critically analyze {asset_path} against fetched standards
 
 CONSTRAINTS:
-- Be thorough - check every requirement
+- Be thorough — check every requirement
 - Rate findings by severity (Critical/High/Medium/Low)
 - Provide specific remediation for each finding
 - Do NOT modify the asset, only report
 - Only flag missing references/ if the skill explicitly references files that don't exist
 - Validate tools/fields against DOCUMENTATION, not by attempting to use them
-  (The reviewer may not have access to all tools - don't conflate "I can't use this" with "this is invalid")
+  (The reviewer may not have access to all tools — don't conflate "I can't use this" with "this is invalid")
+- Apply the three-tier frontmatter field classification (see "Bulwark-Adopted Fields
+  Allowlist" section below) — adopted fields are informational notes, not violations;
+  unknown fields remain HIGH-severity violations.
 
 CONTEXT:
 - Asset to validate: {asset_content}
 - Current standards: {fetched_standards from Step 2}
 - Asset type: {asset_type}
+- Per-type reference: {contents of references/{type}-validation.md from Step 1}
 - Supporting files inventory: {supporting_files from Step 2.5, if skill}
 - Referenced files verified: {yes/no with details}
+- Bulwark-Adopted Fields Allowlist (DO NOT flag as violations — emit informational notes):
+  Three frontmatter fields are intentionally adopted by Bulwark as non-Anthropic-official
+  but standardized conventions. The reviewer MUST classify these as
+  `bulwark_adopted_fields` notes, not as violations:
+  * `version` — semver string for skill/agent traceability across releases
+  * `author` — attribution string (e.g., "Ashay Kubal @ Qball Inc.")
+  * `skills` — applies ONLY to skill frontmatter (`SKILL.md`); for agent frontmatter
+    (`.claude/agents/*.md`), `skills:` IS Anthropic-official and should be classified
+    accordingly. The Bulwark adoption is the skill-frontmatter use case.
+  Any other frontmatter field not in the official Anthropic spec for the asset type
+  remains an `unknown` field and MUST be reported as a HIGH-severity violation.
 - Known conventions (DO NOT flag as high/critical — classify as informational):
   The following patterns are intentional conventions backed by empirical testing.
   LLM agents reliably ignore behavioral-register instructions ("You always verify...")
@@ -189,6 +215,11 @@ CONTEXT:
 
 OUTPUT:
 Write structured YAML to logs/validations/{asset-name}-{timestamp}.yaml
+Schema MUST include a top-level `bulwark_adopted_fields` array (separate from
+`findings`) listing each adopted field detected with its value.
+Schema MUST also include a top-level `reviewed_files: [...]` list (Stop-hook
+contract — see Output Format section). Include any script/.sh files referenced
+by the validated asset; empty list `[]` if the asset is .md/.json only.
 ```
 
 ### Step 4: Present Results
@@ -197,241 +228,59 @@ Summarize findings to user in human-readable format (see Output Format section).
 
 ---
 
-## Skills Validation
+## Bulwark-Adopted Fields Allowlist
 
-### Official Documentation
+Three frontmatter fields are non-Anthropic-official but intentionally standardized across Bulwark assets. The validator classifies them as **`bulwark-adopted`** — emitting informational notes in the report's `bulwark_adopted_fields` section, **not** counting them as violations against summary counters or verdict logic.
 
-https://docs.anthropic.com/en/docs/claude-code/skills
+### Three-Tier Classification
 
-### Validation Workflow
+| Tier | Definition | Validator Behavior |
+|------|------------|--------------------|
+| **`official`** | Field is in the canonical Anthropic spec for this asset type | Validate type/value per spec; flag mismatches as violations at appropriate severity |
+| **`bulwark-adopted`** | Field is non-official but intentionally standardized in Bulwark | Emit info-level note in `bulwark_adopted_fields`; do **not** add to violation counters |
+| **`unknown`** | Field is in neither category | Flag as **HIGH** violation — preserves the validator's drift-catching function |
 
-1. Read the skill's `SKILL.md` file
-2. **Check for supporting subdirectories**:
-   - `references/` - list files if present (OPTIONAL - not all skills need this)
-   - `examples/`, `scripts/`, `templates/`, `data/` - list if present
-3. **Verify referenced files** - scan SKILL.md for file mentions (`references/*.md`, etc.) and confirm they exist
-4. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code skills from https://docs.anthropic.com/en/docs/claude-code/skills
-   Focus on: frontmatter fields, SKILL.md structure, user-invocable, agent field, context field
-   ```
-5. Spawn `bulwark-standards-reviewer` with:
-   - Skill content
-   - Fetched standards
-   - **Supporting files inventory** (list of files in references/, examples/, etc.)
-   - **Referenced files verification** (which mentioned files exist/missing)
-6. Write report to `logs/validations/`
+### The Three Adopted Fields
 
-**Important**: A missing `references/` folder is NOT a violation unless the skill explicitly references files that don't exist. Many skills are self-contained and don't need supporting files.
+| Field | Adoption Rationale | Asset Types |
+|-------|--------------------|-------------|
+| `version` | Semver traceability across skill/agent releases. Operationally required for downstream consumers to know which version they have installed. | Skills + Agents |
+| `author` | Attribution. Uniform value `"Ashay Kubal @ Qball Inc."` across first-party Bulwark assets; user-prompted for skills generated externally via `create-skill`. | Skills + Agents |
+| `skills` | Cross-skill dependency declaration. **Note**: `skills:` IS officially documented for *agent* frontmatter (`.claude/agents/*.md`); it is **not** documented for skill frontmatter (`SKILL.md`). The Bulwark adoption applies only to the skill-frontmatter use case — for agents, treat `skills` as official. | Skills (adopted) / Agents (official) |
 
-### Key Validation Points
+### Promotion Path
 
-| Field | Requirement |
-|-------|-------------|
-| `name` | Required, matches directory name |
-| `description` | Required, concise explanation |
-| `user-invocable` | Boolean, controls `/` menu visibility |
-| `agent` | Optional: `haiku`, `sonnet`, or `opus` for model selection |
-| `context` | Optional: `fork` for isolated execution |
-| `skills` | Optional: array of skills to load |
-| `tools` | Optional: array of allowed tools |
+If Anthropic publishes a spec update that formalizes any of these fields:
 
-### Fallback Checklist
+1. Move the field from the `bulwark-adopted` list to the appropriate `official` validation table.
+2. Remove the adopted-field note logic for that field.
+3. Update `references/{skills,agents,hooks,...}-validation.md` and matching `*-checklist.md` to reflect the change.
+4. Update the "Last Verified" date stamps on the relevant tables.
 
-If doc fetch fails, use: `references/skills-checklist.md`
+This is intentionally a single-config change — the data-driven structure (a list of field names per tier) makes promotion trivial.
+
+### Last Verified
+
+- **2026-04-26 (Session 110, P10.3)** — verified against Anthropic skills spec at https://code.claude.com/docs/en/skills (none of `version`, `author`, `skills` documented for skill frontmatter); `skills` confirmed documented for agent frontmatter at https://docs.anthropic.com/en/docs/claude-code/sub-agents.
+
+Sync this section whenever Anthropic publishes spec updates that affect frontmatter fields.
 
 ---
 
-## Hooks Validation
+## Per-Asset-Type Validation Details
 
-### Official Documentation
+Asset-type-specific workflow + key validation points live in `references/`:
 
-https://docs.anthropic.com/en/docs/claude-code/hooks
+- **Skills**: `references/skills-validation.md`
+- **Hooks**: `references/hooks-validation.md`
+- **Agents**: `references/agents-validation.md`
+- **Commands**: `references/commands-validation.md`
+- **MCP**: `references/mcp-validation.md`
+- **Plugins**: `references/plugins-validation.md`
 
-### Validation Workflow
+Step 1 above routes to the correct file based on detected asset type. Each reference file contains the official documentation URL, the asset-specific validation workflow, the key validation points (fields, requirements, severities), and the fallback checklist pointer.
 
-1. Read the hooks configuration file
-2. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code hooks from https://docs.anthropic.com/en/docs/claude-code/hooks
-   Focus on: hook types, matcher patterns, once field, command format, environment variables
-   ```
-3. Spawn `bulwark-standards-reviewer` with hooks content and fetched standards
-4. Write report to `logs/validations/`
-
-### Key Validation Points
-
-| Field | Requirement |
-|-------|-------------|
-| Hook types | `PreToolUse`, `PostToolUse`, `SubagentStart`, `SubagentStop`, `Notification` |
-| `matcher` | Regex pattern for tool/subagent matching |
-| `command` | Shell command to execute |
-| `once` | Boolean, `true` for run-once hooks (e.g., SessionStart) |
-| `timeout` | Optional, milliseconds |
-
-### Environment Variables
-
-| Variable | Available In |
-|----------|--------------|
-| `$CLAUDE_TOOL_NAME` | PreToolUse, PostToolUse |
-| `$CLAUDE_TOOL_INPUT` | PreToolUse, PostToolUse |
-| `$CLAUDE_TOOL_OUTPUT` | PostToolUse |
-| `$CLAUDE_SUBAGENT_TYPE` | SubagentStart, SubagentStop |
-| `$CLAUDE_SUBAGENT_PROMPT` | SubagentStart |
-
-### Fallback Checklist
-
-If doc fetch fails, use: `references/hooks-checklist.md`
-
----
-
-## Agents Validation
-
-### Official Documentation
-
-https://docs.anthropic.com/en/docs/claude-code/sub-agents
-
-### Validation Workflow
-
-1. Read the agent markdown file
-2. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code custom sub-agents from https://docs.anthropic.com/en/docs/claude-code/sub-agents
-   Focus on: agent definition format, frontmatter fields, model selection, tools array, lookup priority
-   ```
-3. Spawn `bulwark-standards-reviewer` with agent content and fetched standards
-4. Write report to `logs/validations/`
-
-### Key Validation Points
-
-| Field | Requirement |
-|-------|-------------|
-| `name` | Required, matches filename |
-| `description` | Required, explains agent purpose |
-| `model` | Optional: `haiku`, `sonnet`, `opus` |
-| `tools` | Optional: array of allowed tools |
-| `skills` | Optional: array of skills to load |
-| File location | `.claude/agents/`, `~/.claude/agents/`, or plugin `agents/` |
-
-### Agent Lookup Priority
-
-1. CLI flag (`--agent`)
-2. `.claude/agents/` (project)
-3. `~/.claude/agents/` (user)
-4. Plugin `agents/` directory
-5. Built-in agents
-
-### Fallback Checklist
-
-If doc fetch fails, use: `references/agents-checklist.md`
-
----
-
-## Commands Validation
-
-### Official Documentation
-
-https://docs.anthropic.com/en/docs/claude-code/skills (commands merged with skills in v2.1.3)
-
-### Validation Workflow
-
-1. Read the command file
-2. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code commands/skills from https://docs.anthropic.com/en/docs/claude-code/skills
-   Focus on: command invocation, argument passing ($ARGUMENTS, $1, $2), user-invocable field
-   Note: Commands and skills merged in v2.1.3
-   ```
-3. Spawn `bulwark-standards-reviewer` with command content and fetched standards
-4. Write report to `logs/validations/`
-
-### Key Validation Points
-
-| Aspect | Requirement |
-|--------|-------------|
-| Invocation | `/skill-name arg1 arg2` |
-| Arguments | `$ARGUMENTS` (all), `$1`/`$2` (positional) |
-| Environment | `${ENV_VAR}` for environment variables |
-| Visibility | `user-invocable: true` for `/` menu |
-
-### Fallback Checklist
-
-If doc fetch fails, use: `references/commands-checklist.md`
-
----
-
-## MCP Validation
-
-### Official Documentation
-
-https://docs.anthropic.com/en/docs/claude-code/mcp
-
-### Validation Workflow
-
-1. Read MCP server configuration
-2. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code MCP servers from https://docs.anthropic.com/en/docs/claude-code/mcp
-   Focus on: server configuration, tool definitions, transport types, security considerations
-   ```
-3. Spawn `bulwark-standards-reviewer` with MCP content and fetched standards
-4. Write report to `logs/validations/`
-
-### Key Validation Points
-
-| Aspect | Requirement |
-|--------|-------------|
-| Configuration | Valid JSON in `.claude/mcp.json` |
-| Transport | `stdio`, `http`, or `sse` |
-| Tools | Properly defined tool schemas |
-| Security | No exposed secrets, proper permissions |
-
-### Fallback Checklist
-
-If doc fetch fails, use: `references/mcp-checklist.md`
-
----
-
-## Plugins Validation
-
-### Official Documentation
-
-https://docs.anthropic.com/en/docs/claude-code/plugins
-
-### Validation Workflow
-
-1. Read plugin manifest and structure
-2. Spawn `claude-code-guide` with prompt:
-   ```
-   Fetch current standards for Claude Code plugins from https://docs.anthropic.com/en/docs/claude-code/plugins
-   Focus on: plugin.json manifest, directory structure, registration, flat skills directory
-   ```
-3. Spawn `bulwark-standards-reviewer` with plugin content and fetched standards
-4. Write report to `logs/validations/`
-
-### Key Validation Points
-
-| Aspect | Requirement |
-|--------|-------------|
-| Manifest | `.claude-plugin/plugin.json` |
-| Structure | Flat directories at root (`skills/`, `agents/`, `hooks/`) |
-| Registration | All components listed in manifest |
-| Naming | Plugin name matches directory |
-
-### Directory Structure
-
-```
-plugin-name/
-├── .claude-plugin/
-│   └── plugin.json          # ONLY manifest here
-├── agents/                  # At root, NOT in .claude-plugin/
-├── skills/                  # At root, NOT in .claude-plugin/
-└── hooks/                   # At root, NOT in .claude-plugin/
-```
-
-### Fallback Checklist
-
-If doc fetch fails, use: `references/plugins-checklist.md`
+Fallback checklists (used when `claude-code-guide` doc fetch fails) live in the same directory: `references/{type}-checklist.md`.
 
 ---
 
@@ -485,6 +334,14 @@ batch_validation:
 ### YAML Report (logs/validations/)
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List any script/.sh files referenced by the validated asset (asset itself
+# is typically .md/.json which the accumulator excludes). Paths relative to
+# ${CLAUDE_PROJECT_DIR}. Empty list `[]` is valid and common (asset-only
+# validation). Missing field disables suppression for this log (strict mode).
+reviewed_files:
+  - scripts/hooks/enforce-quality.sh
+
 validation_report:
   metadata:
     asset: "{file_path}"
@@ -494,14 +351,32 @@ validation_report:
     standards_source: fetched | fallback
 
   findings:
+    # Official-spec violations only — bulwark-adopted fields are NOT listed here.
     - severity: critical | high | medium | low
       rule: "{standard being checked}"
       violation: "{what is wrong}"
       location: "{line or field}"
       remediation: "{how to fix}"
 
+  bulwark_adopted_fields:
+    # Non-Anthropic-official fields detected that ARE intentionally adopted by Bulwark.
+    # These are informational notes — they do NOT count against the verdict.
+    - field: version
+      value: "1.0.0"
+      classification: bulwark-adopted
+      note: "Bulwark-adopted convention for traceability across releases."
+    - field: author
+      value: "Ashay Kubal @ Qball Inc."
+      classification: bulwark-adopted
+      note: "Bulwark-adopted convention for attribution."
+    - field: skills
+      value: ["subagent-prompting"]
+      classification: bulwark-adopted
+      note: "Documentary cross-skill dependency declaration. Anthropic parser ignores unknown fields."
+
   summary:
-    total_findings: 0
+    official_spec_violations: 0
+    bulwark_adopted_fields_detected: 0
     critical: 0
     high: 0
     medium: 0
@@ -514,17 +389,21 @@ validation_report:
 
 ```
 Validation: skills/my-skill/SKILL.md
-Standards: Fetched from official docs (2026-01-17)
+Standards: Fetched from official docs (2026-04-26)
 Verdict: FAIL (2 critical, 1 high)
 
-Critical:
-  - Missing required 'description' field in frontmatter
-  - SKILL.md exceeds 500 line limit (612 lines)
+Official-Spec Violations:
+  Critical:
+    - Missing required 'description' field in frontmatter
+    - SKILL.md exceeds 500 line limit (612 lines)
+  High:
+    - 'agent' field uses unsupported value 'gpt-4'
 
-High:
-  - 'agent' field uses unsupported value 'gpt-4'
+Bulwark-Adopted Fields Detected (informational, not violations):
+  - version: "1.0.0"
+  - author: "Ashay Kubal @ Qball Inc."
 
-Full report: logs/validations/my-skill-2026-01-17T10-30-00.yaml
+Full report: logs/validations/my-skill-2026-04-26T10-30-00.yaml
 ```
 
 ### Severity Definitions
@@ -539,11 +418,14 @@ Full report: logs/validations/my-skill-2026-01-17T10-30-00.yaml
 ### Verdict Logic
 
 ```
-if any_critical_findings:
-    verdict = "FAIL"
+# Field names align with the YAML summary schema above.
+if summary.critical >= 1:
+    verdict = "fail"
 else:
-    verdict = "PASS"
-# Always list ALL findings regardless of verdict
+    verdict = "pass"
+# Always list ALL findings regardless of verdict.
+# Bulwark-adopted field detections are NOT findings — they appear in
+# the dedicated `bulwark_adopted_fields` section and do NOT affect verdict.
 ```
 
 ---
@@ -554,7 +436,7 @@ When `claude-code-guide` fetch fails:
 
 1. **Log warning**: "Could not fetch latest standards, using embedded checklist"
 2. **Set** `standards_source: fallback` in report
-3. **Use** embedded checklist from `references/`
+3. **Use** embedded checklist from `references/{type}-checklist.md` (the per-asset-type fallback file referenced in `references/{type}-validation.md`)
 4. **Continue** validation
 5. **Include note** in summary: "Validated against potentially outdated standards"
 
@@ -565,12 +447,20 @@ When `claude-code-guide` fetch fails:
 All validation runs write diagnostic data to:
 
 ```
-logs/diagnostics/anthropic-validator-{timestamp}.yaml
+logs/diagnostics/anthropic-validator-{ISO-8601-timestamp}.yaml
 ```
+
+Use ISO-8601 with hyphens for filename safety, e.g. `2026-04-26T14-00-00`. Same convention applies to validation reports under `logs/validations/`.
 
 ### Diagnostic Schema
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# Diagnostic logs typically reference no scripts directly (the validation
+# workflow operates on the asset itself). Empty list `[]` is the common case;
+# include any script paths only if the diagnostic explicitly cites them.
+reviewed_files: []
+
 diagnostic:
   skill: anthropic-validator
   timestamp: "{ISO-8601}"
@@ -598,10 +488,10 @@ diagnostic:
 
 ## Related Skills
 
-- `subagent-prompting` (P0.1) - 4-part template for agent invocation
-- `subagent-output-templating` (P0.2) - Output format for logs
+- `subagent-prompting` (P0.1) — 4-part template for agent invocation
+- `subagent-output-templating` (P0.2) — Output format for logs
 
 ## Related Agents
 
-- `bulwark-standards-reviewer` - Critical analysis agent (invoked by this skill)
-- `claude-code-guide` - Built-in agent for documentation fetching
+- `bulwark-standards-reviewer` — Critical analysis agent (invoked by this skill)
+- `claude-code-guide` — Built-in agent for documentation fetching

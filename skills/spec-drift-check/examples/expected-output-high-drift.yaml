@@ -1,0 +1,78 @@
+# Expected verification log when spec-drift-check runs against examples/high-drift-spec.md.
+# Two HIGH-severity drift findings. Verdict: STOP_USER_APPROVAL.
+
+metadata:
+  reviewer: spec-drift-check
+  subject: examples/high-drift-spec.md
+  session: <session-id>
+  timestamp: <ISO-8601>
+  spec_word_count: 280
+  claims_extracted: 3
+  claims_verified: 3
+
+findings:
+  - id: D-01
+    claim_id: C-01
+    category: drift-wrong-file
+    severity: HIGH
+    spec_claim: "scripts/hooks/lib/legacy_coverage.py exists and contains pre-P10.15 single-shot coverage logic"
+    actual_state: "File scripts/hooks/lib/legacy_coverage.py does NOT exist (verified via ls). The current per-file registry implementation is in scripts/hooks/lib/coverage_check.py and scripts/hooks/suggest-pipeline-stop.sh; there is no legacy module to extract from."
+    resolution: ask user
+
+  - id: D-02
+    claim_id: C-02
+    category: drift-undeclared-scope
+    severity: HIGH
+    spec_claim: "spec-drift-check should grow a Stage 8 that spawns a Sonnet sub-agent via the Task tool to verify behavioral equivalence"
+    actual_state: "spec-drift-check skill explicitly mandates Main Context Orchestration with NO sub-agent fork. SKILL.md documents this in the Anti-Thought Trap section: 'If you find yourself thinking I will just spawn a sub-agent to do this faster — STOP.' Adding a sub-agent stage contradicts the skill's design contract."
+    resolution: ask user
+
+  - id: D-03
+    claim_id: C-03
+    category: confirmed
+    severity: n/a
+    spec_claim: "scripts/hooks/lib/coverage_check.py exists"
+    actual_state: "File exists at scripts/hooks/lib/coverage_check.py"
+    resolution: none
+
+ac_reinterpretations: []
+
+adjusted_plan:
+  binding_status: "supersedes original spec for rest of WP — pending user direction on HIGH findings"
+  deliverables:
+    - id: AD-01
+      description: "BLOCKED: Step 1 (read legacy_coverage.py) cannot proceed — file does not exist"
+      original_spec_step: 1
+      change_from_spec: dropped
+      target_path: scripts/hooks/lib/legacy_coverage.py
+      token_estimate: "0"
+    - id: AD-02
+      description: "BLOCKED: Step 3 (add sub-agent stage to spec-drift-check) violates Main Context Orchestration design contract"
+      original_spec_step: 3
+      change_from_spec: dropped
+      target_path: skills/spec-drift-check/SKILL.md
+      token_estimate: "0"
+  estimated_token_delta: "-15K"
+
+verification_checklist:
+  - "Confirm with user whether legacy_coverage.py should be created (scope expansion) or whether the brief was authored against a stale assumption"
+  - "Confirm with user whether the spec-drift-check skill design should change to allow sub-agent forks (would require P10.20 brief amendment)"
+
+proceed_decision: STOP_USER_APPROVAL
+decision_rationale: |
+  Two HIGH-severity drift findings. D-01 references a file that does not exist —
+  scope expansion required (write the legacy module from scratch?) or scope reduction
+  (drop the extraction). D-02 contradicts the spec-drift-check skill's documented
+  design contract — the skill mandates Main Context Orchestration; adding a sub-agent
+  Stage 8 would violate the skill's own anti-thought-trap section. Both decisions
+  require explicit user sign-off; the orchestrator MUST NOT auto-proceed.
+
+roi:
+  spent_tokens_estimate: "~6K"
+  estimated_savings: "~50K"
+  net: positive
+  rationale: |
+    Without the drift check, the implementer would have spent ~30K tokens reading
+    nonexistent paths + ~20K implementing a stage that contradicts the skill's
+    design — both caught early and surfaced for user direction. Highly positive ROI
+    on this run; a single STOP_USER_APPROVAL save typically pays for many PROCEED runs.

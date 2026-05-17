@@ -1,0 +1,19 @@
+{
+  "$schema": "eval-shape-v1",
+  "skill_path": "skills/spec-drift-check",
+  "skill_version": "1.0.0",
+  "should_trigger": [
+    {"query": "Run spec drift check on the P10.16 brief", "reasoning": "Direct invocation phrasing"},
+    {"query": "Verify this brief against current code before I start the WP", "reasoning": "Pre-WP verification phrasing"},
+    {"query": "Check for drift between the spec and current state", "reasoning": "Drift terminology"},
+    {"query": "Audit this WP brief for stale claims", "reasoning": "Audit + brief context"},
+    {"query": "Extract claims from this brief and verify them", "reasoning": "Methodology phrasing"},
+    {"query": "<<TODO: add 5 more should-trigger queries>>", "reasoning": ""}
+  ],
+  "should_not_trigger": [
+    {"query": "What does the P10.16 brief say?", "reasoning": "Read-only question, no verification request"},
+    {"query": "Implement the P10.16 brief", "reasoning": "Implementation request, not verification"},
+    {"query": "Review my code changes", "reasoning": "Code review, not spec review"},
+    {"query": "<<TODO: add 7 more should-not-trigger queries>>", "reasoning": ""}
+  ]
+}

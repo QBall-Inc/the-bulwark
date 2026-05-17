@@ -67,6 +67,8 @@ Each review stage uses a general-purpose agent with:
 - **Prompt**: Specifies which section to reference
 - **Output**: Standardized YAML findings format
 
+**Stop-hook contract (P10.15):** every per-section pipeline output and the Stage 5 synthesis MUST include a top-level `reviewed_files: [...]` list enumerating files analyzed in that stage (paths relative to `${CLAUDE_PROJECT_DIR}`). The Stop hook reads this field to suppress per-file pipeline-recursion fires on subsequent turns. See `skills/code-review/templates/output-pipeline.yaml` (sharded stages) and `skills/code-review/templates/output-direct.yaml` (synthesis) for the canonical schema.
+
 ### Stage 1: SecurityReviewer
 
 **Type**: General-purpose agent with role
@@ -222,11 +224,13 @@ standards_review:
 - Prioritize findings by severity and impact
 - Provide clear fix guidance
 - Determine overall approval status
+- **MANDATORY OUTPUT PATH**: write the synthesis report to `logs/code-review-synthesis-{timestamp}.yaml` (flat in `logs/`, NOT under any subdirectory). The Stop hook keys per-file pipeline-recursion suppression off this exact path pattern.
+- **MANDATORY FIELD**: include a top-level `reviewed_files: [...]` list enumerating every source file the upstream stages analyzed (relative to `${CLAUDE_PROJECT_DIR}`). Missing field disables Stop-hook suppression for this synthesis (strict mode).
 
 **CONTEXT**:
 - Findings from all previous stages (Security, Type Safety, Linting, Standards)
 
-**OUTPUT**: Consolidated review report (uses `skills/code-review/templates/output-direct.yaml` format)
+**OUTPUT**: Consolidated review report at `logs/code-review-synthesis-{timestamp}.yaml` (uses `skills/code-review/templates/output-direct.yaml` format)
 ```yaml
 code_review:
   mode: comprehensive
@@ -250,6 +254,14 @@ code_review:
   gate:
     passed: false
     blocking_findings: 1
+# Required top-level field — Stop hook reads this to suppress
+# per-file pipeline-recursion fires on the next turn.
+reviewed_files:
+  - auth.ts
+  - user.ts
+  - config.ts
+  - processor.ts
+  - service.ts
 ```
 
 ### Stage 6: FixWriter (Conditional)

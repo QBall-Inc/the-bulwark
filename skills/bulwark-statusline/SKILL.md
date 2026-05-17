@@ -1,11 +1,16 @@
 ---
 name: bulwark-statusline
 description: Configure the Bulwark status line for Claude Code. Supports init, preset switching, and customization.
+when_to_use: When setting up the Bulwark status line for first-time install, switching between presets (minimal, developer, cost), or customizing the status line display.
+argument-hint: "<init|minimal|developer|cost>"
+arguments: subcommand
 user-invocable: true
-tools:
+allowed-tools:
   - Bash
   - Read
   - Edit
+version: 1.0.2
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Status Line

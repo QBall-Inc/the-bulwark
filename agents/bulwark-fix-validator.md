@@ -1,7 +1,6 @@
 ---
 name: bulwark-fix-validator
-description: Validates fixes against debug report by executing tiered test plan and assessing confidence. Reads validation plan from IssueAnalyzer output.
-user-invocable: true
+description: Validates fixes against debug report by executing tiered test plan and assessing confidence. Reads validation plan from IssueAnalyzer output. Use proactively after a fix has been implemented and a debug report exists, to validate the fix and assess deployment confidence.
 model: sonnet
 skills:
   - issue-debugging
@@ -14,6 +13,8 @@ tools:
   - Glob
   - Write
   - Bash
+version: 1.0.2
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Fix Validator
@@ -49,7 +50,7 @@ This agent is invoked via the **Task tool**. Agents are distinct from skills: th
 | Invocation Method | How to Use |
 |-------------------|------------|
 | **`/fix-bug` skill** | `/fix-bug path/to/code "description"` - triggers full Fix Validation pipeline |
-| **Orchestrator invokes** | `Task(subagent_type="bulwark-fix-validator", prompt="...")` |
+| **Orchestrator invokes** | `Agent(subagent_type="bulwark-fix-validator", prompt="...")` |
 | **User requests** | Ask Claude to "validate the fix" or "run the fix validator" |
 | **Pipeline stage** | Fix Validation pipeline Stage 4 |
 
@@ -258,6 +259,15 @@ Map results to confidence criteria from debug report:
 **Location**: `logs/validations/fix-validation-{issue-id}-{YYYYMMDD-HHMMSS}.yaml`
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List every source file the fix touched and that this validation exercised
+# (multi-bucket: covers both code AND test buckets). Paths relative to
+# ${CLAUDE_PROJECT_DIR}. Empty list `[]` is valid only if validation was
+# scope-less (e.g., environment-only checks). Missing field disables suppression.
+reviewed_files:
+  - src/auth/token.ts
+  - tests/auth/token.test.ts
+
 fix_validation_report:
   metadata:
     issue_id: "{from debug report}"

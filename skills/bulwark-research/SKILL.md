@@ -1,10 +1,12 @@
 ---
 name: bulwark-research
+version: 1.0.1
 description: Structured multi-viewpoint research using 5 parallel Sonnet sub-agents. Use when deep research is needed on a complex topic before implementation planning.
 user-invocable: true
 argument-hint: "<topic, filepath, or directory>"
 skills:
   - subagent-prompting
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Research
@@ -63,6 +65,26 @@ Structured multi-viewpoint research on a given topic. Spawns 5 Sonnet sub-agents
 - `/bulwark-research "agent teams and multi-agent orchestration"` - Research a topic
 - `/bulwark-research --doc plans/proposal.md` - Research from a document
 - `/bulwark-research "loop detection" --context docs/architecture.md` - Research with context
+
+---
+
+## Mandatory Execution Checklist (BINDING)
+
+**Every item below is mandatory. No deviations. No substitutions. No skipping. Skipping items violates SC1-SC3 (Skill Compliance Rules in Rules.md).**
+
+This skill uses a 4-stage pipeline with 5 parallel Sonnet sub-agents. You are the orchestrator, NOT the analyst. Follow every item in order. Do NOT return to the user until all applicable items are checked.
+
+- [ ] **Stage 1 — Pre-Flight**: Topic defined, output directories created, subagent-prompting + all 5 viewpoint references loaded
+- [ ] **Stage 1 — Pre-Flight**: AskUserQuestion used if topic was ambiguous (2-3 questions per round)
+- [ ] **Stage 2 — Agents**: All 5 viewpoint agents spawned in parallel (single message, 5 Task tool calls)
+- [ ] **Stage 2 — Agents**: Sub-agents NOT spawned with `run_in_background: true` (SA5)
+- [ ] **Stage 2 — Outputs**: All agent outputs written to `$PROJECT_DIR/logs/research/{topic-slug}/`
+- [ ] **Stage 3 — Synthesis**: ALL 5 agent outputs read before writing synthesis (MANDATORY — no skipping)
+- [ ] **Stage 3 — Synthesis**: Written using `templates/synthesis-output.md` to `$PROJECT_DIR/artifacts/research/{topic-slug}/synthesis.md` (artifact, not log)
+- [ ] **Stage 3 — Review**: AskUserQuestion used for post-synthesis review
+- [ ] **Stage 3 — Critical Evaluation Gate**: Applied to every user response — classified as Factual / Opinion / Speculative
+- [ ] **Stage 3 — Follow-up**: Spawned for Speculative responses (or user declined with caveat added to synthesis)
+- [ ] **Stage 4 — Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
 
 ---
 
@@ -276,23 +298,3 @@ If token budget is insufficient to complete all 5 agents + synthesis, inform the
 Write to: `$PROJECT_DIR/logs/diagnostics/bulwark-research-{YYYYMMDD-HHMMSS}.yaml`
 
 **Template**: Use `templates/diagnostic-output.yaml` for the schema. Fill in actual values from the session.
-
----
-
-## Completion Checklist
-
-**IMPORTANT**: Before returning to the user, verify ALL items are complete:
-
-- [ ] Stage 1: Pre-flight complete (topic defined, directories created, skills loaded)
-- [ ] Stage 1: AskUserQuestion used if topic was ambiguous
-- [ ] Stage 2: All 5 viewpoint agents spawned in parallel
-- [ ] Stage 2: All agent outputs written to `$PROJECT_DIR/logs/research/{topic-slug}/`
-- [ ] Stage 3: ALL 5 outputs read before writing synthesis
-- [ ] Stage 3: Synthesis written using `templates/synthesis-output.md`
-- [ ] Stage 3: AskUserQuestion used for post-synthesis review
-- [ ] Stage 3: Critical Evaluation Gate applied to all user responses (classified as Factual/Opinion/Speculative)
-- [ ] Stage 3: Follow-up research spawned for Speculative responses (or user declined with caveat added)
-- [ ] Stage 3: Synthesis written to `$PROJECT_DIR/artifacts/research/{topic-slug}/synthesis.md`
-- [ ] Stage 4: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
-
-**Do NOT return to user until all checkboxes can be marked complete.**

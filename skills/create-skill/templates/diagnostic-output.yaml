@@ -9,13 +9,21 @@ diagnostic:
     questions_asked: "{count}"  # 5-10
     follow_ups_triggered: true | false
   classification:
+    primary_archetype: "Generator | Tool Wrapper | Pipeline | Research | Script-driven | Reviewer | Inversion"
+    archetype_reason: "{one-line reason from Q2 answer}"
+    selected_sub_patterns: ["{sub-pattern-1}", "{sub-pattern-2}"]  # 0-N from the chosen archetype's catalog
+    sub_pattern_reason: "{one-line reason or 'none' if empty}"
     context_mode: "inline | fork"
     context_reason: "{one-line reason}"
-    subagent_pattern: "none | sequential | parallel | agent-teams"
-    subagent_reason: "{one-line reason}"
-    supporting_files: ["{file-type-1}", "{file-type-2}"]  # references, templates, scripts
+    grading_mode: "objective | subjective"  # T-020 — Stage 1 resolved; archetype default unless author override
+    grading_mode_reason: "{archetype default | author override — one-line reason}"
+    grading_mode_overridden: true | false  # true if author overrode archetype default at Stage 1 confirmation
+    bundles_scripts: true | false  # T-021 — Stage 1 resolved; canonical for Script-driven; opt-in for others
+    bundles_scripts_reason: "{canonical | follow-up answer | Q1 signal — one-line reason}"
+    bundles_scripts_non_canonical: true | false  # true iff bundles_scripts = true AND archetype ∉ {Script-driven}
+    supporting_files: ["{file-type-1}", "{file-type-2}"]  # references, templates, scripts, agents (Pipeline only)
     supporting_reason: "{one-line reason}"
-    template_selected: "{template-simple | template-reference-heavy | template-pipeline | template-script-driven | template-research}"
+    template_selected: "template-generator | template-tool-wrapper | template-pipeline | template-research | template-script-driven | template-reviewer | template-inversion"
     user_confirmed: true | false
     classification_rounds: "{count}"  # 1-2
   generation:
@@ -25,6 +33,14 @@ diagnostic:
       - path: "{relative-path}"
         lines: "{count}"
     target_directory: "{path}"
+  eval_scaffolding:  # T-020 — Layer 1 DATA emission
+    evals_json_emitted: true | false  # always true on success
+    triggers_json_emitted: true | false  # always true on success
+    compliance_json_emitted: true | false  # true iff grading_mode = subjective
+    placeholder_substitution_complete: true | false  # all <<SKILL_NAME>> etc. substituted; <<TODO>> markers may remain
+    sub_pattern_assertions_added: ["{sub-pattern-1}", "{sub-pattern-2}"]  # which sub-patterns added assertions (per Sub-Pattern × Eval Impact table)
+    starter_test_seeded_from: "Q1 invocation example | other"
+    notes: "{any caveats — e.g., 'compliance.json deferred — author opted out'}"
   validation:
     validator_run: true | false
     critical_findings: "{count}"

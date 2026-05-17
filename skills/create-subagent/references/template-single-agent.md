@@ -24,6 +24,8 @@ tools:
   - {tool-N}
 skills:
   - subagent-output-templating
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # {Agent Title}

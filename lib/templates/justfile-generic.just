@@ -57,3 +57,33 @@ ci: typecheck lint build test
 
 # Alias for manual invocation
 check: ci
+
+# ---------------------------------------------------------------------------
+# Bulwark eval framework (P10.14 F5)
+# ---------------------------------------------------------------------------
+# Runtime dependency: bun. The install-bun and verify-bun recipes delegate to
+# scripts/install-bun.sh (copied into the project by /bulwark-scaffold).
+# The eval-* recipes assume skills/create-skill/scripts/ exists at runtime
+# (i.e., the project has the Bulwark plugin installed via --plugin-dir or
+# marketplace). Without create-skill present, eval-skill/eval-grade fail with
+# a clear "no such file" — acceptable since the eval framework is opt-in.
+
+# Install bun runtime (required for Bulwark eval framework + generated TS scripts)
+install-bun:
+    bash ./scripts/install-bun.sh
+
+# Verify bun is present without installing (idempotent probe)
+verify-bun:
+    bash ./scripts/install-bun.sh --verify
+
+# Run eval loop on a target skill (Layer 2 baseline)
+eval-skill PATH:
+    bun {{justfile_directory()}}/skills/create-skill/scripts/run-loop.ts {{PATH}}
+
+# Grade an eval run; omit timestamp for latest
+eval-grade PATH TIMESTAMP="latest":
+    bun {{justfile_directory()}}/skills/create-skill/scripts/grade.ts {{PATH}} {{TIMESTAMP}}
+
+# Run all evals (orchestrator) — call eval-skill / eval-grade directly with explicit paths.
+eval:
+    just eval-skill && just eval-grade

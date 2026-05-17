@@ -1,12 +1,40 @@
 ---
 name: bulwark-scaffold
-description: Initialize Bulwark infrastructure in a project. Generates Justfile, logs directory, and optional hook configuration.
+description: Initialize Bulwark infrastructure in a project: language-aware Justfile (8 langs), bun + eval-framework toolchain, logs/ subdirectories, and optional hooks.
+when_to_use: Use when the user asks to set up Bulwark in a project, scaffold a Justfile, configure Bulwark hooks, or initialize the eval framework. Do NOT auto-invoke during normal development — this writes files, runs installers, and modifies .gitignore. Also invoked by the Bulwark init skill when scaffolding is selected.
+argument-hint: "[--force] [--no-hooks] [--dry-run] [--lang=<node|python|rust|go|kotlin|swift|shell|generic>]"
 user-invocable: true
+version: 1.0.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Scaffold
 
 Initialize Bulwark infrastructure in a project by generating Justfile templates, creating the logs directory structure, and optionally configuring hooks.
+
+---
+
+## Mandatory Execution Checklist (BINDING)
+
+**Every item below is mandatory. No deviations. No substitutions. No skipping. Skipping items violates SC1-SC3 (Skill Compliance Rules in Rules.md).**
+
+You are the orchestrator. Follow every item in order. Do NOT return to the user until all applicable items are checked.
+
+- [ ] **Step 1 — Parse arguments**: `--force`, `--no-hooks`, `--dry-run`, `--lang=<...>` extracted from `$ARGUMENTS`
+- [ ] **Step 2 — Detect project language**: If `--lang` not supplied, project files inspected (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, etc.); defaults to `generic` when no signal found
+- [ ] **Step 3 — `just` runtime check**: `command -v just` runs; if missing, follow Step 3 install path
+- [ ] **Step 3.5a — `bun` runtime check**: `bash <resolved-installer-path> --verify` invoked (NOT `command -v bun` — that bypasses version check); follow Step 3.5 install path if exit non-zero
+- [ ] **Step 3.5b — Installer copy**: `scripts/install-bun.sh` copied to `${CLAUDE_PROJECT_DIR}/scripts/` so Justfile recipes can reference it project-relatively
+- [ ] **Step 3.6 — Existing Justfile check**: If a Justfile is already present, abort unless `--force` (with backup created)
+- [ ] **Step 4 — Dry-run check**: If `--dry-run`, preview the planned writes and exit without modifying disk
+- [ ] **Step 5 — Justfile generation**: Template emitted from `lib/templates/justfile-<lang>.just`; bun + eval recipes (`install-bun`, `verify-bun`, `eval-skill`, `eval-grade`, `eval`) confirmed present in output
+- [ ] **Step 6 — `logs/` subdirectories**: `diagnostics/`, `validations/`, `debug-reports/` created
+- [ ] **Step 7 — `.gitignore`**: Bulwark log patterns appended idempotently
+- [ ] **Step 8 — Hooks**: If plugin-level hooks active, SKIP `.claude/settings.json` hook injection (anti-duplication)
+- [ ] **Step 9 — Scaffold log**: `logs/scaffold-{ts}.yaml` written with top-level `reviewed_files: [...]` (Stop-hook contract)
+- [ ] **Step 10 — Report results**: User-facing summary emitted listing files written, installer outcomes, and any skipped steps
+
+---
 
 ## Usage
 
@@ -53,7 +81,7 @@ If LANG_OVERRIDE is set, use that. Otherwise, search from current directory for 
 
 Store result in DETECTED_LANG variable. If fallthrough, DETECTED_LANG=`fallthrough` (a marker value, not a template name).
 
-### Step 3: Check for `just` and Existing Justfile
+### Step 3: Verify `just` runtime
 
 **Pre-flight: Verify `just` is installed.**
 
@@ -86,7 +114,52 @@ IF just is NOT found:
         Set SKIP_JUSTFILE=true
 ```
 
-**Check for existing Justfile:**
+### Step 3.5: Verify bun runtime (eval framework + generated TS scripts)
+
+**Pre-flight: Verify `bun` is installed (required for create-skill eval framework + generated archetype scripts).**
+
+```
+1. Locate the source installer (prefer plugin install path; fall back to local-dev):
+     - Plugin install: ${CLAUDE_PLUGIN_ROOT}/scripts/install-bun.sh
+     - Local dev:      ${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh
+   IF neither path exists (rare — repo corruption):
+       Print: "Could not find scripts/install-bun.sh. Install bun manually:"
+       Print: "  macOS:   brew install oven-sh/bun/bun"
+       Print: "  Linux:   curl -fsSL https://bun.sh/install | bash"
+       Print: "  Windows: powershell -c \"irm bun.sh/install.ps1 | iex\""
+       Print: "  Docs:    https://bun.sh/docs/installation"
+       Set SKIP_BUN_FEATURES=true
+       Skip the rest of Step 3.5
+
+2. Copy the installer into the project so the Justfile recipes can reference
+   it project-relatively (the templates use `./scripts/install-bun.sh`):
+     mkdir -p ${CLAUDE_PROJECT_DIR}/scripts
+     cp <resolved-installer-path> ${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh
+     chmod +x ${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh
+   (Idempotent — overwriting any prior copy ensures the project mirrors the
+   currently-installed plugin version.)
+
+3. Run the verify probe with the project-local path (NOT `command -v bun`,
+   which would bypass version checks performed by the installer):
+     bash ${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh --verify
+
+4. IF bun is NOT found OR version < 1.0 (verify exit non-zero):
+     Ask user: "bun is required for the create-skill eval framework and generated TS scripts. Install it now via scripts/install-bun.sh (recommended) or skip eval-framework features?"
+       - If install: Run `bash ${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh`
+         - Exit 0: bun installed → continue
+         - Exit non-zero: installer already printed actionable per-platform
+           instructions → set SKIP_BUN_FEATURES=true (do not re-print)
+       - If skip: Set SKIP_BUN_FEATURES=true; user can install later via `just install-bun`
+
+5. IF bun is found (verify exit 0):
+     Continue (no install needed; idempotent verify).
+```
+
+When `bun` is verified or installed AND the templates have been emitted, the recipes `just install-bun`, `just verify-bun`, `just eval-skill`, `just eval-grade`, and `just eval` are runnable. The first two delegate to the project-local `scripts/install-bun.sh` (copied in step 2); the eval recipes run TS scripts under `skills/create-skill/scripts/` via bun. When `SKIP_BUN_FEATURES=true`, the scaffold continues but the user is informed those features will fail until `just install-bun` runs successfully.
+
+The `bun` check is parallel to the `just` check (Step 3) — both are runtime installers; both follow the same locate-then-execute pattern; both have actionable manual fallbacks.
+
+### Step 3.6: Check for existing Justfile
 
 ```
 IF Justfile exists AND NOT FORCE_OVERWRITE:
@@ -297,6 +370,15 @@ Create parent directories as needed (`mkdir -p`).
 Write to `logs/scaffold-{YYYYMMDD-HHMMSS}.yaml`:
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List every script/.sh file generated or copied during scaffolding (e.g. the
+# project copy of install-bun.sh, any hook scripts copied to scripts/hooks/).
+# Paths relative to ${CLAUDE_PROJECT_DIR}. Empty list `[]` if no script files
+# were touched. Missing field disables suppression for this log (strict mode).
+reviewed_files:
+  - scripts/install-bun.sh
+  - scripts/hooks/enforce-quality.sh
+
 metadata:
   timestamp: {ISO-8601}
   action: scaffold
@@ -376,6 +458,11 @@ Run `just` to see available recipes:
 Write diagnostic log to `logs/diagnostics/bulwark-scaffold-{timestamp}.yaml`:
 
 ```yaml
+# Top-level — mirror the same list emitted in the scaffold report (Stop hook contract).
+reviewed_files:
+  - scripts/install-bun.sh
+  - scripts/hooks/enforce-quality.sh
+
 skill: bulwark-scaffold
 timestamp: {ISO-8601}
 invocation: "{full command}"

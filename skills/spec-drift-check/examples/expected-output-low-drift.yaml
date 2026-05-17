@@ -1,0 +1,67 @@
+# Expected verification log when spec-drift-check runs against examples/low-drift-spec.md.
+# One LOW-severity drift finding (line-ref drift). Verdict: PROCEED_ADJUSTED.
+
+metadata:
+  reviewer: spec-drift-check
+  subject: examples/low-drift-spec.md
+  session: <session-id>
+  timestamp: <ISO-8601>
+  spec_word_count: 220
+  claims_extracted: 2
+  claims_verified: 2
+
+findings:
+  - id: D-01
+    claim_id: C-01
+    category: drift-line-ref
+    severity: LOW
+    spec_claim: "parse_followup_edits_expected defined at scripts/hooks/lib/coverage_check.py:200"
+    actual_state: "def parse_followup_edits_expected(log_path) defined at scripts/hooks/lib/coverage_check.py:275 (off by 75 lines)"
+    resolution: doc fix
+
+  - id: D-02
+    claim_id: C-02
+    category: confirmed
+    severity: n/a
+    spec_claim: "scripts/hooks/lib/coverage_check.py exists"
+    actual_state: "File exists at scripts/hooks/lib/coverage_check.py"
+    resolution: none
+
+ac_reinterpretations: []
+
+adjusted_plan:
+  binding_status: "supersedes original spec for rest of WP"
+  deliverables:
+    - id: AD-01
+      description: "Author tests/hooks/test-coverage-parser.py covering 3 cases"
+      original_spec_step: 1
+      change_from_spec: re-targeted
+      target_path: tests/hooks/test-coverage-parser.py
+      token_estimate: "~6K"
+    - id: AD-02
+      description: "Add test-coverage-parser recipe to Justfile"
+      original_spec_step: 2
+      change_from_spec: unchanged
+      target_path: Justfile
+      token_estimate: "~1K"
+  estimated_token_delta: "0"
+
+verification_checklist:
+  - "Implementer reads parse_followup_edits_expected at line 275 (not 200) when authoring tests"
+  - "tests/hooks/test-coverage-parser.py exits 0 on all 3 cases"
+
+proceed_decision: PROCEED_ADJUSTED
+decision_rationale: |
+  One LOW-severity finding (line-ref drift on parse_followup_edits_expected). File
+  and symbol identity are correct; only the numeric line ref is stale. Resolution
+  is a documentation fix in implementation comments — no scope change. Adjusted
+  plan re-targets Step 1 to use the actual line number.
+
+roi:
+  spent_tokens_estimate: "~5K"
+  estimated_savings: "~10K"
+  net: positive
+  rationale: |
+    Without the drift check, the implementer would have read line 200 and either
+    failed silently or grepped the symbol manually — costing ~10K tokens of rework.
+    The 5K spent on the check pays for itself.

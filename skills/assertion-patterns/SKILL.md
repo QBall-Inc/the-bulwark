@@ -2,6 +2,8 @@
 name: assertion-patterns
 description: Real output verification vs mock calls. Use when transforming T1-T4 violating tests to verify observable behavior.
 user-invocable: false
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Assertion Patterns

@@ -1,21 +1,24 @@
 ---
 name: init
-description: Initialize Bulwark governance in a project. Sets up CLAUDE.md, rules.md, and optional tooling (statusline, LSP, scaffold).
+description: Initialize, verify, or update Bulwark governance in a project. Sets up CLAUDE.md, rules.md, and optional tooling (statusline, LSP, scaffold). --update reviews canonical template changes interactively per-section.
 user-invocable: true
-argument-hint: "[--scope=project|user] [--verify] [target-dir]"
+argument-hint: "[--scope=project|user] [--verify | --update] [target-dir]"
+version: 1.2.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Init
 
-Initialize Bulwark governance for a project or user. Installs governance files and optionally configures statusline, LSP, and project scaffolding.
+Initialize, verify, or update Bulwark governance for a project or user. Installs governance files and optionally configures statusline, LSP, and project scaffolding. The `--update` mode handles propagation of canonical template changes (added rules, new In-Session Protocol sections, etc.) into the user-owned files that init originally wrote — `/plugin` updates skills/agents/hooks but cannot touch user's CLAUDE.md / rules.md.
 
 ## Usage
 
 ```
-/the-bulwark:init                          # Interactive setup
+/the-bulwark:init                          # Interactive fresh install
 /the-bulwark:init --scope=project          # Project scope, skip prompt
 /the-bulwark:init --scope=user             # User scope
 /the-bulwark:init --verify                 # Verify previous init completed
+/the-bulwark:init --update                 # Review canonical template changes interactively
 /the-bulwark:init --scope=project /path    # Project scope at specific path
 ```
 
@@ -26,9 +29,13 @@ Initialize Bulwark governance for a project or user. Installs governance files a
 ```
 IF $ARGUMENTS contains "--verify":
     → Jump to VERIFY MODE (Stage 8)
+ELIF $ARGUMENTS contains "--update":
+    → Jump to UPDATE MODE (Stage 9)
 ELSE:
     → Continue with INIT MODE (Stage 1)
 ```
+
+The three modes are mutually exclusive. `--verify` and `--update` are different operations: `--verify` asserts the original install completed correctly (read-only health check); `--update` proposes per-section additions from updated canonical templates (mutating, but interactive — no section is written without user approval).
 
 ---
 
@@ -190,10 +197,33 @@ If the user selected LSP, scaffold, or both, use AskUserQuestion to determine th
 4. **Other** — User specifies manually
 
 Based on the selection, ensure the language toolchain is installed:
-- **Node/TypeScript**: Check for `node`, `npm`/`bun`. If missing, guide installation.
+- **Node/TypeScript**: Check for `node`, `npm`. If missing, guide installation.
 - **Python**: Check for `python3`, `pip`/`poetry`/`uv`. If missing, guide installation.
 - **Rust**: Check for `rustc`, `cargo`. If missing, guide installation.
 - **Other**: Ask the user what package manager and build tools they use.
+
+**bun runtime (required for Bulwark eval framework + generated TS scripts)**:
+
+The `create-skill` skill emits TypeScript-via-`bun` for eval-loop runs and generated archetype scripts. Verify and install via the bundled platform-aware installer:
+
+1. Locate the installer:
+   - Plugin install: `${CLAUDE_PLUGIN_ROOT}/scripts/install-bun.sh`
+   - Local dev: `${CLAUDE_PROJECT_DIR}/scripts/install-bun.sh`
+
+2. Verify-only check (does not install):
+   ```bash
+   bash <installer-path> --verify
+   ```
+   Exit 0 → bun ≥ 1.0 present, skip install.
+   Exit 1 → bun missing or version below required.
+
+3. Active install (idempotent — no-ops if already installed):
+   ```bash
+   bash <installer-path>
+   ```
+   Or via the scaffolded Justfile: `just install-bun`.
+
+Platform support: Linux + macOS + WSL via `curl|bash` from `bun.sh/install`; Windows-native prints PowerShell instructions (`powershell -c "irm bun.sh/install.ps1 | iex"`). PATH integration writes to bun's default location (`$HOME/.bun/bin`) — installer prints rc-line guidance for bash/zsh/fish if the new shell does not pick it up automatically.
 
 Also check for project manifest files (`package.json`, `pyproject.toml`, `Cargo.toml`). If none exist, ask the user if they want to initialize one (e.g., `npm init`, `cargo init`).
 
@@ -233,13 +263,37 @@ Follow the setup-lsp skill instructions completely. Note: setup-lsp has its own 
 
 ### Stage 7: Write State and Finish
 
-Write a state file for `--verify` mode to use later:
+Two separate state artifacts are written at this stage:
+
+**Artifact 1 — Ephemeral verification state** (this skill writes):
 
 ```bash
 mkdir -p "$CLAUDE_PROJECT_DIR/tmp/init"
 ```
 
-Write to `$CLAUDE_PROJECT_DIR/tmp/init/init-state.yaml` using the schema from [templates/init-state.yaml](templates/init-state.yaml). Populate all placeholder values with actual data from this session.
+Write to `$CLAUDE_PROJECT_DIR/tmp/init/init-state.yaml` using the schema from [templates/init-state.yaml](templates/init-state.yaml). Populate all placeholder values with actual data from this session. This file is read once by `--verify` (Stage 8) and deleted on successful verification.
+
+**Artifact 2 — Durable install marker** (`scripts/init.sh` writes automatically):
+
+`scripts/init.sh` writes `.bulwark/init-marker.yaml` to the scope root (project: `$PROJECT_DIR/.bulwark/init-marker.yaml`; user: `$HOME/.bulwark/init-marker.yaml`) at install time. Schema:
+
+```yaml
+version: "1.2.0"             # Bulwark version at install (from plugin.json)
+init_at: "2026-05-09T22:30:00Z"
+scope: project | user
+scope_root: "/path/to/scope/root"
+artifacts_written:
+  - path: "CLAUDE.md"        # relative to scope_root
+    canonical: "lib/templates/claude.md"  # relative to plugin root
+  - path: ".claude/rules/rules.md"
+    canonical: "lib/templates/rules.md"
+```
+
+This marker is durable (not deleted by `--verify`). It is consumed by:
+- `scripts/hooks/check-template-drift.sh` — SessionStart hook silent-skips when marker absent (no false-positive drift on user-custom Rules.md projects)
+- `/the-bulwark:init --update` (UPDATE MODE, Stage 9) — iterates `artifacts_written` to know which user files to diff against canonical templates
+
+The marker is updated (NOT recreated) when UPDATE MODE applies template changes — the `version` field bumps to the current Bulwark version on successful update.
 
 Present final summary to the user:
 
@@ -435,3 +489,31 @@ Clean up the state file after successful verification:
 ```bash
 rm $CLAUDE_PROJECT_DIR/tmp/init/init-state.yaml
 ```
+
+---
+
+## UPDATE MODE
+
+### Stage 9: Review Canonical Template Changes
+
+Triggered by `--update` flag. Detects sections present in canonical templates (`${CLAUDE_PLUGIN_ROOT}/lib/templates/`) that are missing from the user's installed copies, and offers batched per-section interactive review (Accept / Skip), with full-content inspection available upfront at Stage 9c pre-flight.
+
+**Detail reference (BINDING)**: [references/update-mode.md](references/update-mode.md). Load before executing UPDATE MODE — covers full step-by-step procedure (marker read + backward-compat, drift detection, pre-flight summary, per-section interactive loop, marker version bump + audit log, final summary, full error matrix).
+
+**Sub-references** (load on-demand):
+- [references/update-section-anchor-diff.md](references/update-section-anchor-diff.md) — diff algorithm spec; section-anchor extraction; per-artifact-type recipes
+- [references/update-askuser-prompts.md](references/update-askuser-prompts.md) — canonical AskUserQuestion templates per artifact type
+
+**Helper scripts** (in `${CLAUDE_PLUGIN_ROOT}/scripts/`):
+- `update.sh` — marker parsing, section-anchor diff, drift report writer
+- `apply-section.sh` — position-aware section insertion (with append-at-end fallback)
+
+**Stage 9 high-level flow** (each step expanded in references/update-mode.md):
+1. **9a — Read marker**: `${SCOPE_ROOT}/.bulwark/init-marker.yaml`. If absent, fire backward-compat AskUserQuestion (offers to write marker for the current install state).
+2. **9b — Compute drift**: invoke `update.sh --check --marker="$MARKER"` → drift report at `${SCOPE_ROOT}/.bulwark/drift-report-{timestamp}.yaml`. Zero drift → present "up to date" and exit.
+3. **9c — Pre-flight confirm**: single AskUserQuestion summarizing drift count + offering full-content inspection ("Show full content for all sections first") + abort option before the batched loop.
+4. **9d — Batched review loop**: drift items grouped into batches of ≤4 (AskUserQuestion's max questions-per-call); each batch fires ONE AskUserQuestion with tabbed questions, each tab Accept/Skip only. After batch submitted, Accepted items are applied SEQUENTIALLY via `apply-section.sh` (any failure aborts the entire run). Continues until all drift items processed.
+5. **9e — Marker bump + audit log**: bump `version` field to current plugin version, update `init_at`, write `update-log-{timestamp}.yaml` recording per-section decisions.
+6. **9f — Final summary**: present applied/skipped counts + audit log path + reassurance that next-session drift hook will silent-skip (or re-fire if user skipped sections they later want).
+
+**Critical contract (read references/update-mode.md before executing)**: helper-script failures abort the loop — partial-state writes to user files are NOT acceptable. Marker absence is a backward-compat case, NOT an error. User-driven Skip is a valid outcome (write audit log normally).

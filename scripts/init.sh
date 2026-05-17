@@ -128,6 +128,62 @@ echo "  CLAUDE.md installed at $CLAUDE_TARGET"
 
 "$SCRIPT_DIR/init-rules.sh" "$RULES_TARGET_DIR"
 
+# --- Write .bulwark/init-marker.yaml ---
+# Durable marker recording WHAT init wrote and at WHAT version. Read by:
+#   - scripts/hooks/check-template-drift.sh (silent skip if marker absent → no false-positive drift on user-custom Rules.md)
+#   - skills/init/SKILL.md UPDATE MODE (iterates artifacts_written to know which user files to diff vs canonical)
+# Schema is locked; bulwark-update mode parses it deterministically.
+
+if [ "$SCOPE" = "user" ]; then
+  MARKER_DIR="$HOME/.bulwark"
+else
+  MARKER_DIR="$PROJECT_DIR/.bulwark"
+fi
+MARKER_PATH="$MARKER_DIR/init-marker.yaml"
+
+# Resolve plugin version from plugin.json (single source of truth).
+# Defensive: if plugin.json or jq missing, fall back to "unknown".
+PLUGIN_MANIFEST="$PLUGIN_DIR/.claude-plugin/plugin.json"
+if [ -f "$PLUGIN_MANIFEST" ] && command -v jq >/dev/null 2>&1; then
+  PLUGIN_VERSION=$(jq -r '.version // "unknown"' "$PLUGIN_MANIFEST" 2>/dev/null || echo "unknown")
+else
+  PLUGIN_VERSION="unknown"
+fi
+
+INIT_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+mkdir -p "$MARKER_DIR"
+
+# Compute artifact paths relative to the scope root (RULES_TARGET_DIR for project; HOME for user).
+# CLAUDE.md is at scope root; rules.md is at .claude/rules/rules.md (project) or rules/rules.md (user, since HOME/.claude/rules/rules.md → .claude/rules/rules.md relative to HOME).
+if [ "$SCOPE" = "user" ]; then
+  CLAUDE_REL=".claude/CLAUDE.md"
+  RULES_REL=".claude/rules/rules.md"
+  SCOPE_ROOT="$HOME"
+else
+  CLAUDE_REL="CLAUDE.md"
+  RULES_REL=".claude/rules/rules.md"
+  # Resolve PROJECT_DIR to an absolute path (drift hook reads scope_root and must not depend on cwd).
+  SCOPE_ROOT="$(cd "$PROJECT_DIR" && pwd -P)"
+fi
+
+cat > "$MARKER_PATH" <<EOF
+# .bulwark/init-marker.yaml — written by scripts/init.sh at install time.
+# DO NOT delete or hand-edit unless you intend to re-run /the-bulwark:init.
+# Used by check-template-drift.sh (SessionStart hook) and /the-bulwark:init --update.
+version: "$PLUGIN_VERSION"
+init_at: "$INIT_TIMESTAMP"
+scope: $SCOPE
+scope_root: "$SCOPE_ROOT"
+artifacts_written:
+  - path: "$CLAUDE_REL"
+    canonical: "lib/templates/claude.md"
+  - path: "$RULES_REL"
+    canonical: "lib/templates/rules.md"
+EOF
+
+echo "  Init marker written at $MARKER_PATH"
+
 # --- Post-init checklist ---
 
 echo ""

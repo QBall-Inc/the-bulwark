@@ -31,6 +31,8 @@ user-invocable: true
 argument-hint: "<topic, filepath, or directory>"
 skills:
   - subagent-prompting
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # {Skill Title}
@@ -65,23 +67,22 @@ skills:
 
 ---
 
-## Pre-Flight Gate (BLOCKING)
+## Mandatory Execution Checklist (BINDING)
 
-**STOP. This skill spawns multiple sub-agents. You are the orchestrator.**
+**Every item below is mandatory. No deviations. No substitutions. No skipping. Skipping items violates SC1-SC3 (Skill Compliance Rules in Rules.md).**
 
-### What You MUST Do
+This skill spawns multiple sub-agents for research/analysis. You are the orchestrator, NOT the analyst. Follow every item in order. Do NOT return to the user until all applicable items are checked.
 
-1. Conduct an iterative interview (AskUserQuestion) to clarify the research topic
-2. Load all viewpoint/role reference files
-3. Spawn agents per the pipeline (parallel or sequential as defined)
-4. Write synthesis from agent outputs
-5. Write diagnostic YAML
-
-### What You MUST NOT Do
-
-- Do NOT analyze the topic yourself — spawn agents
-- Do NOT skip the interview — topic clarity determines agent quality
-- Do NOT skip synthesis — raw agent output is not the deliverable
+- [ ] **Stage 0 — Interview**: AskUserQuestion conducted (1-2 rounds to clarify research topic)
+- [ ] **Stage 0 — Pre-Flight**: All viewpoint/role reference files loaded
+- [ ] **Stage 0 — Pre-Flight**: Output templates loaded
+- [ ] **Stage 1 — Agents**: All agents spawned per pipeline (parallel or sequential) — you MUST NOT analyze the topic yourself
+- [ ] **Stage 1 — Agents**: Sub-agents NOT spawned with `run_in_background: true` (SA5)
+- [ ] **Stage 1 — Agent outputs** written to `$PROJECT_DIR/logs/{skill-name}/`
+- [ ] **Stage 2 — Synthesis**: ALL agent outputs read, convergent + divergent findings identified
+- [ ] **Stage 2 — Synthesis**: Synthesis written to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/synthesis.md` (NOT to `logs/`)
+- [ ] **Stage 3 — Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
+- [ ] **Key findings presented to user**
 
 ---
 
@@ -161,17 +162,6 @@ Write to `$PROJECT_DIR/logs/diagnostics/{skill-name}-{YYYYMMDD-HHMMSS}.yaml`
 | Agent returns empty output | Re-spawn once. If still empty, note in synthesis and continue with remaining agents. |
 | Agent produces off-topic analysis | Note in synthesis. Do not re-spawn — off-topic output often reveals unexpected angles. |
 | Token budget exceeded mid-pipeline | Complete current agent, skip remaining, synthesize from available outputs. |
-
----
-
-## Completion Checklist
-
-- [ ] Interview conducted (1-2 rounds)
-- [ ] All agents spawned and completed
-- [ ] All agent outputs in `$PROJECT_DIR/logs/{skill-name}/`
-- [ ] Synthesis written to `$PROJECT_DIR/artifacts/{skill-name}/{topic-slug}/synthesis.md`
-- [ ] Diagnostic YAML written
-- [ ] Key findings presented to user
 ```
 
 ## Generated Viewpoint/Role File Structure
@@ -199,6 +189,39 @@ When analyzing a topic, you prioritize:
 - {How this viewpoint differs from others in the pipeline}
 ```
 
+## Common Sub-Patterns
+
+Research skills exhibit several recurring sub-patterns. Sub-patterns are additive — pick those that apply.
+
+### `reviewer-validated`
+
+**Definition**: Research skill embeds a Reviewer-shaped validation gate (often called a "Critical Evaluation Gate") that challenges or grounds findings before synthesis. Without this sub-pattern, multi-viewpoint research can synthesize speculative claims as fact.
+
+**When to use**: Default ON for any Research skill whose findings will drive downstream decisions. Per Anthropic faithfulness research (April 2025), unchallenged multi-agent output is unreliable ground truth.
+
+**Bulwark example**: `bulwark-research` includes a Critical Evaluation Gate that classifies findings (Factual / Opinion / Speculative) and triggers targeted follow-up agents for unvalidated claims; `plan-creation-architect` / `plan-creation-eng-lead` / `plan-creation-po` SHOULD adopt this pattern (currently missing — see `existing-skills-archetype-mapping.md`).
+
+**How it shapes the skill**:
+- Add an explicit "Critical Evaluation Gate" stage between agent spawning and synthesis.
+- Gate classifies findings and routes high-uncertainty claims to a Reviewer-shaped follow-up agent.
+- Synthesis incorporates ONLY claims that passed the gate (or explicitly flags un-validated claims).
+- Reference Reviewer template's `multi-source` sub-pattern when authoring the gate's logic.
+
+### `source-tier-disciplined`
+
+**Definition**: Research skill enforces explicit source-tier classification (T1 = primary/canonical, T2 = secondary/expert, T3 = community/unverified) on cited sources.
+
+**When to use**: Web-search-heavy research where source quality varies wildly. Without source tiers, synthesis treats reddit posts and academic papers equivalently.
+
+**Bulwark example**: `bulwark-research` (~52 T1 / ~30 T2 / ~22 T3 in the S105 effort); `product-ideation-market-researcher` and `product-ideation-competitive-analyzer` apply tier discipline implicitly.
+
+**How it shapes the skill**:
+- Each agent's output schema includes a `source_tiers` field summarizing T1/T2/T3 counts.
+- Synthesis stage cross-validates T3 claims against T1/T2 evidence (do NOT promote T3-only HIGH-confidence findings).
+- Document the tier definitions in `references/source-tiers.md`.
+
+---
+
 ## Guidance for Generator
 
 - Research/brainstorm skills are the most token-intensive — warn about budget
@@ -208,3 +231,4 @@ When analyzing a topic, you prioritize:
 - 3-5 agents is the sweet spot — fewer lacks diversity, more exceeds token budgets
 - Include `argument-hint` in frontmatter for better UX in the `/` menu
 - Viewpoint/role reference files should be 40-80 lines each
+- **Default the `reviewer-validated` sub-pattern ON** for new Research skills — multi-viewpoint output without challenge is unreliable per Anthropic faithfulness research

@@ -2,7 +2,7 @@
 
 This checklist is used when dynamic documentation fetch fails. May be outdated - prefer fetched standards.
 
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-04-26
 
 ---
 
@@ -21,6 +21,8 @@ tools:
   - Grep
 skills:
   - skill-name
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Agent Name
@@ -32,20 +34,31 @@ Instructions for the agent...
 
 ## Frontmatter Requirements
 
-### Required Fields
+### Anthropic-Official Required Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string | Agent name, should match filename |
 | `description` | string | What the agent does |
 
-### Optional Fields
+### Anthropic-Official Optional Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `model` | string | `haiku`, `sonnet`, or `opus` |
 | `tools` | array | Allowed tools for this agent |
-| `skills` | array | Skills to load |
+| `skills` | array | Skills to load (officially documented for agent frontmatter) |
+
+### Bulwark-Adopted Fields (informational notes, not violations)
+
+These fields are non-Anthropic-official but intentionally standardized across Bulwark assets. They appear in the validator's `bulwark_adopted_fields` report section and do not count against the verdict.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | string | Semver string for traceability (e.g., `1.0.0`). |
+| `author` | string | Attribution. First-party Bulwark uniform: `"Ashay Kubal @ Qball Inc."` |
+
+Any frontmatter field not in either of the above tables is `unknown` and remains a HIGH-severity violation.
 
 ---
 

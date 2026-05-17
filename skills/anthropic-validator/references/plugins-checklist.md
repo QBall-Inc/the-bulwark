@@ -2,7 +2,7 @@
 
 This checklist is used when dynamic documentation fetch fails. May be outdated - prefer fetched standards.
 
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-04-30 (S112 — corrected false-positive checks for skills/agents arrays + npm-metadata fields per https://code.claude.com/docs/en/plugins)
 
 ---
 
@@ -39,20 +39,20 @@ All component directories (`agents/`, `skills/`, `hooks/`) MUST be at plugin roo
 
 ### Format
 
+**Required fields**: `name`, `description`. **Optional**: `version`, `author`.
+
 ```json
 {
   "name": "plugin-name",
-  "version": "1.0.0",
   "description": "What this plugin provides",
-  "skills": [
-    "skill-one",
-    "skill-two"
-  ],
-  "agents": [
-    "agent-one"
-  ]
+  "version": "1.0.0",
+  "author": { "name": "Your Name" }
 }
 ```
+
+**Auto-discovery is canonical**: Skills are auto-discovered from `skills/` and agents from `agents/`. The manifest does NOT need to enumerate them. If you DO add `skills:` / `agents:` arrays, they must match filesystem reality, but their absence is the standard pattern.
+
+**Additive metadata is permitted**: `homepage`, `repository`, `license`, `keywords` are accepted as npm + marketplace fields. The Anthropic loader ignores them; do not flag as violations.
 
 ---
 
@@ -61,21 +61,21 @@ All component directories (`agents/`, `skills/`, `hooks/`) MUST be at plugin roo
 - [ ] `.claude-plugin/plugin.json` exists
 - [ ] Manifest JSON is valid
 - [ ] `name` field present and valid
+- [ ] `description` field present
 - [ ] Component directories at root (not in .claude-plugin/)
 
 ## High Priority
 
-- [ ] `version` follows semver
+- [ ] `version` follows semver (when present — optional)
 - [ ] `description` explains plugin purpose
-- [ ] All skills listed in manifest exist in `skills/`
-- [ ] All agents listed in manifest exist in `agents/`
+- [ ] If `skills:` array IS present, every entry matches a real directory under `skills/`
+- [ ] If `agents:` array IS present, every entry matches a real file under `agents/`
 - [ ] Skills follow flat directory structure (one level)
 
 ## Medium Priority
 
 - [ ] README.md documents usage
 - [ ] License file present
-- [ ] No unused skills/agents
 - [ ] Consistent naming
 
 ## Low Priority
@@ -119,10 +119,16 @@ skills/
 |-----------|----------|-------------|
 | Missing plugin.json | Critical | Create `.claude-plugin/plugin.json` |
 | Invalid JSON | Critical | Fix JSON syntax |
+| Missing `name` or `description` | Critical | Add the required field |
 | Components in .claude-plugin/ | Critical | Move to root level |
 | Nested skills structure | High | Flatten to single level |
-| Missing manifest entry | High | Add to skills/agents array |
-| Unlisted component | Medium | Add to manifest or remove |
+| `skills:` array entry not on filesystem | High | Remove the dangling entry or add the directory (drift) |
+| `agents:` array entry not on filesystem | High | Remove the dangling entry or add the file (drift) |
+
+**NOT violations** (do not emit findings against these — see Allowlist in `plugins-validation.md`):
+
+- `plugin.json` without `skills:` or `agents:` arrays — auto-discovery is canonical.
+- `homepage` / `repository` / `license` / `keywords` fields — additive npm/marketplace metadata, not non-spec.
 
 ---
 

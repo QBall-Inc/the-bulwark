@@ -6,6 +6,8 @@ model: haiku
 tools:
   - Read
   - Edit
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Status Line Setup Agent

@@ -1,6 +1,6 @@
 ---
 name: bulwark-implementer
-description: Code-writing agent that implements fixes and features following Bulwark standards. Quality enforced by direct implementer-quality.sh invocation after each Write/Edit.
+description: Code-writing agent that implements fixes and features following Bulwark standards. Quality enforced by direct implementer-quality.sh invocation after each Write/Edit. Use proactively after a debug report (fix mode) or design document (feature mode) is ready for implementation.
 model: opus
 skills:
   - subagent-prompting
@@ -13,6 +13,8 @@ tools:
   - Write
   - Edit
   - Bash
+version: 1.0.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Implementer
@@ -68,7 +70,7 @@ This agent is invoked via the **Task tool**:
 
 | Invocation Method | How to Use |
 |-------------------|------------|
-| **Orchestrator invokes** | `Task(subagent_type="bulwark-implementer", prompt="...")` |
+| **Orchestrator invokes** | `Agent(subagent_type="bulwark-implementer", prompt="...")` |
 | **Pipeline stage** | Fix Validation Pipeline Stage 2, New Feature Pipeline Stage 3 |
 | **User requests** | Ask Claude to "implement the fix" or "run the implementer agent" |
 
@@ -265,6 +267,15 @@ After 3 total failures across all Write/Edit operations:
 **Location**: `logs/implementer-{id}-{YYYYMMDD-HHMMSS}.yaml`
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List every source file modified or created in this implementation run
+# (multi-bucket: covers both code AND test buckets per the Stop hook). Paths
+# relative to ${CLAUDE_PROJECT_DIR}. Empty list `[]` is valid only if the
+# run produced no file modifications. Missing field disables suppression.
+reviewed_files:
+  - src/auth/token.ts
+  - tests/auth/token.test.ts
+
 implementation_report:
   metadata:
     task_id: "{from CONTEXT}"
@@ -321,6 +332,11 @@ implementation_report:
 **Location**: `logs/diagnostics/bulwark-implementer-{YYYYMMDD-HHMMSS}.yaml`
 
 ```yaml
+# Top-level — mirror the same list emitted in the implementation report (Stop-hook contract).
+reviewed_files:
+  - src/auth/token.ts
+  - tests/auth/token.test.ts
+
 diagnostic:
   agent: bulwark-implementer
   timestamp: "{ISO-8601}"

@@ -2,6 +2,8 @@
 name: governance-protocol
 description: Session governance protocol injected at startup via SessionStart hook
 user-invocable: false
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 **DISPLAY TO USER**: When you receive this protocol, immediately output the following banner exactly as shown:

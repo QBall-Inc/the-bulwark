@@ -2,6 +2,8 @@
 name: subagent-prompting
 description: Template for structured sub-agent invocation using 4-part prompting (GOAL/CONSTRAINTS/CONTEXT/OUTPUT) and F# pipeline notation. Use when orchestrating sub-agents or designing multi-agent workflows.
 user-invocable: false
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Sub-Agent Prompting Template

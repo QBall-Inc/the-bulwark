@@ -20,6 +20,7 @@ Synthesize classification and violation findings into prioritized audit report w
 - Priority by impact: P0 (false confidence), P1 (incomplete), P2 (pattern)
 - Provide directional rewrite guidance (orchestrator figures out specifics)
 - Complete within 20 tool calls
+- **MANDATORY**: emit a top-level `reviewed_files: [<test file path>, ...]` field in BOTH the audit report (`logs/test-audit-{ts}.yaml`) and the diagnostic (`logs/diagnostics/test-audit-{ts}.yaml`). Paths relative to `${CLAUDE_PROJECT_DIR}`. The Stop hook reads this field to suppress per-file pipeline-recursion fires on the next turn. Missing field disables suppression for this log (strict mode).
 
 ## CONTEXT
 

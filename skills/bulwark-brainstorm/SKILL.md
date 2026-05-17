@@ -5,6 +5,8 @@ user-invocable: true
 argument-hint: "<topic, filepath, or directory> [--research <synthesis-file>] [--scoped | --exploratory]"
 skills:
   - subagent-prompting
+version: 1.0.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Brainstorm
@@ -241,7 +243,7 @@ Stage 3B: Role Analysis (--exploratory)
 │   ├── Problem statement + research synthesis
 │   ├── Dual-output contract (SA2)
 │   ├── Peer debate directives
-│   └── AT mitigation patterns (3 mandatory)
+│   └── AT mitigation patterns (4 mandatory: CC-ALL, task list, completion signal, confirmation handshake)
 ├── Wait for all teammates to complete
 ├── Read all 3 output files from logs/
 └── Token budget check (checkpoint if >45%)
@@ -251,7 +253,7 @@ Stage 3B: Role Analysis (--exploratory)
 
 #### AT Teammate Prompt Structure, Configuration, and Failure Recovery
 
-**MANDATORY**: Load `references/at-teammate-prompts.md` before constructing Stage 3B teammate prompts. It contains the full prompt structure (6 sections including dual-output contract, peer debate directives, 3 AT mitigation patterns, and Critic deferred-verdict directive), AT configuration (hardcoded settings), and failure recovery procedures.
+**MANDATORY**: Load `references/at-teammate-prompts.md` before constructing Stage 3B teammate prompts. It contains the full prompt structure (6 sections including dual-output contract, peer debate directives, 4 AT mitigation patterns, Critic deferred-verdict directive, and Lead Coordination Gates), AT configuration (hardcoded settings), and failure recovery procedures.
 
 ### Stage 4: Critical Analyst — `--scoped` Mode ONLY (Opus, Sequential — Last)
 
@@ -557,7 +559,8 @@ Write to: `$PROJECT_DIR/logs/diagnostics/bulwark-brainstorm-{YYYYMMDD-HHMMSS}.ya
 - [ ] Stage 1: AT Confirmation Flow completed (token warning + model class choice)
 - [ ] Stage 3B: Delegate mode entered, 3 AT teammates spawned with correct model class
 - [ ] Stage 3B: All teammate outputs written to `$PROJECT_DIR/logs/brainstorm/{topic-slug}/`
-- [ ] Stage 3B: AT mitigation patterns included in all teammate prompts (CC-to-lead, task list, completion signal)
+- [ ] Stage 3B: AT mitigation patterns included in all teammate prompts (CC-ALL, task list, completion signal, confirmation handshake)
+- [ ] Stage 3B: Lead enforces Work-Complete Confirmation Gate, Re-Entry Gate, and Rendezvous Gate before synthesis
 - [ ] Stage 6: AT-specific metrics captured in diagnostic YAML
 
 **Do NOT return to user until all applicable checkboxes can be marked complete.**

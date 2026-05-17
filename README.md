@@ -21,6 +21,8 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@qball-inc/the-bulwark"><img src="https://img.shields.io/npm/v/@qball-inc/the-bulwark?label=npm" alt="npm version" /></a>
+  <a href="https://github.com/QBall-Inc/the-bulwark/releases/latest"><img src="https://img.shields.io/github/v/release/QBall-Inc/the-bulwark?label=release" alt="Latest GitHub release" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep%20a%20changelog-orange" alt="Changelog" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a>
 </p>
 
@@ -32,7 +34,7 @@
 
 ## What is The Bulwark?
 
-The Bulwark is a [Claude Code plugin](https://docs.anthropic.com/en/docs/claude-code/plugins) that adds automated quality enforcement to your development workflow. It ships 28 skills, 15 custom agents, and a set of hooks that run programmatic checks on every code change you make.
+The Bulwark is a [Claude Code plugin](https://docs.anthropic.com/en/docs/claude-code/plugins) that adds automated quality enforcement to your development workflow. It ships 30 skills, 15 custom agents, and a set of hooks that run programmatic checks on every code change you make.
 
 The Bulwark is the culmination of close to 6 weeks and 100 sessions of intense planning & research, co-partnered by Claude and myself. The goal was straightforward: take everything I'd learned running Claude Code over 8 months and package it into a governance layer that actually enforces standards instead of suggesting them.
 
@@ -187,13 +189,16 @@ Rules are not advisory. They're injected as binding instructions. Claude treats 
 
 ## Hooks
 
-The Bulwark installs four hooks that run automatically. No manual invocation needed.
+The Bulwark installs eight hooks that run automatically. No manual invocation needed.
 
 | Hook | Event | Trigger | Timeout | What It Does |
 |------|-------|---------|---------|--------------|
-| `enforce-quality.sh` | PostToolUse | Every `Write` or `Edit` on code files | 60s | Runs `just typecheck`, `just lint`, `just build`. Flags failures to Claude with full error output. Skips non-code files (`tmp/`, `logs/`, `.claude/`, `docs/`). |
+| `enforce-quality.sh` | PostToolUse | Every `Write`, `Edit`, or `MultiEdit` on code files | 60s | Runs `just typecheck`, `just lint`, `just build`. Flags failures to Claude with full error output. Skips non-code files (`tmp/`, `logs/`, `.claude/`, `docs/`). |
+| `suggest-pipeline-stop.sh` | Stop | End of every Claude turn | 30s | Suggests relevant review/audit pipelines based on session activity. File-type-aware routing, per-file registry, post-fix grace period to suppress redundant suggestions. |
 | `inject-protocol.sh` | SessionStart | Every new session | 5s | Injects the governance protocol into Claude's context. Loads Rules.md, activates quality enforcement, displays the activation banner. |
 | `cleanup-stale.sh` | SessionStart | Every new session | 30s | Deletes files older than 10 days from `logs/` and `tmp/`. Preserves `.gitkeep` files. Keeps your repo from accumulating stale pipeline output. |
+| `cleanup-review-registry.sh` | SessionStart | Every new session | 5s | Wipes stale review-accumulator state so pipeline gating works correctly across sessions. |
+| `check-template-drift.sh` | SessionStart | Every new session in a Bulwark-initialized project | 5s | Detects drift between project's `CLAUDE.md`/`Rules.md` and the canonical templates shipped with the current plugin version. Surfaces drifting sections for `/the-bulwark:init --update`. |
 | `track-pipeline-start.sh` | SubagentStart | Any sub-agent spawned | 30s | Logs pipeline invocation metadata (agent name, timestamp, parent context) for observability. |
 | `track-pipeline-stop.sh` | SubagentStop | Any sub-agent exits | 30s | Logs pipeline completion metadata (agent name, duration, exit status) for observability. |
 
@@ -213,6 +218,7 @@ Skills for ideation, research, and planning. These don't write code. They run mu
 | [bulwark-research](docs/skills/bulwark-research.md) | Spawns 5 parallel sub-agents to research different viewpoints on a topic. Merges findings into a synthesis document. | 5 parallel Sonnet agents (dynamically created) |
 | [bulwark-brainstorm](docs/skills/bulwark-brainstorm.md) | Dual-mode brainstorming. `--scoped` runs 5 roles sequentially via Task tool. `--exploratory` runs 4 roles concurrently via Agent Teams with real-time peer debate. | Sequential: 5 role agents. Agent Teams: 4 concurrent agents + Critic. |
 | [plan-creation](docs/skills/plan-creation.md) | Creates implementation plans with a 4-role scrum team. Produces phases, workpackages, tasks, and delivery schedules. Dual-mode (Task tool or Agent Teams). | [PO](docs/agents/plan-creation-po.md), [Architect](docs/agents/plan-creation-architect.md), [Eng Lead](docs/agents/plan-creation-eng-lead.md), [QA/Critic](docs/agents/plan-creation-qa-critic.md) |
+| [plan-to-tasks](docs/skills/plan-to-tasks.md) | Transforms a `plan-creation` plan into CLEAR-compatible execution structure — `tasks.yaml` workpackage index plus per-WP YAML files. Supports parent/child plan linkage with bidirectional references. | None (single-context pipeline) |
 
 ### Code quality
 
@@ -224,6 +230,7 @@ Skills that review, test, and fix code. These are the enforcement layer that run
 | [test-audit](docs/skills/test-audit.md) | Audits test suites for T1-T4 violations using AST analysis, mock detection, and multi-stage synthesis. Triggers automatic rewrites when quality gates fail. | Haiku (classification), Sonnet (mock detection, synthesis) |
 | [fix-bug](docs/skills/fix-bug.md) | 5-stage fix validation pipeline: analyze, implement, write tests, audit tests, validate fix. | [issue-analyzer](docs/agents/bulwark-issue-analyzer.md), [implementer](docs/agents/bulwark-implementer.md), [fix-validator](docs/agents/bulwark-fix-validator.md) |
 | [issue-debugging](docs/skills/issue-debugging.md) | Systematic debugging methodology with root cause analysis, impact mapping, tiered validation plans, and confidence assessment. | [issue-analyzer](docs/agents/bulwark-issue-analyzer.md), [fix-validator](docs/agents/bulwark-fix-validator.md) |
+| [spec-drift-check](docs/skills/spec-drift-check.md) | Audits a WP brief, plan doc, or memory entry for drift against current code state. Extracts claims, verifies each, emits PROCEED/STOP verdict. Mandatory Stage 0 (per `SD1` rule) of any new or resumed WP implementation. | None (single-context pipeline) |
 | [mock-detection](docs/skills/mock-detection.md) | Deep mock appropriateness analysis. Determines whether mocks in a test file are legitimate or T1-T4 violations. | Sonnet agent (analysis) |
 | [test-classification](docs/skills/test-classification.md) | Classifies test files by type (unit, integration, E2E) and identifies which files need deeper mock analysis. | Haiku agents (batch classification) |
 | [test-fixture-creation](docs/skills/test-fixture-creation.md) | Creates unbiased test fixtures using a Sonnet agent that can't read the implementation. Fixtures integrate with project infrastructure and hook automation. | Sonnet agent (fixture generation) |
@@ -394,6 +401,17 @@ These are on the roadmap. No timeline commitments, but they represent the direct
 **Agent memory.** Persistent memory for sub-agents across invocations. Agents remember patterns from previous runs — common failure modes, project-specific conventions, recurring issues — and apply that context automatically.
 
 **Smarter pipeline routing.** Better orchestration for review-then-fix workflows. When a code review finds issues, automatically route to fix validation without manual intervention. Tighter feedback loops between review, fix, and retest stages.
+
+---
+
+## Releases & changelog
+
+- **Latest release**: [github.com/QBall-Inc/the-bulwark/releases/latest](https://github.com/QBall-Inc/the-bulwark/releases/latest)
+- **Full version history**: [CHANGELOG.md](CHANGELOG.md)
+- **npm releases**: [npmjs.com/package/@qball-inc/the-bulwark](https://www.npmjs.com/package/@qball-inc/the-bulwark)
+- **Update an installed plugin**: `claude plugin update the-bulwark@qball-inc`
+
+The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each release on GitHub includes release notes plus a link to the corresponding CHANGELOG section.
 
 ---
 

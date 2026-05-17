@@ -39,6 +39,8 @@ description: {single-line, trigger-specific, "Use when..." framing}
 user-invocable: true
 skills:
   - subagent-prompting
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # {Skill Title}
@@ -73,27 +75,21 @@ skills:
 
 ---
 
-## Pre-Flight Gate (BLOCKING)
+## Mandatory Execution Checklist (BINDING)
 
-**STOP. Before ANY work, you MUST acknowledge what this skill requires.**
+**Every item below is mandatory. No deviations. No substitutions. No skipping. Skipping items violates SC1-SC3 (Skill Compliance Rules in Rules.md).**
 
-This skill uses a **multi-stage pipeline with dedicated sub-agents**. You are the orchestrator, NOT the executor.
+This skill uses a multi-stage pipeline with dedicated sub-agents. You are the orchestrator, NOT the executor. Follow every item in order. Do NOT return to the user until all applicable items are checked.
 
-### What You MUST Do
-
-1. Load all required dependencies
-2. Execute stages in order (or parallel where specified)
-3. Spawn dedicated sub-agents for each stage via Task tool — do NOT perform their work yourself
-4. Write intermediate stage outputs to `$PROJECT_DIR/logs/`
-5. Write final deliverables (synthesis, reports) to `$PROJECT_DIR/artifacts/`
-6. Write diagnostic YAML to `$PROJECT_DIR/logs/diagnostics/`
-
-### What You MUST NOT Do
-
-- Do NOT skip stages
-- Do NOT perform sub-agent work yourself
-- Do NOT return to user until all log files are written
-- Do NOT spawn sub-agents with run_in_background: true (SA5)
+- [ ] **Stage 0 — Pre-Flight**: All required dependencies loaded (references, templates, subagent-prompting skill)
+- [ ] **Stage 0 — Pre-Flight**: Arguments parsed and validated
+- [ ] **Stage 1..N — Sub-Agents**: Dedicated sub-agents spawned via Task tool — you MUST NOT perform their work yourself
+- [ ] **Stage 1..N — Sub-Agents**: Sub-agents NOT spawned with `run_in_background: true` (SA5)
+- [ ] **Stages executed in order** (or parallel where the pipeline specifies)
+- [ ] **Intermediate outputs** written to `$PROJECT_DIR/logs/{skill-name}/`
+- [ ] **Final deliverables** written to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/`
+- [ ] **Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
+- [ ] **Results presented to user**
 
 ---
 
@@ -152,16 +148,6 @@ Write to `$PROJECT_DIR/logs/diagnostics/{skill-name}-{YYYYMMDD-HHMMSS}.yaml`
 | Sub-agent returns empty output | Re-spawn once. If still empty, STOP with error. |
 | Stage fails validation | {retry/abort/skip with warning} |
 | Token budget exceeded | Stop, present partial output with explanation. |
-
----
-
-## Completion Checklist
-
-- [ ] All stages executed
-- [ ] Intermediate stage outputs written to `$PROJECT_DIR/logs/{skill-name}/`
-- [ ] Final deliverables written to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/`
-- [ ] Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/`
-- [ ] Results presented to user
 ```
 
 ## Generated Sub-Agent Structure
@@ -199,13 +185,58 @@ Examples:
 
 Default to **Sonnet** for most pipeline stages.
 
+## Common Sub-Patterns
+
+Pipeline skills exhibit several recurring sub-patterns based on the SHAPE of their constituent stages. Sub-patterns are additive — pick those that apply.
+
+### `reviewer-orchestrating`
+
+**Definition**: Pipeline whose constituent stages are predominantly Reviewer-shaped (read-only analysis producing severity-classified findings).
+
+**When to use**: The pipeline's purpose is multi-dimensional audit (security + type-safety + standards), or audit + classify + synthesize.
+
+**Bulwark example**: `code-review` (security → type-safety → standards reviewers); `test-audit` (classifier → deep-analyzer reviewers); `fix-bug` (issue-analyzer + fix-validator reviewers + implementer).
+
+**How it shapes the skill**:
+- Each stage is a Reviewer agent — see `template-reviewer.md` (especially the `pipeline-stage` sub-pattern).
+- Final stage typically synthesizes findings + computes overall verdict.
+- Output deliverable: aggregated findings + verdict at `$PROJECT_DIR/artifacts/{skill-name}/{slug}/`.
+
+### `research-orchestrating`
+
+**Definition**: Pipeline whose stages are predominantly Research-shaped (multi-source investigation + synthesis), often run in parallel.
+
+**When to use**: The pipeline's purpose is multi-viewpoint exploration with structured synthesis. Distinct from the Research archetype itself by having pipeline-style stage gating, conditional branching, or sequential dependencies between research phases.
+
+**Bulwark example**: `product-ideation` (validator → market-researcher → competitive-analyzer → segment-analyzer → strategist); `plan-creation` (PO → Architect + Eng Lead → QA/Critic); `bulwark-brainstorm --exploratory` (SME + role analysis + critic + synthesis with stage gating).
+
+**How it shapes the skill**:
+- Multiple Research-shaped stages chained or run in parallel (sub-agents per viewpoint or role).
+- Synthesis stage at the end is mandatory — pipeline output is NOT just N agent outputs.
+- Final deliverable goes to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/synthesis.md`.
+
+### `generator-orchestrating`
+
+**Definition**: Pipeline that includes Generator stages emitting artifacts from prior-stage findings.
+
+**When to use**: The pipeline's purpose is "investigate, then produce" — a research/review phase followed by an artifact-emission phase that consumes the prior findings.
+
+**Bulwark example**: `continuous-feedback` (Collector → Analyzers → Proposer (generates skill modification proposals)); `bulwark-verify` (Resolve → Detect → Analyze → Generate (emits verification scripts)).
+
+**How it shapes the skill**:
+- Final stages are Generator-shaped — see `template-generator.md`.
+- Generator stages consume structured prior-stage output as input (not free text).
+- Validation gate before write applies (Generator's Stage 3 validate-before-write pattern).
+
+---
+
 ## Guidance for Generator
 
 - Generate BOTH the orchestrating SKILL.md AND the sub-agent `.md` files
 - The orchestrating skill references sub-agents by `Task(subagent_type="{name}")`, not inline definitions
 - Every sub-agent stage needs a 4-part prompt (GOAL/CONSTRAINTS/CONTEXT/OUTPUT) in the orchestrating skill
 - Include the `subagent-prompting` skill in the orchestrating skill's frontmatter `skills:` dependency
-- Use the Pre-Flight Gate pattern — without it, Claude skips sub-agent spawning (DEF-P4-005)
+- Use the **Mandatory Execution Checklist (BINDING)** pattern at the top of SKILL.md — without it, Claude skips sub-agent spawning (DEF-P4-005; bottom-of-file checklists are advisory and ignored)
 - Model selection per stage: Haiku for lookups, Sonnet for analysis, Opus for writing
 - Each stage writes to `$PROJECT_DIR/logs/{skill-name}/` — the next stage reads from there (SA2/SA4 compliance)
 - Final deliverables (synthesis, reports) go to `$PROJECT_DIR/artifacts/{skill-name}/{slug}/` — NOT to `logs/`

@@ -2,6 +2,8 @@
 name: fix-bug
 description: Run the Fix Validation pipeline to investigate, fix, and validate a bug. Ensures deterministic pipeline execution with IssueAnalyzer, FixWriter, TestWriter (conditional), TestAudit (conditional), and FixValidator stages.
 user-invocable: true
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Fix Bug Pipeline

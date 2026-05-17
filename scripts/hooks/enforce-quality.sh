@@ -43,11 +43,11 @@ INPUT=$(cat)
 
 # Log hook invocation
 TIMESTAMP=$(date -Iseconds)
-FILE_PATH_FOR_LOG=$(echo "$INPUT" | jq -r '.tool_input.file_path // "unknown"')
+FILE_PATH_FOR_LOG=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.edits[0].file_path // "unknown"')
 echo "[${TIMESTAMP}] PostToolUse: enforce-quality.sh triggered for ${FILE_PATH_FOR_LOG}" >> "$HOOKS_LOG"
 
 # Extract file path from input
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.edits[0].file_path // ""')
 
 # Normalize absolute path to repo-relative (if under PROJECT_DIR)
 REL_PATH="$FILE_PATH"

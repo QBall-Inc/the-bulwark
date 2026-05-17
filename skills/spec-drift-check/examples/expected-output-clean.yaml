@@ -1,0 +1,96 @@
+# Expected verification log when spec-drift-check runs against examples/clean-spec.md.
+# Format mirrors templates/findings-output.yaml. Used by tests/skills/test-spec-drift-check.sh
+# as the structural reference for parse + schema validation. Runtime values (timestamp, exact
+# token counts) are placeholders; the test asserts structure + verdict, not absolute values.
+
+metadata:
+  reviewer: spec-drift-check
+  subject: examples/clean-spec.md
+  session: <session-id>
+  timestamp: <ISO-8601>
+  spec_word_count: 280
+  claims_extracted: 4
+  claims_verified: 4
+
+findings:
+  - id: D-01
+    claim_id: C-01
+    category: confirmed
+    severity: n/a
+    spec_claim: "scripts/hooks/lib/coverage_check.py exists"
+    actual_state: "File exists at scripts/hooks/lib/coverage_check.py (confirmed via Read)"
+    resolution: none
+
+  - id: D-02
+    claim_id: C-02
+    category: confirmed
+    severity: n/a
+    spec_claim: "parse_reviewed_files defined at scripts/hooks/lib/coverage_check.py:188"
+    actual_state: "def parse_reviewed_files(log_path) defined at scripts/hooks/lib/coverage_check.py:188 (confirmed via grep)"
+    resolution: none
+
+  - id: D-03
+    claim_id: C-03
+    category: confirmed
+    severity: n/a
+    spec_claim: "parse_followup_edits_expected defined at scripts/hooks/lib/coverage_check.py:275"
+    actual_state: "def parse_followup_edits_expected(log_path) defined at scripts/hooks/lib/coverage_check.py:275 (confirmed via grep)"
+    resolution: none
+
+  - id: D-04
+    claim_id: C-04
+    category: confirmed
+    severity: n/a
+    spec_claim: "skills/code-review/SKILL.md is at version 1.1.0"
+    actual_state: "version: 1.1.0 in skills/code-review/SKILL.md frontmatter (confirmed via grep)"
+    resolution: none
+
+ac_reinterpretations: []
+
+adjusted_plan:
+  binding_status: "supersedes original spec for rest of WP"
+  deliverables:
+    - id: AD-01
+      description: "Add log emission to parse_reviewed_files"
+      original_spec_step: 1
+      change_from_spec: unchanged
+      target_path: scripts/hooks/lib/coverage_check.py
+      token_estimate: "~3K"
+    - id: AD-02
+      description: "Add log emission to parse_followup_edits_expected"
+      original_spec_step: 2
+      change_from_spec: unchanged
+      target_path: scripts/hooks/lib/coverage_check.py
+      token_estimate: "~3K"
+    - id: AD-03
+      description: "Add log emission to coverage_in_window"
+      original_spec_step: 3
+      change_from_spec: unchanged
+      target_path: scripts/hooks/lib/coverage_check.py
+      token_estimate: "~3K"
+    - id: AD-04
+      description: "Bump skills/code-review/SKILL.md version 1.1.0 -> 1.1.1"
+      original_spec_step: 4
+      change_from_spec: unchanged
+      target_path: skills/code-review/SKILL.md
+      token_estimate: "~1K"
+  estimated_token_delta: "0"
+
+verification_checklist:
+  - "Confirm log lines emitted in test-suggest-pipeline-stop.sh output"
+  - "Confirm code-review SKILL.md version field reads 1.1.1 post-implementation"
+
+proceed_decision: PROCEED
+decision_rationale: |
+  All 4 claims CONFIRMED against current code state. No drift detected.
+  Original implementation plan stands as-is.
+
+roi:
+  spent_tokens_estimate: "~5K"
+  estimated_savings: "~5K"
+  net: break-even
+  rationale: |
+    Drift check on a fully-current spec catches nothing actionable; the value
+    is the proof-of-clean signal that the implementer can rely on the brief.
+    On aggregate across many WPs, this is a no-cost insurance policy against
+    decay-induced rework.

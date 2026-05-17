@@ -1,7 +1,10 @@
 ---
 name: pipeline-templates
 description: Pre-defined F# pipe workflows for multi-agent orchestration. Provides code review, fix validation, test audit, new feature, research & planning, and test execution pipelines. Triggered via PostToolUse hook after significant code changes.
+when_to_use: Loaded by the Stop hook (`suggest-pipeline-stop.sh`) when uncovered code/test/script changes accumulate this turn — provides the canonical F# pipe definitions the orchestrator follows when responding to the hook's `decision: block` reason text. Also loadable directly when the orchestrator needs to consult a pipeline definition (e.g., before running Code Review, Test Audit, Fix Validation, New Feature, or Research & Planning workflows).
 user-invocable: false
+version: 1.0.2
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Pipeline Templates
@@ -98,16 +101,60 @@ The PostToolUse hook on Write|Edit:
 
 ## File Type to Pipeline Mapping
 
-When triggered by PostToolUse hook after Write/Edit, select pipeline based on file modified:
+When triggered by the Stop hook after Write/Edit/MultiEdit, select pipeline based on file modified. The hook (`suggest-pipeline-stop.sh`) emits ALL applicable pipelines for the turn — Code Review and Test Audit can both fire when a turn touches both production code and test files.
+
+### Test detection (path-based, takes priority)
+
+Files under any of these directory components are classified as **test** regardless of filename:
+
+| Directory pattern | Stack | Examples |
+|-------------------|-------|----------|
+| `tests/`, `*/tests/` | Bulwark, generic | `tests/hooks/test-foo.sh` |
+| `test/`, `*/test/` | Ruby Minitest, Elixir, generic | `test/foo_test.rb`, `test/foo_test.exs` |
+| `__tests__/` | Jest convention | `__tests__/Component.test.tsx` |
+| `spec/`, `specs/` | Ruby RSpec, generic | `spec/models/user_spec.rb` |
+| `src/test/` | JVM (Maven/Gradle) | `src/test/java/FooTest.java` |
+
+### Test detection (filename-based)
+
+| Filename pattern | Stack | Examples |
+|------------------|-------|----------|
+| `test_*`, `test-*` | Python (pytest), Bulwark hooks | `test_models.py`, `test-foo.sh` |
+| `*_test.*`, `*-test.*` | Go, Ruby Minitest, generic | `models_test.go`, `foo-test.sh` |
+| `*_spec.*`, `*-spec.*` | Ruby RSpec, generic | `user_spec.rb` |
+| `*.test.*`, `*.spec.*` | Jest, Vitest, Jasmine | `Component.test.tsx`, `service.spec.js` |
+
+### Test detection (PascalCase, JVM/.NET)
+
+Case-sensitive match on basename suffix:
+
+| Filename pattern | Stack | Examples |
+|------------------|-------|----------|
+| `*Test.{java,kt,scala}` | JUnit, Kotest, ScalaTest | `UserServiceTest.java` |
+| `*Tests.{cs,vb}` | xUnit, NUnit (C#/.NET) | `UserServiceTests.cs` |
+| `*Spec.{kt,scala}` | Kotest, Specs2 | `UserServiceSpec.kt` |
+| `*Specs.cs` | NSpec | `UserSpecs.cs` |
+| `*IT.java` | JUnit integration tests | `UserServiceIT.java` |
+
+### Code, script, config detection
 
 | File Pattern | Extension | Recommended Pipeline |
 |--------------|-----------|---------------------|
-| Code files | `.ts`, `.js`, `.py`, `.go`, `.rs`, `.java` | Code Review |
-| Test files | `*.test.ts`, `*.spec.js`, `test_*.py` | Test Audit |
-| Config files | `.json`, `.yaml`, `.toml`, `.env` | Code Review (security focus) |
-| Script files | `.sh`, `.bash`, `.ps1` | Code Review (security focus) |
+| Production code | `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.py`, `.go`, `.rs`, `.java`, `.kt`, `.scala`, `.cs`, `.fs`, `.vb`, `.rb`, `.exs`, `.ex`, `.cpp`, `.c`, `.php`, `.swift` | Code Review |
+| Scripts | `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1` | Code Review (security focus) |
+| Config | `.json`, `.yaml`, `.yml`, `.toml`, `.ini`, `.env` | Code Review (security focus) |
 | Documentation | `.md`, `.txt`, `.rst` | Light review or skip |
 | Data files | `.xlsx`, `.csv`, `.pdf` | Manual review suggested |
+
+### Out of scope (path-only detection limits)
+
+Path-based classification cannot detect tests embedded in production source files:
+
+- **Rust inline `#[test]`** — annotation-only signal, no path convention. `src/foo.rs` always classifies as code; if it contains inline tests, they'll be reviewed under Code Review, not Test Audit.
+- **Python doctests** — same rationale; `foo.py` with doctests classifies as code.
+- **Inline test directives in any language** — content-only signal, undetectable from path.
+
+If a project relies heavily on inline tests, a future version may add content-based detection. For now, conventional `tests/` or `test_*` placement triggers Test Audit; inline tests don't.
 
 ### Small Change Bypass
 

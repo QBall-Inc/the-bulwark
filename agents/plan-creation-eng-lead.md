@@ -7,6 +7,8 @@ tools:
   - Glob
   - Grep
   - Write
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Engineering & Delivery Lead

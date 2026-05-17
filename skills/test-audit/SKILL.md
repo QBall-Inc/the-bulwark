@@ -9,6 +9,8 @@ skills:
   - assertion-patterns
   - component-patterns
   - bug-magnet-data
+version: 1.1.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Test Audit
@@ -388,32 +390,11 @@ Gate triggered: {gate description}
 
 ### Step 8: Evaluate REWRITE_REQUIRED (Two-Gate)
 
-Apply two-gate logic from audit report:
+Apply two-gate logic from the audit report — see `references/two-gate-logic.md` for the full Gate 1 (Impact) / Gate 2 (Threshold) / Advisory rules. Summary:
 
-**Gate 1 (Impact):**
-```
-IF any P0 violations exist:
-    REWRITE_REQUIRED = true
-    gate_triggered = "Gate 1: Impact (P0 violations - false confidence)"
-```
-
-**Gate 2 (Threshold):**
-```
-ELSE IF P1 violations exist:
-    IF any file has test_effectiveness < 95%:
-        REWRITE_REQUIRED = true
-        gate_triggered = "Gate 2: Threshold (P1 + effectiveness < 95%)"
-    ELSE:
-        REWRITE_REQUIRED = false
-        status = "Advisory only (P1 above 95% threshold)"
-```
-
-**Advisory:**
-```
-ELSE (P2 only):
-    REWRITE_REQUIRED = false
-    status = "Advisory only (P2 pattern issues)"
-```
+- **Gate 1 (Impact):** any P0 violation → `REWRITE_REQUIRED = true`
+- **Gate 2 (Threshold):** P1 violations + any file with `test_effectiveness < 95%` → `REWRITE_REQUIRED = true`; otherwise advisory
+- **Advisory:** P2-only → `REWRITE_REQUIRED = false`
 
 ### Step 9: Rewrite (If Required)
 
@@ -465,6 +446,38 @@ Key fields the orchestrator validates after synthesis:
 - `directive.files_to_rewrite` — ordered list for rewrite step
 - `audit.file_analysis[].test_effectiveness` — per-file percentage
 - `audit.overview.overall_effectiveness` — aggregate metric
+- `followup_edits_expected` — top-level (sibling to `reviewed_files`); see below
+
+---
+
+## Followup Edits Expected (Stop Hook Grace Window — P10.22)
+
+**Purpose**: When an audit emits a rewrite directive (`REWRITE_REQUIRED == true`), the user is expected to apply the rewrites within a grace window. Without this metadata, the rewrite-edits trigger a fresh Stop hook fire because the audit log was written BEFORE the rewrites — recursion. The `followup_edits_expected` field tells the Stop hook coverage check that edits to the listed files within the grace window are pre-covered.
+
+**Emission rule**:
+- `REWRITE_REQUIRED == true` → emit one entry per file in `directive.files_to_rewrite`. Use the file `path` value, default `grace_window_seconds: 1800`.
+- `REWRITE_REQUIRED == false` → OMIT the field entirely (no rewrite expected; no follow-up coverage needed).
+
+**Field schema** (matches code-review):
+- `file` (required) — path relative to `${CLAUDE_PROJECT_DIR}`. Must match `directive.files_to_rewrite[].path`.
+- `grace_window_seconds` (optional, default 1800) — duration in seconds. Test rewrites typically take longer than code fixes (need to verify behavior in real systems); 1800 is a reasonable default.
+- `finding_ids` (optional, informational) — finding identifiers (e.g., `P0-T1`, `P1-T3`). Used for diagnostic clarity.
+- `rationale` (optional, informational) — human-readable explanation. Surfaced in diagnostic output.
+
+**Example** (REWRITE_REQUIRED == true):
+```yaml
+followup_edits_expected:
+  - file: tests/proxy.test.ts
+    grace_window_seconds: 1800
+    finding_ids: [P0-T1]
+    rationale: "P0 rewrite directive (T1 violation, 16% effectiveness)"
+  - file: tests/workflow.integration.ts
+    grace_window_seconds: 1800
+    finding_ids: [P0-T3+]
+    rationale: "P0 rewrite directive (T3+ violation, 28% effectiveness)"
+```
+
+**Files in `directive.files_advisory`** are NOT emitted as followup expectations — they're advisory-only and do not require user action.
 
 ---
 
@@ -495,6 +508,7 @@ All AST scripts live in `skills/test-audit/scripts/` and are invoked via Justfil
 | `just verify-count` | `verification-counter.ts` | Precise line counting (replaces heuristic) |
 | `just skip-detect` | `skip-detector.ts` | T4 skip/only/todo marker detection |
 | `just ast-analyze` | `data-flow-analyzer.ts` | T3+ broken chain detection via data flow tracing |
+| `just integration-mocks` | `integration-mock-detector.ts` | Stage 0 detection of mocked integration boundaries (T3 violations) |
 
 Scripts use ts-morph for AST parsing, run via `npx tsx`, and output JSON to stdout. Dependencies are in `skills/test-audit/scripts/package.json`.
 

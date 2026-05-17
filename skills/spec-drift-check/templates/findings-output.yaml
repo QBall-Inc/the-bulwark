@@ -1,0 +1,73 @@
+# findings-output.yaml — canonical findings schema for spec-drift-check
+#
+# This template mirrors the schema documented in references/output-template.md.
+# Copy the structure below into the verification log at
+# $PROJECT_DIR/logs/spec-verify-{session}-{topic}.md and fill the fields
+# per references/step-5-log-template.md.
+#
+# Validation rules (see references/output-template.md § Validation Rules):
+#  1. Every findings entry has BOTH spec_claim AND actual_state populated verbatim.
+#  2. Every findings.severity is one of LOW | MEDIUM | HIGH (or n/a for confirmed).
+#  3. Every findings.category is one of the seven enum values listed below.
+#  4. Every adjusted_plan.deliverables[*].change_from_spec is set.
+#  5. proceed_decision matches the decision matrix.
+#  6. roi.net is positive | break-even | negative.
+
+metadata:
+  reviewer: spec-drift-check                # fixed string
+  subject: <path-to-spec>                   # the spec file being audited
+  session: <session-id>                     # Bulwark session id (string or int)
+  timestamp: <ISO-8601>                     # UTC ISO-8601 timestamp
+  spec_word_count: <N>                      # approximate word count of the subject spec
+  claims_extracted: <N>                     # count from Stage 1
+  claims_verified: <N>                      # count from Stage 2 (should equal extracted unless errors)
+
+findings:
+  # One entry per claim from Stage 1.
+  # CONFIRMED claims SHOULD be included so the log is a complete record.
+  - id: D-01                                # sequential within this run
+    claim_id: C-01                          # back-reference to Stage 1 claim
+    category: confirmed                     # one of: confirmed | drift-line-ref | drift-wrong-file |
+                                            #         drift-missing-scope | drift-undeclared-scope |
+                                            #         ac-reinterpretation | gap
+    severity: n/a                           # one of: LOW | MEDIUM | HIGH (or n/a for confirmed)
+    spec_claim: "<verbatim quote from spec>"
+    actual_state: "<verbatim evidence from current code or state>"
+    resolution: none                        # one of: doc fix | plan adjustment | scope expansion |
+                                            #         ask user | none
+
+ac_reinterpretations:
+  # Optional. One entry per ambiguous AC that Stage 3 flagged.
+  - ac: AC-N                                # the original AC identifier
+    ambiguity: "<what's unclear in the original AC>"
+    chosen_interpretation: "<the reading we will execute against>"
+    rationale: "<why this reading; what it implies for the plan>"
+
+adjusted_plan:
+  # The binding plan for the rest of the WP. Supersedes original spec via Stage 7.
+  binding_status: "supersedes original spec for rest of WP"
+  deliverables:
+    - id: AD-01                             # sequential within this plan
+      description: "<deliverable text>"
+      original_spec_step: <int-or-null>     # null for newly added deliverables
+      change_from_spec: unchanged           # one of: dropped | re-targeted | unchanged | added
+      target_path: <path>                   # file or directory the deliverable touches
+      token_estimate: "~NK"                 # e.g., "~5K"
+  estimated_token_delta: "0"                # signed delta vs original spec, e.g., "+5K", "-10K", "0"
+
+verification_checklist:
+  # Items the implementer (or downstream reviewer) must confirm at WP end.
+  # Typically one item per drift finding that survives into the adjusted plan.
+  - "<item 1 for implementer to confirm at end>"
+  - "<item 2>"
+
+proceed_decision: PROCEED                   # one of: PROCEED | PROCEED_ADJUSTED | STOP_USER_APPROVAL
+decision_rationale: |
+  <1-3 sentences explaining the verdict in terms of the finding mix.>
+
+roi:
+  spent_tokens_estimate: "~NK"              # tokens consumed running this check
+  estimated_savings: "~NK"                  # tokens saved by avoiding rework
+  net: positive                             # one of: positive | break-even | negative
+  rationale: |
+    <1-3 sentences explaining the savings estimate — what rework was avoided.>

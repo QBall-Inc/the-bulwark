@@ -2,6 +2,8 @@
 name: test-classification
 description: Prompt template for test classification stage in Test Audit pipeline
 user-invocable: false
+version: 1.0.1
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Test Classification
@@ -161,7 +163,15 @@ Count "verification lines" per file for test effectiveness calculation. This cou
 
 ## Output Schema
 
+The classification output MUST include a top-level `reviewed_files: [...]` list (paths relative to `${CLAUDE_PROJECT_DIR}`) so the Stop hook can suppress per-file pipeline-recursion fires on subsequent turns. Mirror the same list in the diagnostic log. Empty list `[]` is valid if no files matched the classification target.
+
 ```yaml
+# Top-level — required for Stop-hook suppression contract.
+reviewed_files:
+  - tests/proxy.test.ts
+  - tests/api.integration.ts
+  - tests/utils.test.ts
+
 metadata:
   skill: test-classification
   timestamp: "{ISO-8601}"
@@ -218,6 +228,12 @@ summary:
 Write diagnostic output to `logs/diagnostics/test-classification-{YYYYMMDD-HHMMSS}.yaml`:
 
 ```yaml
+# Top-level — required for Stop-hook per-file pipeline-recursion suppression.
+# List any test/script files analyzed by this run (paths relative to
+# ${CLAUDE_PROJECT_DIR}). Empty list `[]` is valid when no test files were
+# touched. Missing field disables suppression for this log (strict mode).
+reviewed_files: []
+
 diagnostic:
   skill: test-classification
   timestamp: "{ISO-8601}"
@@ -291,11 +307,11 @@ When merging batch results:
 
 ### Parallel Execution
 
-For optimal performance, spawn batch sub-agents in parallel:
+For optimal performance, spawn batch sub-agents in parallel by issuing multiple Task() calls in a single assistant message (the harness runs them concurrently — do **not** use `run_in_background=true`, which violates Rules.md SA5):
 
 ```
-Task(subagent_type="general-purpose", model="haiku", prompt=batch1_prompt, run_in_background=true)
-Task(subagent_type="general-purpose", model="haiku", prompt=batch2_prompt, run_in_background=true)
+Task(subagent_type="general-purpose", prompt=batch1_prompt)
+Task(subagent_type="general-purpose", prompt=batch2_prompt)
 ...
 ```
 

@@ -13,6 +13,8 @@ tools:
   - Glob
   - Write
   - Bash
+version: 1.0.0
+author: "Ashay Kubal @ Qball Inc."
 ---
 
 # Bulwark Issue Analyzer
