@@ -15,6 +15,36 @@ No unreleased changes at this time.
 
 ---
 
+## [1.2.1] - 2026-05-17
+
+Hotfix for SessionStart and Stop hooks failing with `Permission denied` on
+fresh v1.2.0 installs.
+
+### Fixed
+
+- **Hook scripts shipped without executable bit** — three hooks
+  (`cleanup-review-registry.sh`, `check-template-drift.sh`,
+  `suggest-pipeline-stop.sh`) were stored in the v1.2.0 tree at mode `100644`
+  instead of `100755`, causing the Claude Code plugin runtime to fail with
+  `Permission denied` on direct execve. Five additional non-hook scripts shared
+  the same defect but were invoked via `bash <path>` wrappers and unaffected
+  at the user level. Root cause: the release sync workflow ran with
+  `core.fileMode = false` (inherited from the WSL/NTFS development repo via
+  worktree config sharing), causing `git add` to stage new `.sh` files at the
+  default mode `100644`. *(GitHub issue [#1](https://github.com/QBall-Inc/the-bulwark/issues/1))*
+- **`sync-to-public.sh` mode preservation** — the publish script now scans
+  every tracked `.sh` file in the staging worktree and calls
+  `git update-index --chmod=+x` on each, bypassing `core.fileMode` entirely.
+  Idempotent and safe under any local git config.
+
+### Upgrade notes
+
+For users on a fresh v1.2.0 install affected by the hook failure, upgrading
+to v1.2.1 via `/plugin update the-bulwark@qball-inc` (or a fresh install) will
+restore correct hook execution. No project-level changes required.
+
+---
+
 ## [1.2.0] - 2026-05-17
 
 Hardening + observability bundle covering 13+ phases of post-launch reliability,

@@ -1,6 +1,6 @@
 {
   "name": "the-bulwark",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Full-lifecycle SDLC guardrailing framework for Claude Code — from product ideation and planning through implementation, code review, and test validation. Enterprise-grade skills and agents for AI-human peer collaboration.",
   "author": {
     "name": "Ashay Kubal",
