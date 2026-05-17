@@ -61,6 +61,18 @@ Without guardrails, you get:
 
 The Bulwark fixes this by making enforcement automatic. Hooks run quality checks after every write. Skills orchestrate multi-agent pipelines where each agent has a single focus. Rules are injected at session start and enforced throughout. You don't have to remember to ask Claude to run tests or check types. It just happens.
 
+## Recent additions
+
+**v1.2.0** (2026-05-17) — Hardening + observability bundle
+
+- **2 new skills**: [`plan-to-tasks`](docs/skills/plan-to-tasks.md) (transforms `plan-creation` output into CLEAR-compatible task structure), [`spec-drift-check`](docs/skills/spec-drift-check.md) (mandatory pre-WP claim verification with PROCEED/STOP verdict)
+- **New `SD1` rule** + **`init --update` mode** for guided drift remediation when `CLAUDE.md` or `Rules.md` fall out of sync with canonical templates
+- **3 new/redesigned hooks**: `check-template-drift` (SessionStart), `cleanup-review-registry` (SessionStart), file-type-aware `suggest-pipeline-stop` with post-fix grace period
+- **`MultiEdit` now triggers quality enforcement** (previously only `Write` / `Edit`)
+- Skill schema migration across 15+ assets for stricter validator compliance
+
+Detail in the [v1.2.0 release notes](https://github.com/QBall-Inc/the-bulwark/releases/tag/v1.2.0) and full history in [CHANGELOG.md](CHANGELOG.md).
+
 ## Quick install
 
 Two ways to install. Pick whichever works for you.
@@ -206,7 +218,7 @@ All hooks use `${CLAUDE_PLUGIN_ROOT}` for path resolution, so they work regardle
 
 ## Skill registry
 
-The Bulwark ships 28 skills. Each one is invoked with `/the-bulwark:{skill-name}` or triggered automatically by hooks and pipelines. Skills are grouped by what they do.
+The Bulwark ships 30 skills. Each one is invoked with `/the-bulwark:{skill-name}` or triggered automatically by hooks and pipelines. Skills are grouped by what they do.
 
 ### Product & strategy
 
@@ -384,13 +396,46 @@ You can't disable individual plugin hooks without modifying `hooks/hooks.json` i
 
 ---
 
+## What's new in v1.2.0
+
+The first major post-launch bundle. v1.0.0 → v1.1.0 was a single hook redesign. v1.2.0 covers 13+ phases (P10.5 → P10.25) of hardening, observability, and workflow improvements that emerged from real-world dogfooding.
+
+### Spec drift enforcement
+
+`Rules.md` was a single document users could quietly let fall behind canonical templates. The new `SD1` (Spec Drift) rule makes a pre-WP drift check mandatory: before any new or resumed implementation, the [`spec-drift-check`](docs/skills/spec-drift-check.md) skill extracts every claim from the brief — file paths, line numbers, function names, behavioral assertions — and verifies each against current code. It emits a structured PROCEED/STOP verdict with a per-claim log. STOP requires explicit user sign-off before implementation begins. This eliminates an entire class of failures where a brief said "modify function `foo` at line 142" but the function had moved or been renamed three sessions ago.
+
+### `init --update` mode for stale CLAUDE.md / Rules.md
+
+A new SessionStart hook (`check-template-drift`) detects when your project's `CLAUDE.md` or `Rules.md` have drifted from the canonical templates and surfaces the diff for review. The new `/the-bulwark:init --update` flow walks you through accepting each drifting section, with batched/tabbed prompts when 4+ sections need review and full pre-flight visibility into what's about to change. Parent/child section anchors are handled correctly so nested sections never duplicate.
+
+### Plan → tasks workflow
+
+[`plan-to-tasks`](docs/skills/plan-to-tasks.md) closes the gap between [`plan-creation`](docs/skills/plan-creation.md) output (markdown plan with phases and workpackages) and execution-ready task tracking. It transforms a `plan_v{N}.md` into a `tasks.yaml` workpackage index plus per-WP YAML files, with bidirectional parent/child plan linkage. Parallel Sonnet sub-agents do the per-WP transform.
+
+### Stop hook redesign
+
+The `Stop` hook (`suggest-pipeline-stop`) is rebuilt around a per-file registry, file-type-aware pipeline routing (code vs test vs doc vs config), log-pattern suppression, and a post-fix grace period that prevents re-suggesting a pipeline immediately after a fix lands. False-positive pipeline suggestions on doc-only or test-only changes are gone.
+
+### Quality enforcement covers `MultiEdit`
+
+The `PostToolUse` matcher previously caught only `Write` and `Edit`. v1.2.0 widens it to `Write|Edit|MultiEdit` so the same typecheck/lint/build gates apply to bulk edits — `MultiEdit` was a silent quality escape hatch.
+
+### Other notable improvements
+
+- **Hook output schema validation** in `anthropic-validator` (catches hook output that violates Claude Code's hook contract before it ships)
+- **`bun` runtime installer** (`scripts/install-bun.sh`) — platform-aware, idempotent, scaffolded into the Justfile templates for the upcoming evaluation framework
+- **Statusline reliability**: `--no-optional-locks` flag avoids contention with concurrent git operations
+- **Schema migration across 15+ assets** for stricter `anthropic-validator` compliance
+
+---
+
 ## Planned enhancements
 
 These are on the roadmap. No timeline commitments, but they represent the direction The Bulwark is heading.
 
 **Evaluation framework.** Skills and agents are the new code layer in agentic development. They need the same rigor as code: versioned, tested, measured. We're building two new skills — `create-eval` and `run-eval` — that generate and execute evaluations for any Claude Code asset. Define test prompts, expected outputs, and grading criteria. Run them across skill versions to catch regressions. Measure conversational invocation success, checklist compliance, and output quality with structured grading reports.
 
-**Asset baselines.** Once the eval skills exist, we'll baseline all 28 skills and 15 agents with versioned evaluations. Every asset gets a `version` field in its frontmatter and a set of evals that serve as regression references. Future changes get measured against these baselines automatically.
+**Asset baselines.** Once the eval skills exist, we'll baseline all 30 skills and 15 agents with versioned evaluations. Every asset gets a `version` field in its frontmatter and a set of evals that serve as regression references. Future changes get measured against these baselines automatically.
 
 **Enterprise traceability.** Enhanced logging with version stamps (skill version, model, rules hash) in every sub-agent log header. Run manifests that tie together all artifacts from a pipeline execution into a single auditable record. Decision lineage: trace any output back to which model, skill version, and rules produced it.
 
