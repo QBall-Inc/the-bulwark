@@ -17,8 +17,8 @@ No unreleased changes at this time.
 
 ## [1.2.0] - 2026-05-17
 
-Pre-release hardening bundle covering 13+ phases of post-launch reliability,
-observability, governance, and tooling enhancements built between v1.1.0 and v1.2.0.
+Hardening + observability bundle covering 13+ phases of post-launch reliability,
+governance, and tooling enhancements built between v1.1.0 and v1.2.0.
 
 ### Added
 
