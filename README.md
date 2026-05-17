@@ -22,7 +22,6 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@qball-inc/the-bulwark"><img src="https://img.shields.io/npm/v/@qball-inc/the-bulwark?label=npm" alt="npm version" /></a>
   <a href="https://github.com/QBall-Inc/the-bulwark/releases/latest"><img src="https://img.shields.io/github/v/release/QBall-Inc/the-bulwark?label=release" alt="Latest GitHub release" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep%20a%20changelog-orange" alt="Changelog" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a>
 </p>
 
@@ -31,6 +30,50 @@
 ### If you find this useful, please give it a star. It helps others discover the project.
 
 [![GitHub stars](https://img.shields.io/github/stars/QBall-Inc/the-bulwark?style=social)](https://github.com/QBall-Inc/the-bulwark)
+
+## Latest Stable Release: v1.2.1
+
+**v1.2.1** (2026-05-17) — Hotfix: hook script executable bit restored. See [GitHub issue #1](https://github.com/QBall-Inc/the-bulwark/issues/1) and the [v1.2.1 release notes](https://github.com/QBall-Inc/the-bulwark/releases/tag/v1.2.1).
+
+### What's new
+
+v1.2.0 was the first major post-launch bundle. v1.0.0 → v1.1.0 was a single hook redesign. v1.2.0 covers 13+ phases (P10.5 → P10.25) of hardening, observability, and workflow improvements that emerged from real-world dogfooding. v1.2.1 is a hotfix on top.
+
+#### Spec drift enforcement
+
+`Rules.md` was a single document users could quietly let fall behind canonical templates. The new `SD1` (Spec Drift) rule makes a pre-WP drift check mandatory: before any new or resumed implementation, the [`spec-drift-check`](docs/skills/spec-drift-check.md) skill extracts every claim from the brief — file paths, line numbers, function names, behavioral assertions — and verifies each against current code. It emits a structured PROCEED/STOP verdict with a per-claim log. STOP requires explicit user sign-off before implementation begins. This eliminates an entire class of failures where a brief said "modify function `foo` at line 142" but the function had moved or been renamed three sessions ago.
+
+#### `init --update` mode for stale CLAUDE.md / Rules.md
+
+A new SessionStart hook (`check-template-drift`) detects when your project's `CLAUDE.md` or `Rules.md` have drifted from the canonical templates and surfaces the diff for review. The new `/the-bulwark:init --update` flow walks you through accepting each drifting section, with batched/tabbed prompts when 4+ sections need review and full pre-flight visibility into what's about to change. Parent/child section anchors are handled correctly so nested sections never duplicate.
+
+#### Plan → tasks workflow
+
+[`plan-to-tasks`](docs/skills/plan-to-tasks.md) closes the gap between [`plan-creation`](docs/skills/plan-creation.md) output (markdown plan with phases and workpackages) and execution-ready task tracking. It transforms a `plan_v{N}.md` into a `tasks.yaml` workpackage index plus per-WP YAML files, with bidirectional parent/child plan linkage. Parallel Sonnet sub-agents do the per-WP transform.
+
+#### Stop hook redesign
+
+The `Stop` hook (`suggest-pipeline-stop`) is rebuilt around a per-file registry, file-type-aware pipeline routing (code vs test vs doc vs config), log-pattern suppression, and a post-fix grace period that prevents re-suggesting a pipeline immediately after a fix lands. False-positive pipeline suggestions on doc-only or test-only changes are gone.
+
+#### Quality enforcement covers `MultiEdit`
+
+The `PostToolUse` matcher previously caught only `Write` and `Edit`. v1.2.0 widens it to `Write|Edit|MultiEdit` so the same typecheck/lint/build gates apply to bulk edits — `MultiEdit` was a silent quality escape hatch.
+
+#### Other notable improvements
+
+- **Hook output schema validation** in `anthropic-validator` (catches hook output that violates Claude Code's hook contract before it ships)
+- **`bun` runtime installer** (`scripts/install-bun.sh`) — platform-aware, idempotent, scaffolded into the Justfile templates for the upcoming evaluation framework
+- **Statusline reliability**: `--no-optional-locks` flag avoids contention with concurrent git operations
+- **Schema migration across 15+ assets** for stricter `anthropic-validator` compliance
+
+### Recent additions
+
+- **v1.2.1** (2026-05-17) — Hotfix: hook script executable bit restored on three SessionStart/Stop hooks ([issue #1](https://github.com/QBall-Inc/the-bulwark/issues/1))
+- **v1.2.0** (2026-05-17) — Hardening + observability bundle: 2 new skills (`plan-to-tasks`, `spec-drift-check`), `SD1` rule + `init --update` mode, 3 new/redesigned hooks, `MultiEdit` quality enforcement, schema migration across 15+ assets
+
+Full version history in [CHANGELOG.md](CHANGELOG.md).
+
+---
 
 ## What is The Bulwark?
 
@@ -60,18 +103,6 @@ Without guardrails, you get:
 - Plans and estimates that vary wildly between sessions
 
 The Bulwark fixes this by making enforcement automatic. Hooks run quality checks after every write. Skills orchestrate multi-agent pipelines where each agent has a single focus. Rules are injected at session start and enforced throughout. You don't have to remember to ask Claude to run tests or check types. It just happens.
-
-## Recent additions
-
-**v1.2.0** (2026-05-17) — Hardening + observability bundle
-
-- **2 new skills**: [`plan-to-tasks`](docs/skills/plan-to-tasks.md) (transforms `plan-creation` output into CLEAR-compatible task structure), [`spec-drift-check`](docs/skills/spec-drift-check.md) (mandatory pre-WP claim verification with PROCEED/STOP verdict)
-- **New `SD1` rule** + **`init --update` mode** for guided drift remediation when `CLAUDE.md` or `Rules.md` fall out of sync with canonical templates
-- **3 new/redesigned hooks**: `check-template-drift` (SessionStart), `cleanup-review-registry` (SessionStart), file-type-aware `suggest-pipeline-stop` with post-fix grace period
-- **`MultiEdit` now triggers quality enforcement** (previously only `Write` / `Edit`)
-- Skill schema migration across 15+ assets for stricter validator compliance
-
-Detail in the [v1.2.0 release notes](https://github.com/QBall-Inc/the-bulwark/releases/tag/v1.2.0) and full history in [CHANGELOG.md](CHANGELOG.md).
 
 ## Quick install
 
@@ -393,39 +424,6 @@ Cost tracking depends on your Claude Code version and plan. If cost data isn't a
 ### I want to disable a specific hook temporarily
 
 You can't disable individual plugin hooks without modifying `hooks/hooks.json` in the plugin directory. But you can work around it by adding the file path to the skip list in `enforce-quality.sh`, or by working in a directory that the hook already skips (`tmp/`, `logs/`, etc.).
-
----
-
-## What's new in v1.2.0
-
-The first major post-launch bundle. v1.0.0 → v1.1.0 was a single hook redesign. v1.2.0 covers 13+ phases (P10.5 → P10.25) of hardening, observability, and workflow improvements that emerged from real-world dogfooding.
-
-### Spec drift enforcement
-
-`Rules.md` was a single document users could quietly let fall behind canonical templates. The new `SD1` (Spec Drift) rule makes a pre-WP drift check mandatory: before any new or resumed implementation, the [`spec-drift-check`](docs/skills/spec-drift-check.md) skill extracts every claim from the brief — file paths, line numbers, function names, behavioral assertions — and verifies each against current code. It emits a structured PROCEED/STOP verdict with a per-claim log. STOP requires explicit user sign-off before implementation begins. This eliminates an entire class of failures where a brief said "modify function `foo` at line 142" but the function had moved or been renamed three sessions ago.
-
-### `init --update` mode for stale CLAUDE.md / Rules.md
-
-A new SessionStart hook (`check-template-drift`) detects when your project's `CLAUDE.md` or `Rules.md` have drifted from the canonical templates and surfaces the diff for review. The new `/the-bulwark:init --update` flow walks you through accepting each drifting section, with batched/tabbed prompts when 4+ sections need review and full pre-flight visibility into what's about to change. Parent/child section anchors are handled correctly so nested sections never duplicate.
-
-### Plan → tasks workflow
-
-[`plan-to-tasks`](docs/skills/plan-to-tasks.md) closes the gap between [`plan-creation`](docs/skills/plan-creation.md) output (markdown plan with phases and workpackages) and execution-ready task tracking. It transforms a `plan_v{N}.md` into a `tasks.yaml` workpackage index plus per-WP YAML files, with bidirectional parent/child plan linkage. Parallel Sonnet sub-agents do the per-WP transform.
-
-### Stop hook redesign
-
-The `Stop` hook (`suggest-pipeline-stop`) is rebuilt around a per-file registry, file-type-aware pipeline routing (code vs test vs doc vs config), log-pattern suppression, and a post-fix grace period that prevents re-suggesting a pipeline immediately after a fix lands. False-positive pipeline suggestions on doc-only or test-only changes are gone.
-
-### Quality enforcement covers `MultiEdit`
-
-The `PostToolUse` matcher previously caught only `Write` and `Edit`. v1.2.0 widens it to `Write|Edit|MultiEdit` so the same typecheck/lint/build gates apply to bulk edits — `MultiEdit` was a silent quality escape hatch.
-
-### Other notable improvements
-
-- **Hook output schema validation** in `anthropic-validator` (catches hook output that violates Claude Code's hook contract before it ships)
-- **`bun` runtime installer** (`scripts/install-bun.sh`) — platform-aware, idempotent, scaffolded into the Justfile templates for the upcoming evaluation framework
-- **Statusline reliability**: `--no-optional-locks` flag avoids contention with concurrent git operations
-- **Schema migration across 15+ assets** for stricter `anthropic-validator` compliance
 
 ---
 
