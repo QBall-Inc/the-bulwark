@@ -431,7 +431,13 @@ You can't disable individual plugin hooks without modifying `hooks/hooks.json` i
 
 These are on the roadmap. No timeline commitments, but they represent the direction The Bulwark is heading.
 
-**Evaluation framework.** Skills and agents are the new code layer in agentic development. They need the same rigor as code: versioned, tested, measured. We're building two new skills — `create-eval` and `run-eval` — that generate and execute evaluations for any Claude Code asset. Define test prompts, expected outputs, and grading criteria. Run them across skill versions to catch regressions. Measure conversational invocation success, checklist compliance, and output quality with structured grading reports.
+**Language-aware code review.** The code-review pipeline becomes polyglot — applying the right checks for Python, shell, and config files instead of assuming TypeScript. Type-safety and lint sections adapt to the language under review.
+
+**Fewer permission prompts.** Tool declarations across skills and agents, plus an opt-in hook that auto-approves The Bulwark's own bundled assets, so you spend less time clicking through permission dialogs for the plugin's own scripts.
+
+**Codebase & documentation understanding.** A skill for onboarding onto existing (brownfield) projects — priming a batch of sub-agents to parse and map a codebase before research and planning begin.
+
+**Evaluation framework.** Skills and agents are the new code layer in agentic development. They need the same rigor as code: versioned, tested, measured. We're building two new skills — `create-skill-evals` and `run-skill-evals` — that generate and execute evaluations for any Claude Code asset. Define test prompts, expected outputs, and grading criteria. Run them across skill versions to catch regressions. Measure conversational invocation success, checklist compliance, and output quality with structured grading reports.
 
 **Asset baselines.** Once the eval skills exist, we'll baseline all 30 skills and 15 agents with versioned evaluations. Every asset gets a `version` field in its frontmatter and a set of evals that serve as regression references. Future changes get measured against these baselines automatically.
 

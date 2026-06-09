@@ -1,0 +1,109 @@
+# Repository traffic & download analytics (P11.1).
+#
+# Snapshots GitHub clones + views (rolling 14-day window, purged by GitHub after
+# 14 days) and npm downloads, upserts them into a JSON history on a dedicated
+# `traffic-stats` orphan branch, renders deterministic SVG charts, and commits.
+#
+# Design (see plans/task-briefs/P11.1-repo-traffic-download-analytics.md):
+#   * Data + charts live on the orphan `traffic-stats` branch so daily bot commits
+#     never touch `main` and never collide with sync-to-public.sh (main-only).
+#   * The workflow file is authored in the private repo and synced to public, but
+#     only EXECUTES on the public repo (job guard) — no private-repo snapshots,
+#     no double commits.
+#   * Traffic API needs push/admin; the default GITHUB_TOKEN 403s, so a
+#     fine-grained PAT (secrets.TRAFFIC_PAT, Administration: Read-only) is used.
+name: Repository stats
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # daily at 06:00 UTC
+  workflow_dispatch: {}    # manual bootstrap + verification
+
+permissions:
+  contents: write          # push to the traffic-stats orphan branch
+
+jobs:
+  snapshot:
+    # Only run on the public repo — the file exists in both repos after sync.
+    if: github.repository == 'QBall-Inc/the-bulwark'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (render + merge scripts)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "bulwark-stats-bot"
+          git config user.email "bulwark-stats-bot@users.noreply.github.com"
+
+      - name: Fetch source windows (GitHub traffic + npm downloads)
+        env:
+          TRAFFIC_PAT: ${{ secrets.TRAFFIC_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p _raw
+          gh_api() {
+            # -f: fail loudly on non-2xx (PAT expiry / 403). Do NOT swallow errors.
+            curl -fsS \
+              -H "Authorization: Bearer ${TRAFFIC_PAT}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$1"
+          }
+          gh_api "https://api.github.com/repos/${REPO}/traffic/clones?per=day" > _raw/clones-window.json
+          gh_api "https://api.github.com/repos/${REPO}/traffic/views?per=day"  > _raw/views-window.json
+
+          END="$(date -u +%F)"
+          START="$(date -u -d '365 days ago' +%F)"   # wide range => auto-backfills on first run; idempotent upsert after
+          curl -fsS "https://api.npmjs.org/downloads/range/${START}:${END}/@qball-inc/the-bulwark" > _raw/npm-window.json
+          echo "Fetched: clones=$(wc -c < _raw/clones-window.json)B views=$(wc -c < _raw/views-window.json)B npm=$(wc -c < _raw/npm-window.json)B"
+
+      - name: Prepare traffic-stats worktree (orphan-safe)
+        run: |
+          set -euo pipefail
+          git fetch origin traffic-stats 2>/dev/null || true
+          if git rev-parse --verify origin/traffic-stats >/dev/null 2>&1; then
+            git worktree add stats-wt origin/traffic-stats
+            git -C stats-wt switch -C traffic-stats
+          else
+            # First run: branch does not exist yet. Create an empty orphan worktree.
+            git worktree add --orphan -b traffic-stats stats-wt
+          fi
+
+      - name: Merge windows into history + render charts
+        env:
+          REPO: ${{ github.repository }}   # pass via env (GHA hygiene) rather than inline ${{ }} in the shell
+        run: |
+          set -euo pipefail
+          S=.github/scripts
+          # GitHub clones (count + uniques).
+          python3 "$S/merge_history.py" --history stats-wt/clones.json --window _raw/clones-window.json \
+            --source github --metric clones --series-key clones --package "$REPO"
+          python3 "$S/render_chart.py" --history stats-wt/clones.json --out stats-wt/clones.svg \
+            --title "GitHub clones (last 14 days rolling)"
+          # GitHub views (count + uniques).
+          python3 "$S/merge_history.py" --history stats-wt/views.json --window _raw/views-window.json \
+            --source github --metric views --series-key views --package "$REPO"
+          python3 "$S/render_chart.py" --history stats-wt/views.json --out stats-wt/views.svg \
+            --title "GitHub views (last 14 days rolling)"
+          # npm downloads (scalar).
+          python3 "$S/merge_history.py" --history stats-wt/npm-downloads.json --window _raw/npm-window.json \
+            --source npm --metric downloads --package "@qball-inc/the-bulwark"
+          python3 "$S/render_chart.py" --history stats-wt/npm-downloads.json --out stats-wt/npm-downloads.svg \
+            --title "npm downloads (daily)" --metric downloads
+
+      - name: Commit + push to traffic-stats (skip no-op)
+        run: |
+          set -euo pipefail
+          cd stats-wt
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+          else
+            git commit -m "stats: snapshot $(date -u +%F)"
+            git push origin traffic-stats
+            echo "Pushed snapshot to traffic-stats."
+          fi
