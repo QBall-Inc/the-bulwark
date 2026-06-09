@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/QBall-Inc/the-bulwark#documentation
+    about: Browse the guides, registries, and FAQ before filing — your question may already be answered.
+  - name: FAQ & troubleshooting
+    url: https://github.com/QBall-Inc/the-bulwark/blob/main/docs/faq.md
+    about: Common install and runtime issues (SSH clone failures, hooks not firing, just not found, rate limits).

@@ -1,0 +1,76 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the fields below so we can reproduce and fix it quickly.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I run ..., I see ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to trigger the behavior.
+      placeholder: |
+        1. Run `/the-bulwark:...`
+        2. ...
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+      description: What you expected to happen, and what actually happened.
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: The Bulwark version (e.g., v1.2.1). Run `claude /plugin list` if unsure.
+      placeholder: v1.2.1
+    validations:
+      required: true
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version
+      placeholder: e.g., 1.x.x
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: OS / platform
+      options:
+        - WSL2
+        - macOS
+        - Linux
+        - Other (note in description)
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Relevant hook / skill / agent
+      description: Which Bulwark component is involved, if known.
+      placeholder: e.g., enforce-quality.sh, fix-bug, bulwark-research
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output or logs
+      description: Paste any error output. Logs live under `logs/` in your project.
+      render: shell
+    validations:
+      required: false
