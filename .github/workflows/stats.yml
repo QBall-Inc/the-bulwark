@@ -54,12 +54,11 @@ jobs:
               "$1"
           }
           gh_api "https://api.github.com/repos/${REPO}/traffic/clones?per=day" > _raw/clones-window.json
-          gh_api "https://api.github.com/repos/${REPO}/traffic/views?per=day"  > _raw/views-window.json
 
           END="$(date -u +%F)"
           START="$(date -u -d '365 days ago' +%F)"   # wide range => auto-backfills on first run; idempotent upsert after
           curl -fsS "https://api.npmjs.org/downloads/range/${START}:${END}/@qball-inc/the-bulwark" > _raw/npm-window.json
-          echo "Fetched: clones=$(wc -c < _raw/clones-window.json)B views=$(wc -c < _raw/views-window.json)B npm=$(wc -c < _raw/npm-window.json)B"
+          echo "Fetched: clones=$(wc -c < _raw/clones-window.json)B npm=$(wc -c < _raw/npm-window.json)B"
 
       - name: Prepare traffic-stats worktree (orphan-safe)
         run: |
@@ -87,16 +86,15 @@ jobs:
           # GitHub clones — cumulative running total (count + uniques) since snapshots began.
           python3 "$S/render_chart.py" --history stats-wt/clones.json --out stats-wt/clones-cumulative.svg \
             --title "GitHub clones (cumulative total)" --cumulative
-          # GitHub views (count + uniques).
-          python3 "$S/merge_history.py" --history stats-wt/views.json --window _raw/views-window.json \
-            --source github --metric views --series-key views --package "$REPO"
-          python3 "$S/render_chart.py" --history stats-wt/views.json --out stats-wt/views.svg \
-            --title "GitHub views (last 14 days rolling)"
-          # npm downloads (scalar).
+          # npm downloads (scalar) — daily + cumulative.
           python3 "$S/merge_history.py" --history stats-wt/npm-downloads.json --window _raw/npm-window.json \
             --source npm --metric downloads --package "@qball-inc/the-bulwark"
           python3 "$S/render_chart.py" --history stats-wt/npm-downloads.json --out stats-wt/npm-downloads.svg \
             --title "npm downloads (daily)" --metric downloads
+          python3 "$S/render_chart.py" --history stats-wt/npm-downloads.json --out stats-wt/npm-downloads-cumulative.svg \
+            --title "npm downloads (cumulative total)" --metric downloads --cumulative
+          # Views dropped (not meaningful) — remove any stale artifacts from the branch.
+          rm -f stats-wt/views.json stats-wt/views.svg
 
       - name: Commit + push to traffic-stats (skip no-op)
         run: |

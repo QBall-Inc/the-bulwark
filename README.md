@@ -140,6 +140,21 @@ This walks you through a guided setup: Rules.md injection, CLAUDE.md configurati
 
 > Having trouble installing? See [FAQ and troubleshooting](#faq-and-troubleshooting). If your issue isn't covered, please [open an issue](https://github.com/QBall-Inc/the-bulwark/issues).
 
+## Adoption
+
+The Bulwark is growing through word of mouth. These charts auto-update daily — GitHub clone traffic (top) and npm downloads (bottom), each shown daily and as a cumulative running total. Data is self-snapshotted to a [`traffic-stats`](https://github.com/QBall-Inc/the-bulwark/tree/traffic-stats) branch because GitHub purges clone traffic after 14 days.
+
+<table>
+  <tr>
+    <td align="center"><img width="100%" alt="GitHub clones — last 14 days" src="https://raw.githubusercontent.com/QBall-Inc/the-bulwark/traffic-stats/clones.svg"></td>
+    <td align="center"><img width="100%" alt="GitHub clones — cumulative total" src="https://raw.githubusercontent.com/QBall-Inc/the-bulwark/traffic-stats/clones-cumulative.svg"></td>
+  </tr>
+  <tr>
+    <td align="center"><img width="100%" alt="npm downloads — daily" src="https://raw.githubusercontent.com/QBall-Inc/the-bulwark/traffic-stats/npm-downloads.svg"></td>
+    <td align="center"><img width="100%" alt="npm downloads — cumulative total" src="https://raw.githubusercontent.com/QBall-Inc/the-bulwark/traffic-stats/npm-downloads-cumulative.svg"></td>
+  </tr>
+</table>
+
 ## Prerequisites
 
 | Requirement | Details |
