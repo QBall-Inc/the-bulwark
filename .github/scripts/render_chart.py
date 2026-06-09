@@ -43,8 +43,13 @@ PALETTE = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c"]
 MAX_X_LABELS = 8  # cap x-axis tick labels to avoid crowding
 
 
-def load_series(history, metric):
-    """Return (dates_sorted, {series_name: [values aligned to dates]})."""
+def load_series(history, metric, cumulative=False):
+    """Return (dates_sorted, {series_name: [values aligned to dates]}).
+
+    When cumulative=True, each series is converted to its running sum over the
+    sorted dates — a monotonically non-decreasing total (e.g. total clones to
+    date) rather than the per-day value.
+    """
     daily = history.get("daily", {})
     dates = sorted(daily)
     if not dates:
@@ -56,7 +61,20 @@ def load_series(history, metric):
         series = {name: [daily[d].get(name, 0) for d in dates] for name in series_names}
     else:
         series = {metric: [daily[d] for d in dates]}
+
+    if cumulative:
+        series = {name: _running_sum(vals) for name, vals in series.items()}
     return dates, series
+
+
+def _running_sum(values):
+    """Convert a per-period series into a cumulative running total."""
+    total = 0
+    out = []
+    for v in values:
+        total += v
+        out.append(total)
+    return out
 
 
 def _x(i, n):
@@ -78,8 +96,8 @@ def _fmt(num):
     return f"{num:.2f}".rstrip("0").rstrip(".")
 
 
-def render_svg(history, title, metric):
-    dates, series = load_series(history, metric)
+def render_svg(history, title, metric, cumulative=False):
+    dates, series = load_series(history, metric, cumulative=cumulative)
     parts = []
     parts.append(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" '
@@ -193,6 +211,11 @@ def parse_args(argv):
         default="value",
         help="Series name for scalar-valued history (e.g. downloads). Ignored for dict-valued history.",
     )
+    parser.add_argument(
+        "--cumulative",
+        action="store_true",
+        help="Plot the running total (cumulative sum) of each series instead of per-day values.",
+    )
     return parser.parse_args(argv)
 
 
@@ -200,7 +223,7 @@ def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
     with open(args.history, "r", encoding="utf-8") as fh:
         history = json.load(fh)
-    svg = render_svg(history, args.title, args.metric)
+    svg = render_svg(history, args.title, args.metric, cumulative=args.cumulative)
     with open(args.out, "w", encoding="utf-8") as fh:
         fh.write(svg)
     print(f"rendered: {args.out} ({len(history.get('daily', {}))} day(s))")

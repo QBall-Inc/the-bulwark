@@ -84,6 +84,9 @@ jobs:
             --source github --metric clones --series-key clones --package "$REPO"
           python3 "$S/render_chart.py" --history stats-wt/clones.json --out stats-wt/clones.svg \
             --title "GitHub clones (last 14 days rolling)"
+          # GitHub clones — cumulative running total (count + uniques) since snapshots began.
+          python3 "$S/render_chart.py" --history stats-wt/clones.json --out stats-wt/clones-cumulative.svg \
+            --title "GitHub clones (cumulative total)" --cumulative
           # GitHub views (count + uniques).
           python3 "$S/merge_history.py" --history stats-wt/views.json --window _raw/views-window.json \
             --source github --metric views --series-key views --package "$REPO"
