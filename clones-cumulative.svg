@@ -6,21 +6,21 @@
 <line x1="50" y1="260" x2="740" y2="260" stroke="#f3f4f6" stroke-width="1"/>
 <text x="44" y="264" font-size="10" fill="#6b7280" text-anchor="end">0</text>
 <line x1="50" y1="150" x2="740" y2="150" stroke="#f3f4f6" stroke-width="1"/>
-<text x="44" y="154" font-size="10" fill="#6b7280" text-anchor="end">105</text>
+<text x="44" y="154" font-size="10" fill="#6b7280" text-anchor="end">115</text>
 <line x1="50" y1="40" x2="740" y2="40" stroke="#f3f4f6" stroke-width="1"/>
-<text x="44" y="44" font-size="10" fill="#6b7280" text-anchor="end">210</text>
+<text x="44" y="44" font-size="10" fill="#6b7280" text-anchor="end">230</text>
 <text x="50" y="276" font-size="9" fill="#6b7280" text-anchor="middle">05-25</text>
-<text x="144.09" y="276" font-size="9" fill="#6b7280" text-anchor="middle">05-28</text>
-<text x="238.18" y="276" font-size="9" fill="#6b7280" text-anchor="middle">05-31</text>
-<text x="332.27" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-03</text>
-<text x="426.36" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-06</text>
-<text x="520.45" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-09</text>
-<text x="614.55" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-12</text>
-<text x="708.64" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-15</text>
-<polyline fill="none" stroke="#2563eb" stroke-width="2" points="50,260 81.36,258.95 112.73,256.86 144.09,256.86 175.45,254.76 206.82,254.76 238.18,253.71 269.55,252.67 300.91,246.38 332.27,246.38 363.64,245.33 395,245.33 426.36,238 457.73,233.81 489.09,233.81 520.45,135.33 551.82,114.38 583.18,108.1 614.55,95.52 645.91,78.76 677.27,63.05 708.64,55.71 740,45.24"/>
+<text x="140" y="276" font-size="9" fill="#6b7280" text-anchor="middle">05-28</text>
+<text x="230" y="276" font-size="9" fill="#6b7280" text-anchor="middle">05-31</text>
+<text x="320" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-03</text>
+<text x="410" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-06</text>
+<text x="500" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-09</text>
+<text x="590" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-12</text>
+<text x="680" y="276" font-size="9" fill="#6b7280" text-anchor="middle">06-15</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="50,260 80,259.04 110,257.13 140,257.13 170,255.22 200,255.22 230,254.26 260,253.3 290,247.57 320,247.57 350,246.61 380,246.61 410,239.91 440,236.09 470,236.09 500,146.17 530,127.04 560,121.3 590,109.83 620,94.52 650,80.17 680,73.48 710,63.91 740,44.78"/>
 <rect x="50" y="283" width="10" height="10" fill="#2563eb"/>
 <text x="64" y="292" font-size="10" fill="#374151">count</text>
-<polyline fill="none" stroke="#16a34a" stroke-width="2" points="50,260 81.36,258.95 112.73,256.86 144.09,256.86 175.45,255.81 206.82,255.81 238.18,254.76 269.55,253.71 300.91,248.48 332.27,248.48 363.64,247.43 395,247.43 426.36,243.24 457.73,241.14 489.09,241.14 520.45,212.86 551.82,204.48 583.18,201.33 614.55,192.95 645.91,181.43 677.27,169.9 708.64,165.71 740,160.48"/>
+<polyline fill="none" stroke="#16a34a" stroke-width="2" points="50,260 80,259.04 110,257.13 140,257.13 170,256.17 200,256.17 230,255.22 260,254.26 290,249.48 320,249.48 350,248.52 380,248.52 410,244.7 440,242.78 470,242.78 500,216.96 530,209.3 560,206.43 590,198.78 620,188.26 650,177.74 680,173.91 710,169.13 740,157.65"/>
 <rect x="160" y="283" width="10" height="10" fill="#16a34a"/>
 <text x="174" y="292" font-size="10" fill="#374151">uniques</text>
 </svg>
