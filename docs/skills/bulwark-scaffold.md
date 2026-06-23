@@ -14,6 +14,7 @@ Generates a Justfile, logs directory structure, and optional hook configuration 
 |--------|-------------|
 | `--force` | Overwrite an existing Justfile. Creates a timestamped backup before overwriting. |
 | `--no-hooks` | Skip hook configuration. Justfile and logs are still created. |
+| `--with-permission-hook` | Also install the optional, opt-in permission-bypass hook (off by default). Auto-approves access to The Bulwark's own bundled files so Claude Code stops re-prompting for them. Asks you to confirm before installing. See the [hooks reference](../reference/hooks.md) for what it does and how to disable it. |
 | `--dry-run` | Preview what would be created without writing any files. |
 | `--lang=<node\|python\|rust\|generic>` | Override language detection. |
 
@@ -36,6 +37,12 @@ Python Justfile and logs directory only. No hook configuration.
 ```
 
 Preview all files that would be created. No changes written.
+
+```
+/the-bulwark:bulwark-scaffold --with-permission-hook
+```
+
+Full scaffold, plus the optional permission-bypass hook (you'll be asked to confirm the trust decision first). Without the flag, the hook is not installed.
 
 ## Who is it for
 

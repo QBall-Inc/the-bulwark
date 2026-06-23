@@ -2,6 +2,11 @@
 name: test-classification
 description: Prompt template for test classification stage in Test Audit pipeline
 user-invocable: false
+allowed-tools:
+  - Glob
+  - Grep
+  - Read
+  - Write
 version: 1.0.1
 author: "Ashay Kubal @ Qball Inc."
 ---

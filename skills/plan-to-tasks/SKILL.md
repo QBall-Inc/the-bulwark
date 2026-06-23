@@ -6,6 +6,14 @@ user-invocable: true
 argument-hint: "<path-to-plan_v{N}.md>"
 skills:
   - subagent-prompting
+allowed-tools:
+  - AskUserQuestion
+  - Edit
+  - Glob
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

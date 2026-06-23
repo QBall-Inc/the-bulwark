@@ -3,6 +3,12 @@ name: setup-lsp
 description: Configures Language Server Protocol integration for Claude Code projects. Use when setting up LSP servers, verifying post-restart initialization, or troubleshooting broken LSP configurations.
 user-invocable: true
 argument-hint: "[--lang <languages>] [--verify | --troubleshoot]"
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Edit
+  - Read
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

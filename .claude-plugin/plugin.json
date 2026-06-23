@@ -1,6 +1,6 @@
 {
   "name": "the-bulwark",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Full-lifecycle SDLC guardrailing framework for Claude Code — from product ideation and planning through implementation, code review, and test validation. Enterprise-grade skills and agents for AI-human peer collaboration.",
   "author": {
     "name": "Ashay Kubal",
@@ -38,5 +38,13 @@
     "test-coverage",
     "statusline",
     "agent-teams"
-  ]
+  ],
+  "userConfig": {
+    "enable_permission_bypass": {
+      "type": "boolean",
+      "title": "Auto-approve Bulwark bundled-asset access",
+      "description": "Skip permission prompts for Bulwark's own plugin scripts and bundled files (Read/Edit/Bash inside the plugin root). Writes and non-Bulwark paths are never auto-approved; path-traversal escapes are denied. Requires trusting Bulwark at install level. Default: off.",
+      "default": false
+    }
+  }
 }

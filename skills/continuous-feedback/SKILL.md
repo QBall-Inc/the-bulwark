@@ -5,6 +5,15 @@ user-invocable: true
 argument-hint: "<target-skill-or-path> [--sources <paths>] [--since <session-N>]"
 skills:
   - subagent-prompting
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Glob
+  - Grep
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

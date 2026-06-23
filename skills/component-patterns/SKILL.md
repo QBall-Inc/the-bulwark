@@ -2,6 +2,9 @@
 name: component-patterns
 description: Per-component-type verification approaches. Use when generating verification scripts for different component types.
 user-invocable: false
+allowed-tools:
+  - Read
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

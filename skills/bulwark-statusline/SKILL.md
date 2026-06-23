@@ -6,9 +6,11 @@ argument-hint: "<init|minimal|developer|cost>"
 arguments: subcommand
 user-invocable: true
 allowed-tools:
+  - AskUserQuestion
   - Bash
-  - Read
   - Edit
+  - Read
+  - Task
 version: 1.0.2
 author: "Ashay Kubal @ Qball Inc."
 ---

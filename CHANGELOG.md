@@ -15,6 +15,46 @@ No unreleased changes at this time.
 
 ---
 
+## [1.3.0] - 2026-06-23
+
+Fewer prompts, sharper reviews. This release cuts permission-prompt friction for
+Bulwark's own bundled assets, makes the `code-review` skill language-aware so it
+only runs checks that apply to each file, and adds an opt-in hook that
+auto-approves tool calls scoped to the plugin's own files.
+
+### Added
+
+- **Opt-in permission-bypass hook** (`bulwark-permission-hook.sh`, PreToolUse) —
+  auto-approves Read/Edit/Bash calls whose targets resolve **inside the plugin's
+  own cache root**, so Bulwark's bundled skills and agents stop prompting for
+  access to their own files. Off by default and never auto-installed; opt in per
+  project via `bulwark-scaffold --with-permission-hook`. Path-traversal that
+  spoofs a plugin prefix but escapes the root is blocked, and any target outside
+  the plugin cache (for example `/etc/passwd` or a network `curl`) still prompts
+  normally. Documented as a separate, default-off hook — the always-on set
+  remains eight hooks.
+- **`bulwark-scaffold --with-permission-hook` flag** — installs the opt-in
+  permission hook at project scope during scaffolding.
+- **Universal per-language `code-review` recipes** across all eight Justfile
+  templates and the root Justfile — `typecheck-py`, `lint-py`, `validate-json` /
+  `validate-yaml`, and `shellcheck`. Each recipe degrades gracefully: it skips
+  and exits 0 when the underlying tool is absent, and propagates the tool's exit
+  status when present.
+
+### Changed
+
+- **`code-review` skill is now language-aware** — it detects each changed file's
+  language and gates review sections via a Language Applicability table, so it
+  runs only the checks relevant to the files under review instead of assuming a
+  single stack.
+- **`allowed-tools` declared on all 30 skills; `tools` audited on all 15
+  agents** — every skill now pre-authorizes exactly the tools it needs, removing
+  routine permission prompts during normal skill execution. (`allowed-tools`
+  *pre-authorizes*, it does not restrict; `disallowed-tools` remains the
+  restriction field.)
+
+---
+
 ## [1.2.1] - 2026-05-17
 
 Hotfix for SessionStart and Stop hooks failing with `Permission denied` on
@@ -47,52 +87,52 @@ restore correct hook execution. No project-level changes required.
 
 ## [1.2.0] - 2026-05-17
 
-Hardening + observability bundle covering 13+ phases of post-launch reliability,
+Hardening and observability bundle covering post-launch reliability,
 governance, and tooling enhancements built between v1.1.0 and v1.2.0.
 
 ### Added
 
-- **`plan-to-tasks` skill** — transforms `plan-creation` output into CLEAR-compatible execution structure (`tasks.yaml` + `workpackages/`). Supports parent/child plan linkage. *(P10.5)*
-- **`spec-drift-check` skill** — audits work package briefs, plan docs, and memory entries for drift against current code state. Extracts claims, verifies each, emits PROCEED/STOP verdict with a structured verification log. *(P10.18)*
-- **`SD1` (Spec Drift) rule** in `Rules.md` — mandatory pre-WP drift check before any new or resumed implementation. *(P10.18, P10.20)*
-- **`init --update` mode** — guided drift remediation for stale `CLAUDE.md` / `Rules.md` sections. Batched/tabbed `AskUserQuestion` UX for ≥4 drifting sections. Parent/child anchor handling. *(P10.20, P10.24, P10.25)*
-- **`check-template-drift.sh` SessionStart hook** — detects when project's `CLAUDE.md` or `Rules.md` have drifted from canonical templates and surfaces them for review. *(P10.20)*
-- **`cleanup-review-registry.sh` SessionStart hook** — wipes stale review-accumulator state at session start so pipeline gating works across sessions. *(P10.16)*
-- **`.bulwark/init-marker.yaml`** — written on first `/the-bulwark:init` run; consumed by `check-template-drift.sh` to scope drift detection. *(P10.20)*
-- **`install-bun.sh`** — platform-aware, idempotent bun runtime installer (preparation for the evaluation framework). *(P10.11)*
-- **Justfile recipes for evaluation framework** — `install-bun`, `verify-bun`, `eval-skill`, `eval-grade`, `eval`. *(P10.14)*
+- **`plan-to-tasks` skill** — transforms `plan-creation` output into an execution-ready structure (`tasks.yaml` + `workpackages/`). Supports parent/child plan linkage.
+- **`spec-drift-check` skill** — audits work package briefs, plan docs, and memory entries for drift against current code state. Extracts claims, verifies each, emits PROCEED/STOP verdict with a structured verification log.
+- **`SD1` (Spec Drift) rule** in `Rules.md` — mandatory pre-WP drift check before any new or resumed implementation.
+- **`init --update` mode** — guided drift remediation for stale `CLAUDE.md` / `Rules.md` sections. Batched/tabbed `AskUserQuestion` UX for ≥4 drifting sections. Parent/child anchor handling.
+- **`check-template-drift.sh` SessionStart hook** — detects when project's `CLAUDE.md` or `Rules.md` have drifted from canonical templates and surfaces them for review.
+- **`cleanup-review-registry.sh` SessionStart hook** — wipes stale review-accumulator state at session start so pipeline gating works across sessions.
+- **`.bulwark/init-marker.yaml`** — written on first `/the-bulwark:init` run; consumed by `check-template-drift.sh` to scope drift detection.
+- **`install-bun.sh`** — platform-aware, idempotent bun runtime installer (preparation for the evaluation framework).
+- **Justfile recipes for evaluation framework** — `install-bun`, `verify-bun`, `eval-skill`, `eval-grade`, `eval`.
 
 ### Changed
 
-- **`Stop` hook (`suggest-pipeline-stop.sh`)** — re-architected with per-file registry, file-type-aware pipeline routing, log-pattern suppression, and post-fix grace period. Reduces false-positive pipeline suggestions on doc-only or test-only changes. *(P10.12, P10.15, P10.19, P10.22)*
-- **`PostToolUse` matcher** widened from `Write|Edit` to `Write|Edit|MultiEdit` — quality enforcement now applies to all three mutation tools. *(P10.16)*
-- **`enforce-quality.sh`** — defensive `jq` fallback for malformed stdin, symlink rejection on accumulator write, atomic registry writes. *(P10.16)*
-- **`code-review` skill** — hook output schema validation, file-type-aware pipeline mapping, grace-window coverage aggregation. *(P10.10, P10.19, P10.22)*
-- **`test-audit` skill** — schema migration, grace-window coverage. *(P10.10, P10.22)*
-- **`plan-creation` and `bulwark-brainstorm`** — Agent Teams mode synthesis-gate fixes (CC-ALL, Work-Complete, Re-Entry gates). Resolves premature synthesis exit in dual-mode pipelines. *(P10.6)*
-- **`anthropic-validator`** — `SKILL.md` refactored to ≤500 lines, per-asset-type detail pushed to `references/`. Added `when_to_use` frontmatter for clearer triggering. *(P10.13)*
-- **`bulwark-statusline`** — uses `--no-optional-locks` to avoid `.git/index.lock` contention. *(P10.16)*
+- **`Stop` hook (`suggest-pipeline-stop.sh`)** — re-architected with per-file registry, file-type-aware pipeline routing, log-pattern suppression, and post-fix grace period. Reduces false-positive pipeline suggestions on doc-only or test-only changes.
+- **`PostToolUse` matcher** widened from `Write|Edit` to `Write|Edit|MultiEdit` — quality enforcement now applies to all three mutation tools.
+- **`enforce-quality.sh`** — defensive `jq` fallback for malformed stdin, symlink rejection on accumulator write, atomic registry writes.
+- **`code-review` skill** — hook output schema validation, file-type-aware pipeline mapping, grace-window coverage aggregation.
+- **`test-audit` skill** — schema migration, grace-window coverage.
+- **`plan-creation` and `bulwark-brainstorm`** — Agent Teams mode synthesis-gate fixes (CC-ALL, Work-Complete, Re-Entry gates). Resolves premature synthesis exit in dual-mode pipelines.
+- **`anthropic-validator`** — `SKILL.md` refactored to ≤500 lines, per-asset-type detail pushed to `references/`. Added `when_to_use` frontmatter for clearer triggering.
+- **`bulwark-statusline`** — uses `--no-optional-locks` to avoid `.git/index.lock` contention.
 
 ### Fixed
 
-- **`init --update`: parent/child anchor duplicate** — when both a top-level (`## Section`) and a nested (`### Subsection`) anchor drifted, the child was applied twice (once at EOF via fallback, once nested under parent). Fix suppresses child drift entries when their canonical parent is also drifting; parent's section extraction naturally brings nested children along. *(P10.25, BUG-S11-APPLY-001)*
-- **`init --update`: CRLF handling** — `apply-section.sh` now uses POSIX `sub(/\r$/, "")` for cross-platform CRLF stripping (gawk + mawk + BSD awk on macOS). Replaces `RS = "\r?\n"` which is gawk-only. *(P10.24)*
-- **`init --update`: early-exit on FALLBACK** — `apply-section.sh` no longer crashes on predecessor-lookup failure; cleanly falls through to EOF append path. *(P10.24)*
-- **`update.sh` and `check-template-drift.sh`: parallel CRLF risk** — same POSIX `sub(/\r$/, "")` pattern applied to all three scripts. *(P10.24)*
-- **`scripts/update.sh`: flag-prefix anchors** — `grep -Fxq --` end-of-options separator + herestring conversion prevent flag-shaped anchor names (`-n`, `-e`, `-E` prefixes) from being misinterpreted as command flags. *(P10.25, CR-SYN-001)*
-- **`bulwark-statusline`**: 3 anthropic-validator findings on frontmatter clarity. *(S119)*
+- **`init --update`: parent/child anchor duplicate** — when both a top-level (`## Section`) and a nested (`### Subsection`) anchor drifted, the child was applied twice (once at EOF via fallback, once nested under parent). Fix suppresses child drift entries when their canonical parent is also drifting; parent's section extraction naturally brings nested children along.
+- **`init --update`: CRLF handling** — `apply-section.sh` now uses POSIX `sub(/\r$/, "")` for cross-platform CRLF stripping (gawk + mawk + BSD awk on macOS). Replaces `RS = "\r?\n"` which is gawk-only.
+- **`init --update`: early-exit on FALLBACK** — `apply-section.sh` no longer crashes on predecessor-lookup failure; cleanly falls through to EOF append path.
+- **`update.sh` and `check-template-drift.sh`: parallel CRLF risk** — same POSIX `sub(/\r$/, "")` pattern applied to all three scripts.
+- **`scripts/update.sh`: flag-prefix anchors** — `grep -Fxq --` end-of-options separator + herestring conversion prevent flag-shaped anchor names (`-n`, `-e`, `-E` prefixes) from being misinterpreted as command flags.
+- **`bulwark-statusline`**: 3 anthropic-validator findings on frontmatter clarity.
 
 ### Security
 
-- **Path validation hardening** in `suggest-pipeline-stop.sh` and `cleanup-review-registry.sh` — symlink rejection on registry write, file-size caps, atomic-write guarantee. *(P10.15 self-test, S116-S117)*
-- **Environment variable validation** in registry-emitting hooks (`SEC-005`, `SEC-007`). *(P10.15)*
-- **`grep`/`sed`/`awk` end-of-options separator (`--`)** for user-controlled values, defending against flag-prefix attack vectors. *(P10.25)*
+- **Path validation hardening** in `suggest-pipeline-stop.sh` and `cleanup-review-registry.sh` — symlink rejection on registry write, file-size caps, atomic-write guarantee.
+- **Environment variable validation** in registry-emitting hooks.
+- **`grep`/`sed`/`awk` end-of-options separator (`--`)** for user-controlled values, defending against flag-prefix attack vectors.
 
 ---
 
 ## [1.1.0] - 2026-04-21
 
-P10.1 — Stop hook redesign + Justfile infrastructure rollout.
+Stop hook redesign + Justfile infrastructure rollout.
 
 ### Added
 
@@ -103,7 +143,7 @@ P10.1 — Stop hook redesign + Justfile infrastructure rollout.
 ### Changed
 
 - **Plugin manifest** (`.claude-plugin/plugin.json`) — adopted minimal schema; removed redundant `skills`/`agents`/`hooks` arrays now that Claude Code auto-discovers them. Resolves duplicate-hooks loading error reported by early users.
-- **`Stop` hook output** — removed invalid `hookSpecificOutput` field that violated the Claude Code hook JSON schema. *(P10.10 root-cause-of-symptom)*
+- **`Stop` hook output** — removed invalid `hookSpecificOutput` field that violated the Claude Code hook JSON schema.
 
 ### Fixed
 
@@ -144,7 +184,9 @@ Initial public release.
 
 ---
 
-[Unreleased]: https://github.com/QBall-Inc/the-bulwark/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/QBall-Inc/the-bulwark/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/QBall-Inc/the-bulwark/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/QBall-Inc/the-bulwark/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/QBall-Inc/the-bulwark/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/QBall-Inc/the-bulwark/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/QBall-Inc/the-bulwark/compare/v1.0.0...v1.0.1

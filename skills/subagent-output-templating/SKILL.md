@@ -2,6 +2,8 @@
 name: subagent-output-templating
 description: Template for structured sub-agent output including YAML log format, task completion reports (WHY/WHAT/TRADE-OFFS/RISKS), and summary constraints. Use when defining how sub-agents should report results.
 user-invocable: false
+allowed-tools:
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

@@ -1,6 +1,18 @@
 {
   "description": "The Bulwark quality enforcement hooks - Defense-in-Depth OUTER RING",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/bulwark-permission-hook.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",

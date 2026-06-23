@@ -3,6 +3,12 @@ name: init
 description: Initialize, verify, or update Bulwark governance in a project. Sets up CLAUDE.md, rules.md, and optional tooling (statusline, LSP, scaffold). --update reviews canonical template changes interactively per-section.
 user-invocable: true
 argument-hint: "[--scope=project|user] [--verify | --update] [target-dir]"
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Read
+  - Skill
+  - Write
 version: 1.2.0
 author: "Ashay Kubal @ Qball Inc."
 ---

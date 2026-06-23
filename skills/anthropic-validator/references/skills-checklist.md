@@ -21,7 +21,8 @@ All skill frontmatter fields are technically optional per the Anthropic spec. `d
 | `arguments` | string or YAML list | Argument schema (space-separated string or list) |
 | `disable-model-invocation` | boolean | `true` blocks auto-invocation but keeps `/skill-name` working |
 | `user-invocable` | boolean | `true` to show in `/` menu, `false` to hide |
-| `allowed-tools` | string or YAML list | **Canonical tool restriction field for SKILLS** (NOT `tools`) |
+| `allowed-tools` | string or YAML list | **Pre-authorizes** listed tools (skips approval prompts); does NOT restrict tool availability (NOT `tools`) |
+| `disallowed-tools` | string or YAML list | **Restriction field for SKILLS**: removes tools from the available pool while the skill is active (clears on next message) |
 | `model` | string | `haiku`, `sonnet`, `opus` |
 | `agent` | string | Subagent name to delegate to |
 | `effort` | enum | `low`, `medium`, `high`, `xhigh`, `max` |

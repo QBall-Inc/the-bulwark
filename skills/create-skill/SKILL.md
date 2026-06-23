@@ -1,5 +1,14 @@
 ---
 name: create-skill
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Glob
+  - Grep
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.2.5
 author: "Ashay Kubal @ Qball Inc."
 description: Generates Claude Code skills from requirements using adaptive interview, complexity classification, and iterative validation. Use when creating new skills, scaffolding skill structure, or generating skills with sub-agent orchestration.

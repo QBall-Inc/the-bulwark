@@ -58,6 +58,39 @@ ci: typecheck lint build test
 # Alias for manual invocation
 check: ci
 
+# ============================================================
+# Universal Validation Recipes (P10.21)
+# ============================================================
+# Stable recipe names the code-review skill dispatches to for per-language
+# Phase 1 static analysis, regardless of which template a project scaffolded.
+# Each recipe degrades gracefully when its tool is ABSENT (explicit skip
+# message, exit 0) but propagates the tool's exit status when PRESENT (so a
+# real type error / lint violation / malformed file fails the recipe).
+
+# Python typecheck (graceful if mypy absent)
+typecheck-py:
+    @if command -v mypy >/dev/null 2>&1; then mypy .; else echo "mypy not installed; skipping"; fi
+
+# Python lint (graceful if ruff absent)
+lint-py:
+    @if command -v ruff >/dev/null 2>&1; then ruff check .; else echo "ruff not installed; skipping"; fi
+
+# Validate all JSON files (graceful if jq absent; fails on malformed JSON)
+validate-json:
+    @if command -v jq >/dev/null 2>&1; then \
+        find . -name "*.json" -not -path "*/.git/*" -not -path "*/node_modules/*" -not -path "*/tmp/*" -not -path "*/logs/*" -print0 | xargs -0 -r -I {} jq empty {} || { echo "Invalid JSON detected"; exit 1; }; \
+    else \
+        echo "jq not installed; skipping JSON validation"; \
+    fi
+
+# Validate all YAML files (graceful if yamllint absent)
+validate-yaml:
+    @if command -v yamllint >/dev/null 2>&1; then \
+        find . \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/.git/*" -not -path "*/node_modules/*" -not -path "*/tmp/*" -not -path "*/logs/*" -print0 | xargs -0 -r yamllint -s; \
+    else \
+        echo "yamllint not installed; skipping"; \
+    fi
+
 # ---------------------------------------------------------------------------
 # Bulwark eval framework (P10.14 F5)
 # ---------------------------------------------------------------------------

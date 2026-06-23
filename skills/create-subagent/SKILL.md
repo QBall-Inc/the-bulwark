@@ -6,6 +6,13 @@ argument-hint: "<description-or-name> [--doc <requirements-path>]"
 skills:
   - subagent-prompting
   - anthropic-validator
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

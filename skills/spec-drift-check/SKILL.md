@@ -6,12 +6,15 @@ argument-hint: "<spec-path> [<additional-context>]"
 arguments: spec_path
 user-invocable: true
 allowed-tools:
+  - AskUserQuestion
   - Bash
-  - Read
-  - Grep
   - Glob
+  - Grep
+  - Read
   - Write
-version: 1.0.0
+disallowed-tools:
+  - Edit
+version: 1.0.1
 author: "Ashay Kubal @ Qball Inc."
 ---
 
@@ -37,7 +40,7 @@ Audits a Work Package brief (or any spec document) for drift against the current
 - Test audit (use `test-audit`)
 - Debugging issues (use `issue-debugging`)
 
-**This skill is READ-ONLY with respect to the subject spec.** It does NOT modify the input brief or any code referenced by it. The skill DOES write its own outputs — verification log under `$PROJECT_DIR/logs/spec-verify-*.md` and diagnostic YAML under `$PROJECT_DIR/logs/diagnostics/` — those are not "modifications" of the subject. To FIX issues found in the subject spec, the user invokes a separate skill (manual edits, `fix-bug`, or an implementer agent). The skill's value is the audit + adjusted plan, not the fix. The frontmatter excludes `Edit` to prevent accidental subject-spec modification at the permission layer.
+**This skill is READ-ONLY with respect to the subject spec.** It does NOT modify the input brief or any code referenced by it. The skill DOES write its own outputs — verification log under `$PROJECT_DIR/logs/spec-verify-*.md` and diagnostic YAML under `$PROJECT_DIR/logs/diagnostics/` — those are not "modifications" of the subject. To FIX issues found in the subject spec, the user invokes a separate skill (manual edits, `fix-bug`, or an implementer agent). The skill's value is the audit + adjusted plan, not the fix. The frontmatter lists `Edit` under `disallowed-tools`, which removes it from the available tool pool while the skill runs, preventing accidental subject-spec modification at the permission layer.
 
 This skill follows the **Reviewer** archetype with the `standalone`, `multi-source`, and `pipeline-stage` sub-patterns. It runs in **Main Context Orchestration** (no sub-agent fork) by deliberate design — the verifier needs to read across the full claimed scope and the orchestrator must absorb the verdict directly to make scope-expansion decisions.
 
@@ -90,7 +93,7 @@ This skill is a read-only Reviewer using Main Context Orchestration. The subject
 - [ ] **Stage 5 — Log**: Verification log written to `$PROJECT_DIR/logs/spec-verify-{session}-{topic}.md` (per references/step-5-log-template.md)
 - [ ] **Stage 6 — Decide**: Verdict emitted (PROCEED / PROCEED_ADJUSTED / STOP_USER_APPROVAL) per finding mix (references/step-6-decision-matrix.md)
 - [ ] **Stage 7 — Bind**: Verified plan SUPERSEDES original spec for rest of WP
-- [ ] **READ-ONLY enforced (subject spec)**: Subject spec MUST NOT be modified at any point during review. Skill outputs (verification log + diagnostic YAML) are NOT modifications of the subject — those are deliverables the skill writes to `$PROJECT_DIR/logs/`. `Edit` is intentionally excluded from `allowed-tools` to enforce subject-read-only at the permission layer
+- [ ] **READ-ONLY enforced (subject spec)**: Subject spec MUST NOT be modified at any point during review. Skill outputs (verification log + diagnostic YAML) are NOT modifications of the subject — those are deliverables the skill writes to `$PROJECT_DIR/logs/`. `Edit` is listed under `disallowed-tools` (and absent from `allowed-tools`) to enforce subject-read-only at the permission layer
 - [ ] **Main Context Orchestration**: Do NOT spawn sub-agents for the verification work — verifier needs full claimed scope; orchestrator needs verdict directly
 - [ ] **Diagnostics**: Diagnostic YAML written to `$PROJECT_DIR/logs/diagnostics/spec-drift-check-{YYYYMMDD-HHMMSS}.yaml`
 - [ ] **Findings + verdict presented to user via AskUserQuestion if STOP_USER_APPROVAL**

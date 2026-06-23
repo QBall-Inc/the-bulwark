@@ -1,5 +1,13 @@
 ---
 name: bulwark-research
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Glob
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.1
 description: Structured multi-viewpoint research using 5 parallel Sonnet sub-agents. Use when deep research is needed on a complex topic before implementation planning.
 user-invocable: true

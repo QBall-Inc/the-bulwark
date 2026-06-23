@@ -2,6 +2,9 @@
 name: issue-debugging
 description: Systematic methodology for issue debugging including root cause analysis, impact mapping, tiered validation plans, and confidence assessment. Use when analyzing bugs, fixing issues, or validating fixes.
 user-invocable: false
+allowed-tools:
+  - Read
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

@@ -2,6 +2,7 @@
 name: governance-protocol
 description: Session governance protocol injected at startup via SessionStart hook
 user-invocable: false
+allowed-tools: []
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

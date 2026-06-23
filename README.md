@@ -30,11 +30,11 @@
 
 ---
 
-## Latest stable release: v1.2.1
+## Latest stable release: v1.3.0
 
-**v1.2.1** (2026-05-17) — Hotfix: hook script executable bit restored. The major bundle was **v1.2.0** — 13+ phases (P10.5 → P10.25) of hardening, observability, and workflow improvements from real-world dogfooding: `SD1` spec-drift enforcement, `init --update` mode, a redesigned Stop hook, `MultiEdit` quality enforcement, the `plan-to-tasks` and `spec-drift-check` skills, and a schema migration across 15+ assets.
+**v1.3.0** (2026-06-23) — *Fewer prompts, sharper reviews.* This release cuts permission-prompt friction and makes code review smarter about what it's reviewing. Every bundled skill and agent now pre-authorizes exactly the tools it needs, so routine operations stop interrupting you for approval. The `code-review` skill is now **language-aware** — it detects each changed file's language and runs only the checks that apply, backed by universal per-language recipes that skip gracefully when a tool isn't installed. And a new **opt-in permission hook** (off by default) can auto-approve tool calls scoped to Bulwark's own bundled files, for users who want an even quieter workflow.
 
-See the [v1.2.1 release notes](https://github.com/QBall-Inc/the-bulwark/releases/tag/v1.2.1) and the full [CHANGELOG](CHANGELOG.md).
+See the [v1.3.0 release notes](https://github.com/QBall-Inc/the-bulwark/releases/tag/v1.3.0) and the full [CHANGELOG](CHANGELOG.md).
 
 ## What is The Bulwark?
 
@@ -150,7 +150,7 @@ Eight hooks run automatically — no manual invocation. All use `${CLAUDE_PLUGIN
 | `track-pipeline-start.sh` | SubagentStart | Logs pipeline invocation metadata for observability. |
 | `track-pipeline-stop.sh` | SubagentStop | Logs pipeline completion metadata for observability. |
 
-Full detail: **[hooks reference](docs/reference/hooks.md)**.
+The Bulwark also ships one **optional, opt-in** hook (off by default) that auto-approves access to its *own* bundled files, so Claude Code stops re-prompting for assets you already trusted at install — handy if you don't run in auto mode. Full detail, safety boundaries, and how to enable it: **[hooks reference](docs/reference/hooks.md)**.
 
 ### Registries & guides
 

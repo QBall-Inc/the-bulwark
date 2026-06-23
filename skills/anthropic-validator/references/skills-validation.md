@@ -47,7 +47,8 @@ Per-asset-type workflow + validation points for **skills** (`SKILL.md` files). L
 | `arguments` | space-separated string OR YAML list | Optional — argument schema |
 | `disable-model-invocation` | boolean | Optional — `true` blocks auto-invocation but keeps `/` invocation working |
 | `user-invocable` | boolean | Optional — controls `/` menu visibility |
-| `allowed-tools` | space-separated string OR YAML list | Optional — **canonical tool restriction field for SKILLS** (NOT `tools`; that field is for AGENTS) |
+| `allowed-tools` | space-separated string OR YAML list | Optional — **pre-authorizes** the listed tools (skips approval prompts while the skill is active); does NOT restrict which tools are available (NOT `tools`; that field is for AGENTS) |
+| `disallowed-tools` | space-separated/comma string OR YAML list | Optional — **the actual tool-restriction field for SKILLS**: removes the listed tools from Claude's available pool while the skill is active (restriction clears on the next user message) |
 | `model` | string | Optional — `haiku`, `sonnet`, `opus` |
 | `agent` | string (subagent name) | Optional — delegate to a named subagent |
 | `effort` | enum: `low`, `medium`, `high`, `xhigh`, `max` | Optional — model effort level |

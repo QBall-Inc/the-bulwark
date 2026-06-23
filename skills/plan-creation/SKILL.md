@@ -6,6 +6,16 @@ user-invocable: true
 argument-hint: "<topic, filepath, or directory> [--doc <path>] [--research <synthesis-file>]"
 skills:
   - subagent-prompting
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Edit
+  - Glob
+  - Grep
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.2
 author: "Ashay Kubal @ Qball Inc."
 ---

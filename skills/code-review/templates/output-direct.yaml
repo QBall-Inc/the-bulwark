@@ -18,6 +18,21 @@ code_review:
     - path/to/file1.ts
     - path/to/file2.ts
 
+  # Language applicability (P10.21) — per-file record of which sections were
+  # applied vs skipped, with detected language + skip rationale. Prevents a
+  # deliberately-skipped section (e.g., Type Safety on bash) from looking like a
+  # miss. `partial` is recorded by suffixing the section (e.g., type_safety_partial).
+  language_applicability:
+    - file: scripts/foo.py
+      detected_language: python
+      sections_applied: [security, type_safety_partial, linting, standards]
+      sections_skipped: []
+    - file: scripts/foo.sh
+      detected_language: bash
+      sections_applied: [security, linting, standards]
+      sections_skipped: [type_safety]
+      skip_rationale: "Bash has no static type system"
+
   # Followup edits expected (P10.22 — consumed by Stop hook grace-window logic).
   # Optional field — declare when this review emitted actionable findings (severity
   # critical or important) on a file and the user is expected to apply fixes within

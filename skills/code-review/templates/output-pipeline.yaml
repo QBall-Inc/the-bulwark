@@ -17,6 +17,23 @@ security_review:  # or type_safety_review, lint_review, standards_review
     - src/auth/token.ts
     - src/api/users.ts
 
+  # Language applicability (P10.21) — this reviewer's per-file decision for ITS
+  # single section. ReviewSynthesizer (Stage 5) aggregates the 4 reviewer logs
+  # into the consolidated language_applicability (sections_applied / sections_skipped)
+  # in the direct-invocation diagnostic.
+  language_applicability:
+    - file: src/api/handler.ts
+      detected_language: typescript
+      section: security
+      decision: applied        # applied | partial | skipped
+    - file: scripts/deploy.sh
+      detected_language: bash
+      section: security
+      decision: applied
+      # A type_safety stage reviewing this bash file would instead record:
+      #   decision: skipped
+      #   skip_rationale: "Bash has no static type system"
+
   # Followup edits expected (P10.22 — consumed by Stop hook grace-window logic).
   # Optional field — emit per-file when this section produced at least one
   # critical or important finding. Subsequent edits to a listed file within

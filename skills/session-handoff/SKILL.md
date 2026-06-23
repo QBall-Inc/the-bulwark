@@ -2,6 +2,10 @@
 name: session-handoff
 description: Create consistent session handoff documents for context transfer between sessions. Use when closing a session, reaching 75% token consumption, or when user requests handoff. Ensures proper YAML headers for metrics collection, LF line endings, and complete documentation of progress, decisions, and next steps.
 user-invocable: true
+allowed-tools:
+  - AskUserQuestion
+  - Read
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

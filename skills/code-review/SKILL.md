@@ -5,7 +5,13 @@ user-invocable: true
 skills:
   - subagent-prompting
   - subagent-output-templating
-version: 1.1.0
+allowed-tools:
+  - Bash
+  - Glob
+  - Grep
+  - Read
+  - Write
+version: 1.2.0
 author: "Ashay Kubal @ Qball Inc."
 ---
 
@@ -43,6 +49,7 @@ This skill references supporting files. Understanding what's required vs optiona
 | **Pattern references** | `references/{section}-patterns.md` | **REQUIRED** | Always load for each enabled section |
 | **Framework patterns** | `frameworks/{detected}.md` | **CONDITIONALLY REQUIRED** | If framework detected → MUST load; if not detected → skip |
 | **Examples** | `examples/anti-patterns/*.ts`, `examples/recommended/*.ts` | OPTIONAL | For calibration on ambiguous cases; kept for model portability |
+| **Diagnostic schema** | `references/diagnostic-schema.md` | **REQUIRED for Phase 3** | When emitting the diagnostic log (full schema, field rules, examples, Stage-5 aggregation) |
 
 **Fallback behavior:**
 - If framework detected → Loading `frameworks/{name}.md` is REQUIRED
@@ -78,21 +85,31 @@ This skill references supporting files. Understanding what's required vs optiona
 **CRITICAL**: All three phases are REQUIRED. Do not skip any phase.
 
 ```
-Phase 1: Static Analysis (Deterministic)
-├── Run: just typecheck → capture output
-├── Run: just lint → capture output
-└── If failures: STOP, return to user (fail fast)
+Phase 1: Static Analysis (Deterministic, language-aware)
+├── For each file in scope, detect language from extension → run matching recipe(s):
+│   ├── .ts/.tsx/.js/.jsx → just typecheck ; just lint
+│   ├── .py               → just typecheck-py ; just lint-py
+│   ├── .sh/.bash         → just lint          (shellcheck)
+│   ├── .json             → just validate-json
+│   ├── .yaml/.yml        → just validate-yaml
+│   └── (other/unknown)   → just typecheck ; just lint  (project default)
+├── Tool present AND reports problems → STOP, return to user (fail fast)
+└── Tool absent (recipe prints "… not installed; skipping") → log warning, continue (graceful degrade)
 
-Phase 2: LLM Review (Judgment-Based)
-├── Load references/{section}-patterns.md for each enabled section (REQUIRED)
+Phase 2: LLM Review (Judgment-Based, applicability-gated)
+├── Detect each file's language (extends Framework Detection — same mechanism, per-file)
+├── For each (section, language): consult the Language Applicability table
+│   ├── ✅ apply normally · partial apply + Caveat · ❌ skip (record skip_rationale)
+├── Load references/{section}-patterns.md for each APPLIED section (REQUIRED)
 ├── If framework detected: Load frameworks/{detected}.md (REQUIRED)
 ├── If no framework detected: Skip framework patterns
-├── Apply each enabled section using loaded patterns
+├── Apply each applied section using loaded patterns
 └── Output findings to user
 
 Phase 3: Write Diagnostic Log (REQUIRED)
 ├── Write to: logs/diagnostics/code-review-{timestamp}.yaml
-├── Include: invocation details, static analysis results, findings summary
+├── Include: invocation details, static analysis results, findings summary,
+│            language_applicability (per-file applied/skipped sections)
 └── This phase is MANDATORY - do not return to user without completing it
 ```
 
@@ -120,6 +137,25 @@ Each section is independently referenceable by pipeline agents via `--section=<n
 | Type Safety | Type system holes | `any`, null, unsafe assertions | Critical-Important |
 | Linting | Style requiring judgment | Complexity, naming, structure | Important-Suggestion |
 | Coding Standards | Conventions & architecture | Patterns, documentation | Important-Suggestion |
+
+### Language Applicability
+
+Not every section applies to every language. Before running a section on a file, detect the file's language (see [Framework Detection](#framework-detection)) and consult this table. This prevents hallucinated findings (e.g., "type safety" on a bash script) and wasted passes.
+
+| Section | TS/JS | Python | Bash | JSON/YAML | Rust | Go | Java/Kotlin | Reason |
+|---------|-------|--------|------|-----------|------|-----|-------------|--------|
+| **Security** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | OWASP concepts are language-agnostic |
+| **Type Safety** | ✅ | partial | ❌ | ❌ | ✅ | ✅ | ✅ | TS/Python/Rust/Go/JVM have type systems; bash + data formats don't |
+| **Linting** | ✅ | ✅ | ✅ if shellcheck | partial | ✅ if clippy | ✅ if golangci-lint | ✅ if ktlint | Always conceptually applicable; tool varies |
+| **Coding Standards** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | CS1–CS4 from Rules.md are language-agnostic |
+
+**Section-selection rule** — for each file in scope:
+1. Detect language from file extension (this extends [Framework Detection](#framework-detection) — same mechanism, file-level granularity).
+2. For each of the 4 sections, look up the (section, language) cell:
+   - **✅** — apply the section normally.
+   - **partial** — apply with reduced scope and attach a `Caveat` to any finding (e.g., Python type hints are optional, not enforced; data formats have schema-shaped structure, not a type system).
+   - **❌** — skip the section; record the file + skipped section in the Phase 3 diagnostic's `language_applicability.sections_skipped` with a `skip_rationale`.
+3. Record applied + skipped sections per file in the Phase 3 diagnostic (`language_applicability` field — see [Diagnostic Output](#diagnostic-output-required)).
 
 ---
 
@@ -298,6 +334,26 @@ fastapi                   → fastapi
 (none of above)           → (no framework)
 ```
 
+### Language Detection (Per-File)
+
+Framework detection above is **project-level** (which `frameworks/{name}.md` to load). Language detection is **file-level**: it drives the Phase 1 recipe to run and the Language Applicability lookup (which sections apply). It **extends** this mechanism — same detection pass, finer granularity — rather than introducing a parallel detection paradigm.
+
+```
+extension                        → language
+──────────────────────────────────────────────
+.ts .tsx .js .jsx .mjs .cjs      → typescript/javascript
+.py .pyi                         → python
+.sh .bash                        → bash
+.json                            → json   (data format)
+.yaml .yml                       → yaml   (data format)
+.rs                              → rust
+.go                              → go
+.java .kt .kts                   → java/kotlin
+(unrecognized)                   → project default (apply all sections)
+```
+
+For each file: detect language → run the matching Phase 1 recipe → gate each section through the [Language Applicability](#language-applicability) table.
+
 ### Override
 Use `--framework=<name>` to override detection.
 
@@ -393,86 +449,13 @@ Write diagnostic output to:
 logs/diagnostics/code-review-{timestamp}.yaml
 ```
 
-Format:
-```yaml
-diagnostic:
-  skill: code-review
-  timestamp: 2026-01-31T12:00:00Z
-  invocation:
-    mode: comprehensive | quick
-    sections_run: [security, type_safety, linting, standards]
-    framework_detected: react
-    framework_override: null
-    files_count: 5
-    lines_total: 450
-  static_analysis:
-    typecheck: passed | failed | skipped
-    lint: passed | failed | skipped
-  findings_summary:
-    critical: 1
-    important: 3
-    suggestion: 5
-  duration_ms: 1200
-# Files reviewed (top-level field — consumed by the Stop hook for per-file
-# pipeline-recursion suppression). MUST be a flat list of paths relative
-# to ${CLAUDE_PROJECT_DIR}. Empty list `[]` is valid if the diagnostic
-# was emitted with no specific file scope. Missing field = strict mode
-# disables suppression for this log.
-reviewed_files:
-  - src/auth/token.ts
-  - src/api/users.ts
+The log MUST include these top-level fields:
+- `diagnostic` — skill / timestamp / invocation / static_analysis / findings_summary.
+- `reviewed_files` — flat list of reviewed paths relative to `${CLAUDE_PROJECT_DIR}` (Stop-hook per-file suppression contract; `[]` is valid, missing field = strict no-suppress).
+- `language_applicability` (P10.21) — per-file `detected_language` + `sections_applied` / `sections_skipped` (+ `skip_rationale`); record `partial` by suffixing the section (e.g. `type_safety_partial`).
+- `followup_edits_expected` (P10.22) — one entry per file with a `critical`/`important` finding; omit or `[]` for suggestions-only runs.
 
-# Followup edits expected (top-level field — consumed by the Stop hook
-# grace-window logic, P10.22). OPTIONAL list-of-mappings. Emit one entry
-# per file that received at least one critical or important finding.
-# Subsequent edits to a listed file within grace_window_seconds of this
-# log being written are treated as pre-covered (no re-fire).
-followup_edits_expected:
-  - file: src/auth/token.ts
-    grace_window_seconds: 1800
-    finding_ids: [SEC-001]
-    rationale: "1 critical (SQL injection); user-applied fix expected within grace window"
-```
-
----
-
-## Followup Edits Expected (Stop Hook Grace Window — P10.22)
-
-**Purpose**: When a code-review run produces actionable findings (severity `critical` or `important`), the user typically applies fixes immediately after reviewing the output. Without this metadata, those fix-edits trigger a fresh Stop hook fire because the pipeline log was written BEFORE the fix-edits — recursion. The `followup_edits_expected` field tells the Stop hook coverage check that edits to the listed files within the grace window are pre-covered.
-
-**When to emit** — emit one entry per file with at least one finding of severity `critical` or `important`. Files with `suggestion`-only findings do NOT need a followup entry (suggestions are cosmetic and user-driven).
-
-**Field schema**:
-- `file` (required) — path relative to `${CLAUDE_PROJECT_DIR}`. Must match exactly the path used in `reviewed_files` for the same file.
-- `grace_window_seconds` (optional, default 1800) — duration in seconds after this log is written during which subsequent edits to the file are treated as covered. 1800 (30 min) accommodates user deliberation + multi-fix application.
-- `finding_ids` (optional, informational) — list of finding identifiers driving the followup expectation. Used for diagnostic clarity; not consulted by coverage logic.
-- `rationale` (optional, informational) — human-readable explanation. Surfaced in diagnostic output.
-
-**When NOT to emit** — if a review pass produces zero `critical` or `important` findings, omit the field entirely (or emit `followup_edits_expected: []`). Suggestions-only output should NOT register followup expectations.
-
-**Example**:
-```yaml
-followup_edits_expected:
-  - file: src/auth/token.ts
-    grace_window_seconds: 1800
-    finding_ids: [SEC-001]
-    rationale: "1 critical SQL injection finding; user-applied fix expected"
-  - file: src/api/users.ts
-    grace_window_seconds: 1800
-    finding_ids: [TYPE-001, SEC-002]
-    rationale: "1 important type-safety + 1 important auth check"
-```
-
-**Pipeline-stage emission**: when code-review runs as a pipeline (`SecurityReviewer |> TypeSafetyReviewer |> LintReviewer |> StandardsReviewer |> ReviewSynthesizer`), each section reviewer emits its own `followup_edits_expected` in its sectional output (per `templates/output-pipeline.yaml`). The orchestrator's Stage 5 ReviewSynthesizer aggregates across all 4 reviewer logs into the consolidated `logs/diagnostics/code-review-{timestamp}.yaml`.
-
-**Stage 5 aggregation algorithm** — consolidate the 4 sectional `followup_edits_expected` lists into one top-level list:
-1. **Group by `file`** (string equality on path). For each unique file mentioned in any of the 4 reviewer logs:
-2. **Union `finding_ids`** across all reviewer entries for that file (deduplicate; preserve order: security first, then type_safety, linting, standards).
-3. **Max `grace_window_seconds`** — take the largest grace window declared by any reviewer for that file. Reviewers with stricter (smaller) windows are subsumed by reviewers with longer windows.
-4. **Concatenate `rationale`** with `; ` separator, prefixed by section name (e.g., `"security: 1 critical (SQL inj); type_safety: 1 important (any usage)"`).
-5. **Skip files with zero entries** — if no reviewer emitted a followup for a file, do not include it in the synthesized list.
-
-Emit the aggregated list as the top-level `followup_edits_expected` field of the synthesis log. The Stop hook's `coverage_check.py:parse_followup_edits_expected()` reads this consolidated field directly; per-reviewer logs are also scanned independently, so partial coverage is preserved if synthesis is skipped.
+**Full schema, field rules, worked examples, and the pipeline Stage-5 aggregation algorithm live in [`references/diagnostic-schema.md`](references/diagnostic-schema.md) — load it when emitting Phase 3 output.**
 
 ---
 

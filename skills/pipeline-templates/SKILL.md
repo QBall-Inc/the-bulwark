@@ -3,6 +3,9 @@ name: pipeline-templates
 description: Pre-defined F# pipe workflows for multi-agent orchestration. Provides code review, fix validation, test audit, new feature, research & planning, and test execution pipelines. Triggered via PostToolUse hook after significant code changes.
 when_to_use: Loaded by the Stop hook (`suggest-pipeline-stop.sh`) when uncovered code/test/script changes accumulate this turn — provides the canonical F# pipe definitions the orchestrator follows when responding to the hook's `decision: block` reason text. Also loadable directly when the orchestrator needs to consult a pipeline definition (e.g., before running Code Review, Test Audit, Fix Validation, New Feature, or Research & Planning workflows).
 user-invocable: false
+allowed-tools:
+  - Read
+  - Skill
 version: 1.0.2
 author: "Ashay Kubal @ Qball Inc."
 ---

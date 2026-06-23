@@ -3,6 +3,12 @@ name: anthropic-validator
 description: Validates Claude Code assets (skills, hooks, agents, commands, MCP servers, plugins) against official Anthropic standards. Fetches latest docs dynamically and produces structured validation reports.
 when_to_use: When validating Claude Code assets (skills, hooks, agents, commands, MCP servers, plugins) against official Anthropic standards before release, after creation, or when auditing for spec compliance.
 user-invocable: true
+allowed-tools:
+  - AskUserQuestion
+  - Glob
+  - Read
+  - Task
+  - Write
 version: 1.1.1
 author: "Ashay Kubal @ Qball Inc."
 ---

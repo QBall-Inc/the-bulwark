@@ -6,6 +6,15 @@ skills:
   - assertion-patterns
   - component-patterns
   - bug-magnet-data
+allowed-tools:
+  - AskUserQuestion
+  - Bash
+  - Glob
+  - Grep
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.1
 author: "Ashay Kubal @ Qball Inc."
 ---

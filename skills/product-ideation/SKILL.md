@@ -5,6 +5,12 @@ user-invocable: true
 argument-hint: "<idea-description> | --doc <path-to-idea-file>"
 skills:
   - subagent-prompting
+allowed-tools:
+  - AskUserQuestion
+  - Read
+  - Skill
+  - Task
+  - Write
 version: 1.0.0
 author: "Ashay Kubal @ Qball Inc."
 ---

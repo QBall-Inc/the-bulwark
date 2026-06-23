@@ -2,6 +2,11 @@
 name: mock-detection
 description: Deep mock appropriateness analysis for Test Audit pipeline
 user-invocable: false
+allowed-tools:
+  - Bash
+  - Read
+  - Task
+  - Write
 version: 1.0.1
 author: "Ashay Kubal @ Qball Inc."
 ---
