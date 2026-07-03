@@ -147,9 +147,17 @@
     "2026-06-30": {
       "count": 5,
       "uniques": 4
+    },
+    "2026-07-01": {
+      "count": 3,
+      "uniques": 3
+    },
+    "2026-07-02": {
+      "count": 8,
+      "uniques": 6
     }
   },
-  "last_updated": "2026-06-30",
+  "last_updated": "2026-07-02",
   "metric": "clones",
   "package": "QBall-Inc/the-bulwark"
 }
