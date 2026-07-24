@@ -235,9 +235,13 @@
     "2026-07-22": {
       "count": 2,
       "uniques": 2
+    },
+    "2026-07-23": {
+      "count": 17,
+      "uniques": 11
     }
   },
-  "last_updated": "2026-07-22",
+  "last_updated": "2026-07-23",
   "metric": "clones",
   "package": "QBall-Inc/the-bulwark"
 }
