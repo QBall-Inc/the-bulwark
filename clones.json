@@ -715,9 +715,13 @@
     "2026-11-19": {
       "count": 34,
       "uniques": 3
+    },
+    "2026-11-20": {
+      "count": 47,
+      "uniques": 11
     }
   },
-  "last_updated": "2026-11-19",
+  "last_updated": "2026-11-20",
   "metric": "clones",
   "package": "QBall-Inc/the-bulwark"
 }
